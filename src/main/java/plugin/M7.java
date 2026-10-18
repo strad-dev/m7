@@ -39,7 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 import java.util.Map;
 
-public final class M7tas extends JavaPlugin {
+public final class M7 extends JavaPlugin {
 	private static Plugin plugin;
 
 	/** Held so {@link #onDisable} can hand back the real inventory an open editor parks in a field. */

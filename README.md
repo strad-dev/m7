@@ -1,5 +1,5 @@
-# M7 Tool-Assissted Speedrun & Practice Map
-This is a Minecraft 26.2 server plugin that simulates Master Mode The Catacombs Floor 7 in Hypixel SkyBlock (specifically version 0.24.5 - Assorted QoL Changes, the last version before pearl patch).  Note that the TAS and any TAS-related features are currently disabled due to a client change in Minecraft 26.1 that renders it obsolete.
+# M7 Practice Map
+This is a Minecraft 26.2 server plugin that simulates Master Mode The Catacombs Floor 7 in Hypixel SkyBlock.
 
 **This is not a client-side mod and cannot be used on the real Hypixel server, nor is it in any way associated or affiliated with Hypixel.**
 
