@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 import org.jspecify.annotations.NonNull;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.ArrayList;
@@ -116,7 +116,7 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		int dealt = 0;
 		for(GoldorTerminal t : terminals) {
 			if(dealt == pool.size()) {
-				M7tas.getInstance().getLogger().warning("Goldor S" + (t.sectionIdx + 1) + " has more than "
+				M7.getInstance().getLogger().warning("Goldor S" + (t.sectionIdx + 1) + " has more than "
 						+ pool.size() + " terminals, so its puzzle types cannot all be distinct.");
 				dealt = 0;
 			}
@@ -597,7 +597,7 @@ public final class GoldorTerminalGui implements InventoryHolder {
 	 * a viewerless chest cancel it; teardown reaches it via {@code GoldorTerminal.cleanup} closing the view.
 	 */
 	private void startMelodyTicker() {
-		melodyTicker = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), this::melodyTick, 1L, 1L);
+		melodyTicker = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), this::melodyTick, 1L, 1L);
 	}
 
 	/** Idempotent; null for every other type. */

@@ -113,7 +113,7 @@ public final class Procs {
 
 	/** One repeating task for every effect, not one per proc. */
 	public static void start() {
-		Bukkit.getScheduler().runTaskTimer(plugin.M7tas.getInstance(), Procs::tick, 1L, 1L);
+		Bukkit.getScheduler().runTaskTimer(plugin.M7.getInstance(), Procs::tick, 1L, 1L);
 	}
 
 	/**

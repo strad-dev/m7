@@ -14,7 +14,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Menus;
 import plugin.Utils;
 
@@ -45,7 +45,7 @@ import java.util.UUID;
  *
  * <h2>Not a listener of its own</h2>
  * {@link AutopetMenu} owns the instance and forwards the three inventory events, so no line in
- * {@code M7tas.onEnable}. One registration for the whole {@code /pets} tree also keeps the open/close ordering
+ * {@code M7.onEnable}. One registration for the whole {@code /pets} tree also keeps the open/close ordering
  * below honest: the same handler sees both windows' closes.
  *
  * <h2>The close always goes back</h2>
@@ -304,8 +304,8 @@ public final class PetPicker {
 		if(!(e.getPlayer() instanceof Player p)) return;
 		SpectatorGuiAccess.uninstall(p);
 		if(swapping.remove(p.getUniqueId())) return; // reopen already in flight
-		if(!M7tas.getInstance().isEnabled()) return;
-		Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> {
+		if(!M7.getInstance().isEnabled()) return;
+		Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
 			if(!p.isOnline()) return;
 			// CRAFTING (or CREATIVE) is Bukkit's "no container open"; anything else arrived while waiting, not ours.
 			InventoryType open = p.getOpenInventory().getType();
@@ -317,7 +317,7 @@ public final class PetPicker {
 	/** Back to the parent menu. Deferred a tick: this view's close has to land first. */
 	private void back(Player p) {
 		swapping.add(p.getUniqueId());
-		Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> {
+		Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
 			if(p.isOnline()) parent.open(p);
 			else swapping.remove(p.getUniqueId()); // left before the reopen; nothing will consume the flag
 		});

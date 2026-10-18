@@ -42,7 +42,7 @@ public final class PuzzleQuiz {
 	};
 	/** Q3 for the non-bald player: A/B swapped so B ("No") is still correct. */
 	private static final String[] ANSWERS_NOT_BALD = {"Yes", "No", "Decline to Answer"};
-	/** Matched against {@link Utils#getRealName(Player)}, so the Mage1 fake counts. */
+	/** Matched against {@link Utils#getRealName(Player)}. */
 	private static final String NOT_BALD = "Beethoven_";
 	/** Q3 subject if no opener was recorded. Shouldn't happen: the quiz starts on entry. */
 	private static final String FALLBACK_OPENER = "akc0303";

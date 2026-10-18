@@ -1,6 +1,5 @@
 package instructions.clear;
 
-import commands.Spectate;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -13,8 +12,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import plugin.FakePlayerInventory;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.awt.Color;
@@ -25,7 +23,7 @@ import java.util.List;
  * Clear-phase controller: per-run state (secrets, checkmarks, bonus counters, blessing tally, score), secret
  * entity spawn/teardown, per-tick HUD + minimap + item pickup, and the score for the end-of-run scoreboard.
  *
- * <p>Entry points take any {@link Player} (real or fake) and scoring is team-wide, so TAS v3 fakes can drive it.
+ * <p>Entry points take any {@link Player} and scoring is team-wide.
  */
 public final class ClearManager {
 	private ClearManager() {
@@ -140,7 +138,7 @@ public final class ClearManager {
 		exploreRoom(Rooms.byName("Red Blue")); // entrance room starts explored
 		giveMaps();
 		if(tickTask != null) tickTask.cancel();
-		tickTask = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), ClearManager::tick, 1L, 1L);
+		tickTask = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), ClearManager::tick, 1L, 1L);
 		// Empty opening tally: listeners show a display from the start, and it tells "collected nothing" apart from
 		// "no clear phase".
 		publishBlessings();
@@ -321,7 +319,7 @@ public final class ClearManager {
 
 	// ==================== per-tick loop ====================
 
-	/** Includes fakes, so a TAS run reveals as they clear; spectator-mode viewers don't reveal. */
+	/** Spectator-mode viewers don't reveal. */
 	private static void markExploration() {
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(p.getGameMode() == GameMode.SPECTATOR) continue;
@@ -352,8 +350,7 @@ public final class ClearManager {
 		}
 		// Spectators aren't in realPlayers() but still get the bar.
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
-			if(p.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(p)) updateActionBar(p);
+			if(p.getGameMode() == GameMode.SPECTATOR) updateActionBar(p);
 		}
 		// Wizard has no miniboss: white check on first entry.
 		if(!Rooms.WIZARD.cleared) {
@@ -780,7 +777,7 @@ public final class ClearManager {
 
 	// ==================== helpers ====================
 
-	/** Non-spectator, non-fake: get HUD and map, collect secrets. */
+	/** Non-spectator: get HUD and map, collect secrets. */
 	public static List<Player> realPlayers() {
 		List<Player> out = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
@@ -795,9 +792,7 @@ public final class ClearManager {
 	 */
 	public static boolean isRealPlayer(Player p) {
 		if(p == null) return false;
-		if(p.getGameMode() == GameMode.SPECTATOR) return false;
-		if(Spectate.isSpectating(p)) return false;
-		return !FakePlayerManager.getFakePlayers().containsValue(p);
+		return p.getGameMode() != GameMode.SPECTATOR;
 	}
 
 	private static final Set<Material> ESSENCE_SKULLS =

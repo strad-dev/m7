@@ -11,7 +11,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.util.HashSet;
 import java.util.List;
@@ -149,6 +149,6 @@ public final class FlamingFlay implements Weapon, AbilityItem {
 					cancel();
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 }

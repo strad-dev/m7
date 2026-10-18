@@ -4,12 +4,12 @@ import instructions.bosses.storm.PadAndPillar;
 import org.bukkit.World;
 import plugin.Utils;
 
-/** Wither-boss helpers not owned by one {@link WitherLord} subclass, e.g. the Storm pillar restore on every {@code /tas}. */
+/** Wither-boss helpers not owned by one {@link WitherLord} subclass, e.g. the Storm pillar restore on every run. */
 public final class WitherSpawn {
 	private WitherSpawn() {}
 
 	/**
-	 * Restores the three active Storm pillars to y175..y196, air at y169..y174. Runs on every {@code /tas} setup,
+	 * Restores the three active Storm pillars to y175..y196, air at y169..y174. Runs on every run setup,
 	 * not just Storm's start, so the world resets across all runs. Air-clears y169..y175 (a pillar left
 	 * over-extended), then clones down from the y196 anchor, doubling each pass: ~5 clones instead of 21.
 	 */

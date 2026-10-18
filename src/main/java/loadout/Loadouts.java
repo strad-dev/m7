@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import plugin.Catalog;
 import plugin.ItemSerial;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -65,7 +65,7 @@ public final class Loadouts {
 				}
 			}
 		} catch(Exception e) {
-			M7tas.getInstance().getLogger().warning("Failed to read loadout for " + uuid + ": " + e);
+			M7.getInstance().getLogger().warning("Failed to read loadout for " + uuid + ": " + e);
 		}
 		if(f == null) f = new LoadoutFile();
 		if(f.perClass == null) f.perClass = new LinkedHashMap<>();
@@ -87,7 +87,7 @@ public final class Loadouts {
 				Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch(Exception e) {
-			M7tas.getInstance().getLogger().warning("Failed to save loadout for " + uuid + ": " + e);
+			M7.getInstance().getLogger().warning("Failed to save loadout for " + uuid + ": " + e);
 		}
 	}
 
@@ -191,7 +191,7 @@ public final class Loadouts {
 	public static void applySwingRange(Player p) {
 		var attr = p.getAttribute(org.bukkit.attribute.Attribute.ENTITY_INTERACTION_RANGE);
 		if(attr == null) return;
-		org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(M7tas.getInstance(), "swing_range");
+		org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(M7.getInstance(), "swing_range");
 		attr.removeModifier(new org.bukkit.attribute.AttributeModifier(key, 0,
 				org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
 				org.bukkit.inventory.EquipmentSlotGroup.ANY));

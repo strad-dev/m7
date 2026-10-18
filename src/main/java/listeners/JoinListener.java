@@ -24,7 +24,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import plugin.FakePlayerManager;
 
 import java.lang.reflect.Field;
 
@@ -36,68 +35,20 @@ public class JoinListener implements Listener {
 		// interceptor install) and must not be tracked. A network-warped practicer joins and on the SAME tick
 		// M7Bridge dispatches /m7practice -> runPractice -> Utils.cancelAllScheduled(), which would cancel this
 		// pending task and leave no interceptor (no drop abilities, bow release or mob-melee mage beam).
-		Bukkit.getScheduler().runTaskLater(plugin.M7tas.getInstance(), () -> {
+		Bukkit.getScheduler().runTaskLater(plugin.M7.getInstance(), () -> {
 			Player joiningPlayer = ev.getPlayer();
 
 			applyPlayerSetup(joiningPlayer);
 
-			if (!FakePlayerManager.getFakePlayers().containsValue(joiningPlayer)) {
-				try {
-					Channel ch = getChannel(joiningPlayer);
-					if (ch.pipeline().get("tas_interceptor") == null)
-						ch.pipeline().addBefore("packet_handler", "tas_interceptor",
-								new PlayerPacketInterceptor(joiningPlayer));
-				} catch (Exception ex) {
-					Bukkit.getLogger().warning("[M7TAS] Could not inject interceptor for "
-							+ joiningPlayer.getName() + ": " + ex.getMessage());
-				}
+			try {
+				Channel ch = getChannel(joiningPlayer);
+				if (ch.pipeline().get("tas_interceptor") == null)
+					ch.pipeline().addBefore("packet_handler", "tas_interceptor",
+							new PlayerPacketInterceptor(joiningPlayer));
+			} catch (Exception ex) {
+				Bukkit.getLogger().warning("[M7] Could not inject interceptor for "
+						+ joiningPlayer.getName() + ": " + ex.getMessage());
 			}
-
-			// TAS-only: re-send fake-player spawn packets to joiners.  Disabled in the practice fork, since there are no fakes.
-//			ServerGamePacketListenerImpl conn = ((CraftPlayer) joiningPlayer).getHandle().connection;              // PlayerConnection
-//
-//			// Re-send each fake NPC’s “add + spawn” packets just to this connection:
-//			for(Player fake : FakePlayerManager.getFakePlayers().values()) {
-//				// 1) NMS handles
-//				ServerPlayer npc = ((CraftPlayer) fake).getHandle();
-//				ServerLevel world = ((CraftWorld) Objects.requireNonNull(fake.getWorld())).getHandle();
-//
-//				ServerEntity entry = new ServerEntity(world, npc, 0, false,
-//						new ServerEntity.Synchronizer() {
-//							@Override
-//							public void sendToTrackingPlayers(Packet<? super ClientGamePacketListener> packet) {
-//								// No-op for fake players
-//							}
-//
-//							@Override
-//							public void sendToTrackingPlayersAndSelf(Packet<? super ClientGamePacketListener> packet) {
-//								// No-op for fake players
-//							}
-//
-//							@Override
-//							public void sendToTrackingPlayersFiltered(Packet<? super ClientGamePacketListener> packet,
-//																	  Predicate<ServerPlayer> filter) {
-//								// No-op for fake players
-//							}
-//
-//							@Override
-//							public void sendToTrackingPlayersFilteredAndSelf(Packet<? super ClientGamePacketListener> packet,
-//																			 Predicate<ServerPlayer> filter) {
-//								// No-op for fake players
-//							}
-//						}, new HashSet<>());
-//
-//				// 2) Build the “ADD_PLAYER” info packet
-//				EnumSet<ClientboundPlayerInfoUpdatePacket.Action> addAction = EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER);
-//				ClientboundPlayerInfoUpdatePacket addPkt = new ClientboundPlayerInfoUpdatePacket(addAction, List.of(npc));
-//
-//				// 3) Build the spawn packet (uses the same entry you used at creation)
-//				ClientboundAddEntityPacket spawnPkt = new ClientboundAddEntityPacket(npc, entry);
-//
-//				// 4) Send JUST to the joining player
-//				conn.send(addPkt);
-//				conn.send(spawnPkt);
-//			}
 
 			BossBar activeBossBar = CustomBossBar.getActiveBossBar();
 			Wither activeWither = CustomBossBar.getActiveWither();
@@ -164,13 +115,10 @@ public class JoinListener implements Listener {
 		var breakSpeed = p.getAttribute(Attribute.BLOCK_BREAK_SPEED);
 		if(breakSpeed != null) breakSpeed.setBaseValue(1024);
 
-		// No-collision team so players don't push each other or the fakes.
+		// No-collision team so players don't push each other.
 		plugin.PlayerCollision.addToNoCollisionTeam(p);
 
-		// Real players get their Max Speed (MaxSpeedSync); fakes are script-managed.
-		if(!FakePlayerManager.getFakePlayers().containsValue(p)) {
-			plugin.MaxSpeedSync.initSpeed(p);
-		}
+		plugin.MaxSpeedSync.initSpeed(p);
 	}
 
 	/** This plugin's "spawn": in the Start room facing the first door. World spawn is above the map; never use it. */
@@ -184,7 +132,6 @@ public class JoinListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onJoinSpawn(PlayerJoinEvent ev) {
 		Player jp = ev.getPlayer();
-		if (FakePlayerManager.getFakePlayers().containsValue(jp)) return; // never the fakes
 		if (jp.getGameMode() == GameMode.SPECTATOR) return;              // don't yank spectators
 		Location entrance = dungeonEntrance();
 		if (entrance != null) jp.teleport(entrance);
@@ -195,11 +142,10 @@ public class JoinListener implements Listener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent ev) {
 		Player p = ev.getPlayer();
-		if (FakePlayerManager.getFakePlayers().containsValue(p)) return;
 		Location entrance = dungeonEntrance();
 		if (entrance != null) ev.setRespawnLocation(entrance);
 		// Raw runTaskLater as in onJoin, and it must run after the respawn has placed the new player.
-		Bukkit.getScheduler().runTaskLater(plugin.M7tas.getInstance(), () -> {
+		Bukkit.getScheduler().runTaskLater(plugin.M7.getInstance(), () -> {
 			if (p.isOnline()) applyPlayerSetup(p);
 		}, 1L);
 	}
@@ -207,7 +153,6 @@ public class JoinListener implements Listener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent ev) {
 		Player p = ev.getPlayer();
-		if (FakePlayerManager.getFakePlayers().containsValue(p)) return;
 		// Bank them on the run roster now, the last moment they're readable, or the group size shrinks under the
 		// survivors (a duo losing a player at 64s used to record a 65s solo). No-op outside a run.
 		instructions.bosses.WitherActions.noteInRun(p);

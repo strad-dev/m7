@@ -26,7 +26,7 @@ import java.util.UUID;
  * <p>
  * No mode branch: {@code damage.Pet.forPlayer} already answers "assumed from the hat" or "what they summoned".
  * <p>
- * Per-tick poll, since vanilla helmet swaps and the four autopet triggers call nothing. Fakes are skipped. Applied
+ * Per-tick poll, since vanilla helmet swaps and the four autopet triggers call nothing. Applied
  * only on a transition so {@code /setspeed} survives; a {@code /dungeonsettings} change
  * reads as an ordinary transition.
  * <p>
@@ -53,7 +53,6 @@ public final class MaxSpeedSync {
 			@Override
 			public void run() {
 				for(Player p : Bukkit.getOnlinePlayers()) {
-					if(FakePlayerManager.getFakePlayers().containsValue(p)) continue; // fakes are script-managed
 					int now = maxSpeed(p);
 					Integer prev = lastMaxSpeed.put(p.getUniqueId(), now);
 					// Transitions only, never first observation, so a manual speed survives.
@@ -69,10 +68,10 @@ public final class MaxSpeedSync {
 					}
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
-	/** The sum in the class note. Public for {@code instructions/Actions.swapItems}'s fake helmet swap: one formula. */
+	/** The sum in the class note. Public so mc-tas-lang's fake helmet swap uses the same formula. */
 	public static int maxSpeed(Player p) {
 		int total = BASE_MAX_SPEED + ALPHA_SHARD;
 		// MELEE is a placeholder, as in StatLore: the assumed table branches on path only after the hat check, and

@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Menus;
 import plugin.Utils;
 
@@ -33,7 +33,7 @@ import java.util.List;
  * <p>
  * Every click is cancelled: click target, not an inventory.
  * <p>
- * Registered as a listener by {@code M7tas.onEnable} via {@code petMenu.autopetMenu()}, and forwards the three
+ * Registered as a listener by {@code M7.onEnable} via {@code petMenu.autopetMenu()}, and forwards the three
  * inventory events to its picker, so {@link PetPicker} needs no registration of its own.
  */
 public final class AutopetMenu implements Listener {
@@ -125,7 +125,7 @@ public final class AutopetMenu implements Listener {
 		if(slot == BACK_SLOT) {
 			// Deferred a tick like every view swap: this window's close has to land first. Outside the live modes, back to
 			// arranging, since the summoning half would summon.
-			Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> parent.open(p, !Difficulty.manualPets()));
+			Bukkit.getScheduler().runTask(M7.getInstance(), () -> parent.open(p, !Difficulty.manualPets()));
 			return;
 		}
 		for(int i = 0; i < TRIGGER_SLOTS.length && i < Autopet.Trigger.values().length; i++) {
@@ -135,7 +135,7 @@ public final class AutopetMenu implements Listener {
 			PetPicker.Mode mode = t.isCycle() ? PetPicker.Mode.CYCLE
 					: e.isRightClick() ? PetPicker.Mode.EXCEPTIONS : PetPicker.Mode.PET;
 			// Deferred a tick, same reason.
-			Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> picker.open(p, t, mode));
+			Bukkit.getScheduler().runTask(M7.getInstance(), () -> picker.open(p, t, mode));
 			return;
 		}
 	}

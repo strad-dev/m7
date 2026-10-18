@@ -143,7 +143,7 @@ public final class Terminator implements Bow, AbilityItem {
 
 	/**
 	 * Per tick: anyone with a click since their last shot fires at the first tick at or after
-	 * {@code lastFire + cooldown}. Anchored to the first shot. Started from {@link plugin.M7tas}.
+	 * {@code lastFire + cooldown}. Anchored to the first shot. Started from {@link plugin.M7}.
 	 */
 	public static void pollAll() {
 		int now = MinecraftServer.currentTick;

@@ -8,7 +8,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Wither;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.List;
@@ -33,8 +33,6 @@ public abstract class WitherLord {
 	protected BukkitTask tickerTask;
 	protected boolean dying;
 	protected boolean doContinue;
-	/** Player-side transition, run from {@link #chainNext} the tick this boss chains. Armed by TAS.runTAS. */
-	protected Runnable playerHandoff;
 
 	/** Fresh fight: clears the previous one, spawns the boss, then {@link #onStart()}. */
 	public final void start(World w, boolean doContinue) {
@@ -68,7 +66,7 @@ public abstract class WitherLord {
 	/**
 	 * The cleanup {@link #start} does up front, run now so the gap between runs is inactive. Callers:
 	 * {@code Server.serverInstructions} (a still-active phase rejected the new run's pre-fired sharpshooter arrows as
-	 * "device already activated") and {@code TAS.endPractice} (nothing else calls {@code resetState}, so an early end
+	 * "device already activated") and {@code Practice.endPractice} (nothing else calls {@code resetState}, so an early end
 	 * left Goldor's gates up and every boss's flags set).
 	 */
 	public final void forceEndPhase() {
@@ -106,7 +104,7 @@ public abstract class WitherLord {
 	}
 
 	private void startTicker() {
-		tickerTask = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> tick++, 0L, 1L);
+		tickerTask = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> tick++, 0L, 1L);
 	}
 
 	/**
@@ -131,9 +129,6 @@ public abstract class WitherLord {
 
 	/** Internal HP, the {@code MobStats} {@code internalHealth()}. {@link #spawn()} formats the display HP from it. */
 	protected abstract double maxHealth();
-
-	/** PRE_<NAME>_TICKS offset for {@link #formatTick(int)}'s overall column. */
-	protected abstract int previousTicks();
 
 	/**
 	 * Clamps one hit in Minecraft health; returns what's allowed, 0 = blocked. {@code damage.Damage.deal} calls it
@@ -165,14 +160,9 @@ public abstract class WitherLord {
 	}
 
 	protected final String formatTick(int t) {
-		int overall = overallTick(t);
+		int overall = Utils.runTick();
 		return "<green>" + String.format("%s ticks (%.2f seconds) | Overall: %s ticks (%.2f seconds)",
 				formatWithSpaces(t), t / 20.0, formatWithSpaces(overall), overall / 20.0);
-	}
-
-	/** Practice: the live run timer (no prior phases ran). Otherwise {@code phaseT + previousTicks()}. */
-	protected final int overallTick(int phaseT) {
-		return WitherActions.isPracticeMode() ? Utils.runTick() : phaseT + previousTicks();
 	}
 
 	protected static String formatWithSpaces(int n) {
@@ -200,16 +190,6 @@ public abstract class WitherLord {
 
 	protected final void clearAggro() {
 		WitherActions.clearWitherAggro(boss);
-	}
-
-	/** See {@link #runPlayerHandoff}. Armed by TAS.runTAS. */
-	public final void armPlayerHandoff(Runnable handoff) {
-		this.playerHandoff = handoff;
-	}
-
-	/** Called from {@link #chainNext} the tick the next boss spawns. */
-	protected final void runPlayerHandoff() {
-		if(playerHandoff != null) playerHandoff.run();
 	}
 
 	// --- Find the WitherLord that owns a wither entity ---

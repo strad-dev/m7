@@ -104,10 +104,10 @@ public final class Catalog {
 
 			Path file = dataDir().resolve("m7-item-catalog.json");
 			save(file, f);
-			M7tas.getInstance().getLogger().info("Exported M7 item catalog (" + f.palette.size()
+			M7.getInstance().getLogger().info("Exported M7 item catalog (" + f.palette.size()
 					+ " palette items) to " + file);
 		} catch (Exception e) {
-			M7tas.getInstance().getLogger().warning("Failed to export M7 item catalog: " + e);
+			M7.getInstance().getLogger().warning("Failed to export M7 item catalog: " + e);
 		}
 	}
 
@@ -240,7 +240,7 @@ public final class Catalog {
 			"Precise Death Bow");
 
 	/**
-	 * Boot self-check of the three places an item's identity is written, called from {@code M7tas.onEnable} before
+	 * Boot self-check of the three places an item's identity is written, called from {@code M7.onEnable} before
 	 * the export. Catches two silent failures:
 	 * <ul>
 	 *   <li>a variant missing from {@link #PALETTE_ORDER} quietly sorts to the tail, and a short block shifts every
@@ -253,7 +253,7 @@ public final class Catalog {
 	public static void verify() {
 		// The one exemption: the SkyBlock Menu is withheld from the editor.
 		final String HIDDEN = items.util.SkyblockMenu.INSTANCE.displayName();
-		java.util.logging.Logger log = M7tas.getInstance().getLogger();
+		java.util.logging.Logger log = M7.getInstance().getLogger();
 		int problems = 0;
 		for (Item item : ItemRegistry.ALL) {
 			for (ReforgeId reforge : item.reforges()) {
@@ -326,7 +326,7 @@ public final class Catalog {
 
 	/** {@code <server>/../data}, the network Config default. */
 	public static Path dataDir() throws Exception {
-		Path dir = M7tas.getInstance().getServer().getWorldContainer().toPath().resolve("../data").normalize();
+		Path dir = M7.getInstance().getServer().getWorldContainer().toPath().resolve("../data").normalize();
 		Files.createDirectories(dir);
 		return dir;
 	}

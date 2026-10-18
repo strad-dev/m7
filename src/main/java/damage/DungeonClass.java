@@ -7,23 +7,18 @@ import org.bukkit.entity.Player;
 /**
  * Decides equipment set (§1.11), Accessory Power (§1.12) and class bonuses (§1.14).
  * <p>
- * Mirrors {@code items.ItemUtils.isMageClass}: real players carry a class scoreboard tag from {@code /class}; fakes
- * carry none and go by name (every {@code Mage*} fake is a Mage).
+ * Mirrors {@code items.ItemUtils.isMageClass}: players carry a class scoreboard tag from {@code /class}.
  */
 public enum DungeonClass {
 	MAGE, ARCHER, BERSERK, HEALER, TANK;
 
 	/**
-	 * Scoreboard tag wins, then NAME prefix (fakes {@code Mage1}-{@code Mage4}, {@code Archer}). Defaults to MAGE,
-	 * like the beam gate every other class check falls back to.
+	 * By scoreboard tag. Defaults to MAGE, like the beam gate every other class check falls back to.
 	 */
 	public static DungeonClass of(Player p) {
 		if(p == null) return MAGE;
 		for(DungeonClass c : values()) {
 			if(p.getScoreboardTags().contains(name(c))) return c;
-		}
-		for(DungeonClass c : values()) {
-			if(p.getName().startsWith(name(c))) return c;
 		}
 		return MAGE;
 	}

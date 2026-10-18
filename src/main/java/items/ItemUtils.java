@@ -30,7 +30,7 @@ import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.PlayerCollision;
 import plugin.Utils;
 
@@ -313,7 +313,7 @@ public final class ItemUtils {
 		pendingBlockRestorations.putAll(stored);
 		if(mob != null) pendingCryptMobs.add(mob);
 		BukkitTask[] holder = new BukkitTask[1];
-		holder[0] = Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+		holder[0] = Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 			for(Map.Entry<Location, BlockData> entry : stored.entrySet()) {
 				entry.getKey().getBlock().setBlockData(entry.getValue(), false);
 				pendingBlockRestorations.remove(entry.getKey());
@@ -398,7 +398,7 @@ public final class ItemUtils {
 		Utils.playLocalSound(p, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
 		pendingBlockRestorations.putAll(original);
 		BukkitTask[] holder = new BukkitTask[1];
-		holder[0] = Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+		holder[0] = Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 			for(Map.Entry<Location, BlockData> entry : original.entrySet()) {
 				entry.getKey().getBlock().setBlockData(entry.getValue(), false);
 				pendingBlockRestorations.remove(entry.getKey());
@@ -480,7 +480,7 @@ public final class ItemUtils {
 				next.setDirection(velocity);
 				carrier.teleport(next);
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	/**
@@ -542,7 +542,7 @@ public final class ItemUtils {
 
 			b.setType(Material.AIR, false); // no-physics: attached neighbours (carpets, portals, …) don't pop off
 			pendingStonkRestorations.put(loc, data);
-			BukkitTask task = Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+			BukkitTask task = Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 				// No physics, like every restore: with it a carpet whose support was also stonked pops off for good,
 				// and the six neighbours get re-shaped. setBlockData carries the material.
 				b.setBlockData(data, false);
@@ -695,18 +695,12 @@ public final class ItemUtils {
 
 				distance++;
 			}
-		}.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+		}.runTaskTimer(M7.getInstance(), 1L, 1L);
 	}
 
-	/** True if {@code p} is the Mage CLASS (drives cooldown reduction). Real players carry a class tag from /class;
-	*  fakes have none and go by name. All four "MageN" fakes are mechanically mages, even the ones playing
-	*  Tank/Berserk/Healer's role. */
+	/** True if {@code p} is the Mage CLASS (drives cooldown reduction), by the class tag from /class. */
 	public static boolean isMageClass(Player p) {
-		if(p.getScoreboardTags().contains("Mage")) return true;
-		for(String other : new String[]{"Archer", "Berserk", "Healer", "Tank"}) {
-			if(p.getScoreboardTags().contains(other)) return false;
-		}
-		return p.getName().startsWith("Mage");
+		return p.getScoreboardTags().contains("Mage");
 	}
 
 	/** Mage cooldown reduction: a SOLO mage gets -75%, two or more mages -50%. Non-mages unchanged. Not used for
@@ -723,14 +717,6 @@ public final class ItemUtils {
 	public static void sendCooldownMessage(Player p, int ticksRemaining) {
 		String format = String.format("%.2f", Math.max(0, ticksRemaining) / 20.0);
 		p.sendMessage(Utils.msg("<red>This ability is on cooldown for " + format + " seconds!"));
-		// In a TAS run (not practice) this means the choreography mistimed it, so log it. Verbose only.
-		if(!instructions.bosses.WitherActions.isPracticeMode() && Utils.isVerbose()) {
-			ItemStack held = p.getInventory().getItemInMainHand();
-			String ability = held.hasItemMeta() && held.getItemMeta().hasDisplayName()
-					? Utils.displayName(held.getItemMeta()) : String.valueOf(held.getType());
-			Utils.debug(Utils.DebugType.ERROR, Utils.getRealName(p) + " tried to use " + ability + Utils.mmLegacy("<red>")
-					+ " on cooldown (" + Math.max(0, ticksRemaining) + "t / " + format + "s left)");
-		}
 	}
 
 	/**
@@ -774,8 +760,7 @@ public final class ItemUtils {
 		// so it lands on the crosshair and still leaves the hand, like Hypixel.
 		//
 		// Replaces casting the ray from the hand along the look direction, which left the trail parallel to the
-		// crosshair, ~0.31 right and ~0.81 down, so it never went where you aimed. This also matches
-		// Actions.mageBeamWouldHit (fake-player fire gate), which aims from the eye.
+		// crosshair, ~0.31 right and ~0.81 down, so it never went where you aimed.
 		//
 		// Only the ENDPOINT is shared: a mob on the hand-to-target segment but off the crosshair ray is crossed
 		// without being hit. MAGE_BEAM_LENIENCY (0.5 per face) absorbs that.

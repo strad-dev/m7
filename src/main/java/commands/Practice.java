@@ -1,5 +1,13 @@
 package commands;
 
+import instructions.Actions;
+import instructions.Server;
+import instructions.bosses.Watcher;
+import instructions.bosses.WitherActions;
+import instructions.bosses.goldor.Goldor;
+import instructions.bosses.maxor.Maxor;
+import instructions.bosses.necron.Necron;
+import instructions.bosses.storm.Storm;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -10,6 +18,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jspecify.annotations.NonNull;
+import plugin.BossScheduler;
+import plugin.MovementAudit;
 import plugin.Utils;
 
 import java.util.ArrayList;
@@ -25,12 +35,11 @@ import java.util.Map;
  * 3. "--no-teleport" skips the teleport. Bare "classic"/"perfect_rng"/"rta" sets the damage mode (MAP.md §0),
  *    a damage.Mayor id the mayor, "on"/"off" Fix Watcher Bug, "badbonzo=on"/"badbonzo=off" Bad Bonzo; omitted,
  *    current settings stand, so standalone keeps whatever /dungeonsettings set. The network always sends all four.
- * 4. Runs the same boss and server instructions as /tas, WITHOUT fake-player routines, handoffs or spectator
- *    sync. Pre-run delay is 60 ticks (3s); a bare integer overrides it: the network sends
- *    "m7tas:m7practice <section> 400" for a 20s window. See Server.serverInstructions.
+ * 4. Runs the boss and server instructions. Pre-run delay is 60 ticks (3s); a bare integer overrides it: the network sends
+ *    "m7:m7practice <section> 400" for a 20s window. See Server.serverInstructions.
  *
  * On the network the bare /m7practice label is StradDevHub's queue command (alias of /m7, force-claimed at boot),
- * so this is only reachable as /m7tas:m7practice, which M7Bridge dispatches and blocks players from typing.
+ * so this is only reachable as /m7:m7practice, which M7Bridge dispatches and blocks players from typing.
  * Standalone, the bare label is ours.
  */
 public class Practice implements CommandExecutor {
@@ -53,7 +62,7 @@ public class Practice implements CommandExecutor {
 		}
 
 		if(args.length >= 1 && args[0].equalsIgnoreCase("end")) {
-			TAS.endPractice(p.getWorld());
+			endPractice(p.getWorld());
 			p.sendMessage(Utils.msg("<yellow>Practice session ended"));
 			return true;
 		}
@@ -100,11 +109,11 @@ public class Practice implements CommandExecutor {
 
 		World world = p.getWorld();
 
-		// Participants: online and not spectating by either route (vanilla spectator, the idle state on networked
-		// m7, or our /spectate). Shared by class check, kit hand-out and teleport so all three agree.
+		// Participants: online and not in spectator (the idle state on networked m7). Shared by class check, kit
+		// hand-out and teleport so all three agree.
 		List<Player> participants = new ArrayList<>();
 		for(Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
-			if(online.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(online)) continue;
+			if(online.getGameMode() == GameMode.SPECTATOR) continue;
 			participants.add(online);
 		}
 
@@ -144,7 +153,7 @@ public class Practice implements CommandExecutor {
 
 		// Set BEFORE the run arms: debuff, defense reducer and blessing lookups read damage.Difficulty live, and
 		// RunResult.capture stamps it at completion, so this picks the leaderboard. Also decides whether death is
-		// on, which TAS.runPractice reads when clearing death state.
+		// on, which runPractice reads when clearing death state.
 		if(difficulty != null) damage.Difficulty.set(difficulty);
 		// Mayor too, and it matters more: mob HP is written once at spawn, so it must be right before anything spawns.
 		if(mayorArg != null) damage.Mayor.set(mayorArg);
@@ -158,7 +167,121 @@ public class Practice implements CommandExecutor {
 					+ "<red>This run is not valid for the Clear or Full Run leaderboards."));
 		}
 
-		TAS.runPractice(world, section, delayTicks);
+		runPractice(world, section, delayTicks);
 		return true;
+	}
+
+	/**
+	 * Boss and server instructions. Bosses chain ({@code /m7practice boss} runs Maxor→Storm→Goldor→Necron) via each
+	 * boss's chainNext.
+	 */
+	public static void runPractice(World world, String section) {
+		runPractice(world, section, 60);
+	}
+
+	/**
+	 * @param delayTicks pre-run window before the section starts (default 60 = 3s; network passes 400 = 20s when
+	 *   it warps a party in). Forwarded to {@link Server#serverInstructions}.
+	 */
+	public static void runPractice(World world, String section, int delayTicks) {
+		WitherActions.setPracticeMode(true);
+		// Clear previous run's splits; this run records its own for the Wither King scoreboard.
+		WitherActions.clearSplits();
+		// Section + fresh run id, so this run's reports (300-score milestone, run-complete payload) match up.
+		WitherActions.startRunTracking(section);
+		// Game-mode-change tracking (practice scoreboard's golden-name anti-cheat).
+		WitherActions.clearGameModeChanges();
+		listeners.CustomItems.resetBerserkDamage();
+		listeners.CustomItems.resetTerminatorCooldowns();
+		// Class-ability (drop) cooldowns.
+		listeners.CustomItems.resetAbilityCooldowns();
+		// Per-run crypt-farm guard.
+		items.ItemUtils.resetCrypts();
+		// No ghosts or cheat-death cooldowns from a previous run.
+		death.Deaths.reset();
+
+		// Cancel choreography left from a previous run.
+		Utils.cancelAllScheduled();
+		Watcher.INSTANCE.arm(world, section.equals("all"));
+
+		// Overall-run timer anchors at first boss spawn ("Overall" column reads it).
+		Utils.markRunStart();
+		MovementAudit.cancelAll();
+		Actions.cancelAllMovement();
+		// Purge strays a prior (maybe aborted) run leaked. BEFORE serverSetup (minibosses) and serverInstructions
+		// (bosses) so it never nukes this run's spawns, same order as /reset and /setup. Catches untracked withers
+		// and crystals that serverSetup's forceCleanups miss, since those only free tracked refs.
+		Server.hardMobCleanup();
+		Server.serverSetup(world);
+		Server.serverInstructions(world, section, delayTicks);
+	}
+
+	/**
+	 * Cancel the practice session: stop choreography + movement, disarm the boss chain, practice mode off, clear
+	 * boss entities.
+	 */
+	public static void endPractice(World world) {
+		endPractice(world, true);
+	}
+
+	/**
+	 * @param toSpectator drop everyone into spectator (m7's idle state) at the end. Only {@code death/Deaths}' party
+	 *   wipe passes false: it already placed the party and set their game mode, and flipping here would flicker.
+	 *   Network is unaffected: it dispatches this as a command (always flips) and
+	 *   {@code M7Bridge.resetToSpectators} re-asserts spectator right after.
+	 */
+	public static void endPractice(World world, boolean toSpectator) {
+		// FIRST: bank what the party finished. A cancelled, timed-out, force-ended or abandoned run has no ending
+		// to report, so otherwise the splits and clear milestones it reached are lost. No-op if already reported
+		// (win, wipe, Storm fail). Must precede setPracticeMode(false) (signalRunComplete won't fire outside
+		// practice mode), ClearManager.stop and the spectator flip, which destroy what the result reads.
+		WitherActions.signalRunAbandoned();
+		WitherActions.setPracticeMode(false);
+		// Before the spectator flip, so a pending revival can't fight it and mask durability bars come off
+		// instead of being saved into a loadout.
+		death.Deaths.reset();
+		instructions.clear.ClearManager.stop(world); // remove secrets/chests, restore hotbar map slot, stop HUD loop
+		Utils.cancelAllScheduled();
+		items.combat.RagnarockAxe.reset();
+		MovementAudit.cancelAll();
+		Actions.cancelAllMovement();
+		Watcher.INSTANCE.arm(world, false);
+		// arm() only sets fields, so the Watcher's portal detector would keep scanning (including the spectators
+		// made below) and warp them to Maxor after the run. forceCleanup stops it and closes the portal.
+		Watcher.forceCleanup();
+		// Drop the boss lane before teardown: cancelAllScheduled can't reach it, and its un-held one-shots (Maxor's
+		// crystal respawn, the Wither King's) would fire into a dead session.
+		BossScheduler.clearAll();
+		// S4 plate un-presses from a block tick it queues itself, so teardown mid-press can leave it powered, and a
+		// powered plate never fires Action.PHYSICAL again: S4 bricked for every later run. Forced off on both edges
+		// of a run; Server.serverSetup is the other.
+		listeners.GoldorListener.unpowerPlate(world);
+		// S1 device writes blocks too (sea lantern over an obsidian cell, 16 input buttons), and its playback runs
+		// on tracked scheduleTasks that cancelAllScheduled just killed. So restore synchronously here, the "after"
+		// edge; Server.serverSetup is the "before".
+		instructions.bosses.goldor.GoldorSimonSays.INSTANCE.cleanup();
+		// Only caller of each boss's resetState. Without it an early end left Goldor active with gates blown open,
+		// the core entrance an invisible barrier, and every boss's flags set.
+		Maxor.INSTANCE.forceEndPhase();
+		Storm.INSTANCE.forceEndPhase();
+		Goldor.INSTANCE.forceEndPhase();
+		Necron.INSTANCE.forceEndPhase();
+		// Clear bosses, energy crystals, Wither King dragons/relics.
+		for(org.bukkit.entity.Entity e : world.getEntities()) {
+			if(e instanceof org.bukkit.entity.Wither
+					|| e instanceof org.bukkit.entity.EnderCrystal
+					|| e.getScoreboardTags().contains("SkyblockBoss")
+					|| e.getScoreboardTags().contains("TASWitherKing")
+					|| e.getScoreboardTags().contains("WitherKingDragon")
+					|| e.getScoreboardTags().contains("TASWitherKingRelic")
+					|| e.getScoreboardTags().contains("TASWatcher")) {
+				e.remove();
+			}
+		}
+		if(toSpectator) {
+			for(Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+				if(p.getGameMode() != org.bukkit.GameMode.SPECTATOR) p.setGameMode(org.bukkit.GameMode.SPECTATOR);
+			}
+		}
 	}
 }

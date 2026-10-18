@@ -39,13 +39,11 @@ import java.util.*;
 public class WitherKing {
 	private static World world;
 	private static Wither witherKing;
-	/** Only via {@code /tas|/m7practice witherking}; the Necron chain passes false. */
+	/** Only via {@code /m7practice witherking}; the Necron chain passes false. */
 	private static boolean standalone;
 	private static final Random random = new Random();
 	private static final String[] dragonDieMessage = {"Oh, this one hurts!", "I have more of those.", "My soul is disposable."};
 
-	/** TAS overall column: Clear 738 + Maxor 500 + Storm 860 + Goldor 304 + Necron 600. */
-	private static final int PRE_WITHERKING_TICKS = 3002;
 	/** Final kill to congratulation. */
 	private static final int END_DELAY_TICKS = 10;
 
@@ -232,7 +230,7 @@ public class WitherKing {
 	/** Runs until {@link #forceCleanup}. */
 	private static void startRotation() {
 		if(rotationTask != null && !rotationTask.isCancelled()) return;
-		rotationTask = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> {
+		rotationTask = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> {
 			rotationAngle += ROTATION_STEP;
 			if(rotationAngle > (float) (2 * Math.PI)) rotationAngle -= (float) (2 * Math.PI);
 			Transformation t = rotationTransform(rotationAngle);
@@ -244,7 +242,7 @@ public class WitherKing {
 	/** 0.1 scale/tick up to {@link #WITHER_KING_SCALE}. */
 	private static void startWitherKingGrowth() {
 		if(growthTask != null && !growthTask.isCancelled()) growthTask.cancel();
-		growthTask = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> {
+		growthTask = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> {
 			if(witherKing == null || !witherKing.isValid()) {
 				if(growthTask != null) growthTask.cancel();
 				growthTask = null;
@@ -470,7 +468,6 @@ public class WitherKing {
 		Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(40 * 50L), Duration.ofMillis(10 * 50L));
 		Title title = Title.title(Utils.msg(dragonName + " <yellow>spawning!"), Utils.msg(""), times);
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			p.showTitle(title);
 		}
 
@@ -491,7 +488,7 @@ public class WitherKing {
 		});
 		BukkitTask[] holder = new BukkitTask[1];
 		int[] remaining = {DRAGON_SPAWN_ANIM};
-		holder[0] = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> {
+		holder[0] = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> {
 			remaining[0]--;
 			if(remaining[0] <= 0 || !display.isValid()) {
 				if(display.isValid()) display.remove();
@@ -592,14 +589,12 @@ public class WitherKing {
 		Utils.scheduleTask(WitherActions::signalRunComplete, END_DELAY_TICKS);
 	}
 
-	/** TAS: hardcoded splits. Practice: live splits. Standalone WK practice: one line. */
+	/** Chained run: live splits. Standalone WK practice: one line. */
 	private static void printFinalMessage() {
 		WitherActions.recordSplit("WitherKing", Utils.runTick());
 		WitherActions.recordPhaseDuration("WitherKing", Utils.phaseTick());
 
-		if(!WitherActions.isPracticeMode()) {
-			printTasScoreboard();
-		} else if(standalone) {
+		if(standalone) {
 			Bukkit.broadcast(Utils.msg("<green>You defeated the <red><bold>Wither King</bold><green>"
 					+ " in " + formatWithSpaces(Utils.phaseTick()) + " ticks!  Try doing the full run to see how you fare."));
 			Utils.playGlobalSound(Sound.ENTITY_PLAYER_LEVELUP);
@@ -612,31 +607,7 @@ public class WitherKing {
 		WitherActions.captureRunResult();
 	}
 
-	private static void printTasScoreboard() {
-		Utils.timer("<green>Wither King finished in " + formatWithSpaces(Utils.phaseTick()) + " ticks!");
-		Bukkit.broadcast(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-		Bukkit.broadcast(Utils.msg("                <red>Master Mode The Catacombs <dark_gray>- <yellow>Floor VII"));
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.msg("                           <white>Team Score: <green>308 <white>(<aqua><bold>S+</bold><white>)"));
-		Bukkit.broadcast(Utils.msg(" <red>☠ <yellow>Defeated <red>Maxor, Storm, Goldor, and Necron <yellow>in <green>4000 ticks"));
-		Bukkit.broadcast(Utils.msg("                         <green>200.00 seconds | 3:20.00"));
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.msg("                              <gold>> <yellow><bold>EXTRA INFO </bold><gold>\\<"));
-		Bukkit.broadcast(Utils.msg("                                   <green><bold>SPLITS"));
-		Bukkit.broadcast(Utils.msg("    <blue><bold>Clear</bold><white>: 738 ticks | <aqua><bold>Maxor</bold><white>: 500 ticks | <red><bold>Storm</bold><white>: 860 ticks"));
-		Bukkit.broadcast(Utils.msg(" <yellow><bold>Terminals</bold><white>: 200 ticks | <gold><bold>Goldor</bold><white>: 104 ticks | <dark_red><bold>Necron</bold><white>: 600 ticks"));
-		Bukkit.broadcast(Utils.msg("                          <gray><bold>Wither King</bold><white>: 998 ticks"));
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.msg("     <green><bold>TAS by </bold><aqua>Stradivarius Violin<green>, also known as <aqua>Beethoven_"));
-		Bukkit.broadcast(Utils.msg("    <red><bold>YOUTUBE</bold><aqua>: <click:open_url:'https://www.youtube.com/@Stradivarius_Violin'><u>https://www.youtube.com/@Stradivarius_Violin</u></click>"));
-		Bukkit.broadcast(Utils.msg("               <blue><bold>DISCORD</bold><aqua>: <click:open_url:'https://discord.gg/gNfPwa8'><u>https://discord.gg/gNfPwa8</u></click>"));
-		Bukkit.broadcast(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-
-		Utils.playGlobalSound(Sound.ENTITY_PLAYER_LEVELUP);
-		Utils.scheduleTask(() -> Utils.playGlobalSound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 1f), 1);
-	}
-
-	/** Chained practice run: real splits, TAS layout. Boss-only runs end with "Clear: Skipped". */
+	/** Chained practice run: real splits. Boss-only runs end with "Clear: Skipped". */
 	private static void printPracticeScoreboard() {
 		int overall = Utils.runTick();
 		boolean clearRan = WitherActions.getSplitEnd("Clear") != null;
@@ -740,7 +711,7 @@ public class WitherKing {
 	private static List<String> packPlayerLines() {
 		List<String> names = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR || commands.Spectate.isSpectating(p)) continue;
+			if(p.getGameMode() == GameMode.SPECTATOR) continue;
 			String colorTag = WitherActions.stayedAdventure(p) ? "<gold>" : "<white>";
 			names.add(Utils.mmLegacy(colorTag + Utils.getRealName(p)));
 		}
@@ -831,7 +802,7 @@ public class WitherKing {
 	/** Phase ticks + overall column (live in practice). */
 	private static String formatTick() {
 		int t = Utils.phaseTick();
-		int overall = WitherActions.isPracticeMode() ? Utils.runTick() : PRE_WITHERKING_TICKS + t;
+		int overall = Utils.runTick();
 		return "<green>" + String.format("%s ticks (%.2f seconds) | Overall: %s ticks (%.2f seconds)",
 				formatWithSpaces(t), t / 20.0, formatWithSpaces(overall), overall / 20.0);
 	}
@@ -839,7 +810,7 @@ public class WitherKing {
 	/** Since that dragon spawned, then the WK clock, then overall. */
 	private static String formatDragonKillTick(int dragonElapsed) {
 		int phase = Utils.phaseTick();
-		int overall = WitherActions.isPracticeMode() ? Utils.runTick() : PRE_WITHERKING_TICKS + phase;
+		int overall = Utils.runTick();
 		return "<green>" + String.format("%s ticks (%.2f seconds) | Wither King: %s ticks (%.2f seconds) | Overall: %s ticks (%.2f seconds)",
 				formatWithSpaces(dragonElapsed), dragonElapsed / 20.0,
 				formatWithSpaces(phase), phase / 20.0,

@@ -49,7 +49,7 @@ public final class SettingsMenu implements Listener {
 
 	/**
 	 * True when the network plugin is installed: settings belong to the party and the lobby menu owns them.
-	 * Presence check only, M7 TAS has no compile-time dependency on it.
+	 * Presence check only, M7 has no compile-time dependency on it.
 	 */
 	public static boolean suppressed() {
 		return Bukkit.getPluginManager().getPlugin("StradNetworkPlugin") != null;

@@ -14,8 +14,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.PlayerInventoryBackup;
 import plugin.Utils;
 
@@ -100,7 +99,7 @@ public final class Deaths {
 	}
 
 	/**
-	 * A practice is live. {@code Server.isRunStarted()} alone stays true after {@code TAS.endPractice} until the next
+	 * A practice is live. {@code Server.isRunStarted()} alone stays true after {@code Practice.endPractice} until the next
 	 * {@code /setup}, and the network's anticheat ends the practice to get a vanilla kill through {@link GenericKill}.
 	 */
 	public static boolean inRun() {
@@ -149,15 +148,13 @@ public final class Deaths {
 	 * on the same answer, without pre-screening the kill.
 	 * <p>
 	 * SURVIVAL/ADVENTURE allowlist, not "not creative", same as {@code OutOfBounds}: creative is exempt from every
-	 * protection and no new mode should apply silently. Spectators excluded by mode and by plugin spectate state
-	 * (which leaves them in Adventure); covers existing ghosts too.
+	 * protection and no new mode should apply silently. Spectators excluded by mode; covers existing ghosts too.
 	 */
 	public static boolean appliesTo(Player p) {
 		if(p == null || !p.isOnline()) return false;
 		GameMode gm = p.getGameMode();
 		if(gm != GameMode.SURVIVAL && gm != GameMode.ADVENTURE) return false;
-		if(Utils.isSpectator(p)) return false;
-		return !FakePlayerManager.getFakePlayers().containsValue(p);
+		return !Utils.isSpectator(p);
 	}
 
 	/** World-positioned, not {@code Utils.playLocalSound}, so nearby teammates hear it. Volume 1 = vanilla radius. */
@@ -171,7 +168,7 @@ public final class Deaths {
 
 	/**
 	 * Their death is a wipe. Asked while {@code p} is still in Adventure, so the question is whether anyone else is
-	 * in {@code ClearManager.realPlayers()} (already excludes ghosts and fakes; same definition the roster and HUD
+	 * in {@code ClearManager.realPlayers()} (already excludes ghosts; same definition the roster and HUD
 	 * use). A creative onlooker counts as alive and holds the run open.
 	 */
 	private static boolean isLastAlive(Player p) {
@@ -219,7 +216,7 @@ public final class Deaths {
 		ghosts.clear();
 
 		WitherActions.signalRunComplete(false);
-		commands.TAS.endPractice(world, false);
+		commands.Practice.endPractice(world, false);
 
 		Location home = new Location(world, WIPE_RETURN[0], WIPE_RETURN[1], WIPE_RETURN[2], 0f, 0f);
 		for(Player p : party) p.teleport(home, PlayerTeleportEvent.TeleportCause.PLUGIN);
@@ -230,7 +227,7 @@ public final class Deaths {
 	/**
 	 * Per-tick driver: revival countdowns, revivals, durability refresh, action-bar fallback.
 	 * <p>
-	 * Raw repeating task from {@code M7tas.onEnable}, untracked so it survives {@code Utils.cancelAllScheduled};
+	 * Raw repeating task from {@code M7.onEnable}, untracked so it survives {@code Utils.cancelAllScheduled};
 	 * otherwise a boss teardown could strand a ghost in spectator.
 	 */
 	public static void start() {
@@ -240,7 +237,7 @@ public final class Deaths {
 			public void run() {
 				tick();
 			}
-		}.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+		}.runTaskTimer(M7.getInstance(), 1L, 1L);
 	}
 
 	public static void stop() {
@@ -269,7 +266,6 @@ public final class Deaths {
 		// part-empty bar.
 		if(damage.Difficulty.deathsEnabled()) {
 			for(Player p : Bukkit.getOnlinePlayers()) {
-				if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 				CheatDeath.refreshDurability(p);
 			}
 		}
@@ -280,7 +276,6 @@ public final class Deaths {
 		//
 		// Pass an empty base: sendActionBar appends the segments itself, and passing them printed every timer twice.
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			if(Utils.actionBarOwnedThisTick(p)) continue;
 			if(CheatDeath.hasCooldowns(p) || items.combat.RagnarockAxe.ticksLeft(p) > 0
 					|| !pets.Pets.actionBarSegment(p).isEmpty()) {
@@ -321,7 +316,6 @@ public final class Deaths {
 		TagResolver mob = Placeholder.component("mob", killer);
 		TagResolver who = Placeholder.component("who", displayName(p));
 		for(Player other : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(other)) continue;
 			other.sendMessage(other.equals(p)
 					? Utils.msg("<red> ☠ <gray>You were killed by <mob> <gray>and became a ghost.", mob)
 					: Utils.msg("<red> ☠ <who> <gray>was killed by <mob> <gray>and became a ghost.", who, mob));

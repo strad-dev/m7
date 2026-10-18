@@ -52,8 +52,8 @@ public class ClearListener implements Listener {
 	}
 
 	/**
-	 * True if {@code p} may not progress the clear: a spectator (idle on m7, watching someone's run) or someone
-	 * spectating a fake. Shared predicate {@link Utils#isSpectator}, like {@code GoldorListener.cannotSolve}.
+	 * True if {@code p} may not progress the clear: a spectator (idle on m7, watching someone's run). Shared
+	 * predicate {@link Utils#isSpectator}, like {@code GoldorListener.cannotSolve}.
 	 * <p>
 	 * Not redundant with vanilla, and placement matters. {@code ServerPlayerGameMode.useItemOn} no-ops a spectator's
 	 * click only when the block has no {@code MenuProvider}; a CHEST has one, so a secret chest fires

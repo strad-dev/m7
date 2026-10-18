@@ -95,7 +95,7 @@ public final class CheatDeath {
 		immunity.put(p.getUniqueId(), new Immunity(used, now + used.immuneTicks));
 		if(used.isWorn()) writeDurability(p, used, used.cooldownTicks);
 
-		// Saved player only, Hypixel words it in second person. playLocalSound also reaches a fake's spectators.
+		// Saved player only, Hypixel words it in second person.
 		p.sendMessage(Utils.msg(used.chatLine));
 		Utils.playLocalSound(p, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0f, 2.0f);
 		Utils.debug(Utils.DebugType.BOSS, Utils.getRealName(p) + " cheated death with " + used.label);

@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Menus;
 import plugin.Utils;
 
@@ -117,7 +117,7 @@ public final class PetMenu implements CommandExecutor, Listener {
 	 */
 	private final AutopetMenu autopet = new AutopetMenu(this);
 
-	/** For {@code M7tas.onEnable} to register as a listener. */
+	/** For {@code M7.onEnable} to register as a listener. */
 	public AutopetMenu autopetMenu() {
 		return autopet;
 	}
@@ -215,12 +215,12 @@ public final class PetMenu implements CommandExecutor, Listener {
 			case CLOSE_SLOT -> {
 				// Deferred a tick: Bukkit says never close a view from its own click event (same as GoldorListener
 				// on a solved terminal).
-				Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> p.closeInventory());
+				Bukkit.getScheduler().runTask(M7.getInstance(), () -> p.closeInventory());
 			}
 			case AUTOPET_SLOT -> {
 				// Also deferred, and load-bearing in arranging mode: this window's close fires first, so finish()
 				// saves the layout before the settings menu opens.
-				Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> autopet.open(p));
+				Bukkit.getScheduler().runTask(M7.getInstance(), () -> autopet.open(p));
 			}
 			case RESET_SLOT -> {
 				Pets.resetLayout(p);
@@ -244,7 +244,7 @@ public final class PetMenu implements CommandExecutor, Listener {
 		if(pet == null) return;
 		if(Pets.equip(p, pet, "<green>You summoned your ")) { // pet name ends the line
 			draw(p, holder);
-			Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> p.closeInventory());
+			Bukkit.getScheduler().runTask(M7.getInstance(), () -> p.closeInventory());
 		}
 	}
 
@@ -338,7 +338,7 @@ public final class PetMenu implements CommandExecutor, Listener {
 		if(!instructions.Server.isRunStarted()) Pets.applyStartingPet(e.getPlayer());
 	}
 
-	/** End and save every arranging session. Called from {@code M7tas.onDisable}. */
+	/** End and save every arranging session. Called from {@code M7.onDisable}. */
 	public void restoreAll() {
 		for(UUID id : new ArrayList<>(sessions.keySet())) {
 			Player p = Bukkit.getPlayer(id);

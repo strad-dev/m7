@@ -1,6 +1,5 @@
 package instructions.bosses.storm;
 
-import commands.Spectate;
 import instructions.Actions;
 import instructions.Server;
 import instructions.bosses.CustomBossBar;
@@ -19,7 +18,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import plugin.BossScheduler;
-import plugin.FakePlayerManager;
 import plugin.Utils;
 
 import java.time.Duration;
@@ -31,8 +29,6 @@ import java.util.Random;
 @SuppressWarnings("DataFlowIssue")
 public final class Storm extends WitherLord {
 	public static final Storm INSTANCE = new Storm();
-
-	private static final int PRE_STORM_TICKS = 1238;
 
 	// Aggro + crush detection enable here.
 	private static final int INTRO_END_TICK = 645;
@@ -122,11 +118,6 @@ public final class Storm extends WitherLord {
 	}
 
 	@Override
-	protected int previousTicks() {
-		return PRE_STORM_TICKS;
-	}
-
-	@Override
 	protected void resetState() {
 		cancelCycleTask();
 		cancelStunEnrageTask();
@@ -167,7 +158,6 @@ public final class Storm extends WitherLord {
 	protected void chainNext(boolean doContinue) {
 		if(doContinue) {
 			Goldor.goldorInstructions(world, true);
-			runPlayerHandoff(); // players' goldor() routine, same tick Goldor spawns
 		} else {
 			instructions.bosses.WitherActions.signalRunComplete(); // last boss of this practice
 		}
@@ -376,7 +366,6 @@ public final class Storm extends WitherLord {
 				? " <dark_gray>| <red>Storm moves in <white>" + (introEnd - t) + "t"
 				: "";
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			Utils.sendActionBar(p, Utils.msg(nearestPadColor(p.getLocation()) + pad + stun + armed + moves));
 		}
 	}
@@ -455,8 +444,6 @@ public final class Storm extends WitherLord {
 	private boolean padOccupied(BoundingBox padBox) {
 		for(Player p : world.getPlayers()) {
 			if(p.getGameMode() == GameMode.SPECTATOR) continue;
-			// A spectator is teleported onto the fake they watch, so their location isn't theirs.
-			if(Spectate.isSpectating(p)) continue;
 			int bx = p.getLocation().getBlockX();
 			int by = p.getLocation().getBlockY();
 			int bz = p.getLocation().getBlockZ();

@@ -1,6 +1,5 @@
 package instructions.bosses.necron;
 
-import commands.Spectate;
 import instructions.Server;
 import instructions.bosses.CustomBossBar;
 import instructions.bosses.WitherLord;
@@ -40,7 +39,6 @@ import java.util.Random;
 public final class Necron extends WitherLord {
 	public static final Necron INSTANCE = new Necron();
 
-	private static final int PRE_NECRON_TICKS = 2402;
 	private static final Random random = new Random();
 	private static final String[] FRENZY_START_MESSAGES = {"Sometimes when you have a problem, you just need to destroy it all and start again.", "WITNESS MY RAW NUCLEAR POWER!"};
 	private static final String[] FRENZY_END_MESSAGES = {"ARGH!", "Let's make some space!"};
@@ -94,7 +92,6 @@ public final class Necron extends WitherLord {
 	@Override protected String displayName() { return "Necron"; }
 	@Override protected Location spawnLocation() { return new Location(world, 54.5, 66, 76.5, 0f, 0f); }
 	@Override protected double maxHealth() { return damage.MobStats.NECRON.internalHealth(); }
-	@Override protected int previousTicks() { return PRE_NECRON_TICKS; }
 
 	@Override
 	protected void resetState() {
@@ -138,7 +135,6 @@ public final class Necron extends WitherLord {
 	protected void chainNext(boolean doContinue) {
 		if(doContinue) {
 			WitherKing.witherKingInstructions(world, false);
-			runPlayerHandoff();
 		} else {
 			instructions.bosses.WitherActions.signalRunComplete(); // no Wither King this practice
 		}
@@ -320,7 +316,6 @@ public final class Necron extends WitherLord {
 	/** Spectating viewers are skipped so the spectated view isn't disrupted. */
 	private void applyBlindness() {
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(Spectate.isSpectating(p)) continue;
 			p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0, false, false)); // 1 second
 		}
 	}
@@ -419,9 +414,8 @@ public final class Necron extends WitherLord {
 		 * note: all of the wither partitions are one-ticked in this TAS, matching DPS achieved in normal f7
 		 * thus, there are no timesaves available in normal f7 VS master mode m7
 		 */
-		// Normal F7 completes toWitherKing + 40 after the final blow. The offset goes OUTSIDE overallTick():
-		// in practice it returns the live run tick and ignores its argument.
-		final int normalF7Overall = overallTick(deathTick) + toWitherKing + 40;
+		// Normal F7 completes toWitherKing + 40 after the final blow.
+		final int normalF7Overall = Utils.runTick() + toWitherKing + 40;
 		Utils.scheduleTask(() -> {
 			double secs = normalF7Overall / 20.0;
 			int mins = (int) (secs / 60);

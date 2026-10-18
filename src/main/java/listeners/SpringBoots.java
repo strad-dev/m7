@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.MovementAudit;
 import plugin.Utils;
 
@@ -91,7 +91,7 @@ public class SpringBoots {
 			public void run() {
 				tick();
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	public static void stop() {

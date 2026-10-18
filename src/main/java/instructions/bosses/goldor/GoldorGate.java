@@ -97,7 +97,7 @@ public final class GoldorGate {
 		} else {
 			// Not blown early, so it auto-destructs 100t later, matching Hypixel's "The gate will open in 5 seconds!".
 			Bukkit.broadcast(Utils.msg("<green>The gate will open in 5 seconds!"));
-			pendingDelayedRemoval = Bukkit.getScheduler().runTaskLater(plugin.M7tas.getInstance(), () -> {
+			pendingDelayedRemoval = Bukkit.getScheduler().runTaskLater(plugin.M7.getInstance(), () -> {
 				if(!blocksRemoved) removeBlocksNow();
 			}, 100L);
 		}
@@ -116,7 +116,7 @@ public final class GoldorGate {
 		announceDestroyed();
 		// The true section-complete moment: Goldor reports the section timing and advances.
 		Goldor.INSTANCE.onGateDestroyed(sectionIdx);
-		pendingRegen = Bukkit.getScheduler().runTaskLater(plugin.M7tas.getInstance(), this::regenerate, REGEN_TICKS);
+		pendingRegen = Bukkit.getScheduler().runTaskLater(plugin.M7.getInstance(), this::regenerate, REGEN_TICKS);
 	}
 
 	private void announceDestroyed() {

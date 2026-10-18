@@ -315,7 +315,7 @@ public class LoadoutEditor implements CommandExecutor, Listener {
 		for(ItemStack it : snap) if(it != null && !it.getType().isAir()) e.getDrops().add(it);
 	}
 
-	/** End and save every open editor. Called from {@code M7tas.onDisable}, before players are dropped. */
+	/** End and save every open editor. Called from {@code M7.onDisable}, before players are dropped. */
 	public void restoreAll() {
 		for(UUID id : new ArrayList<>(snapshots.keySet())) {
 			Player p = Bukkit.getPlayer(id);

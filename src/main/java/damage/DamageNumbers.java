@@ -5,7 +5,7 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.*;
@@ -91,7 +91,7 @@ public final class DamageNumbers {
 		q.addLast(display);
 
 		// Raw runTaskLater on purpose: Utils.scheduleTask is nuked by a run reset and would leave the display forever.
-		org.bukkit.Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+		org.bukkit.Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 			if(display.isValid()) display.remove();
 			Deque<TextDisplay> live = LIVE.get(attacker.getUniqueId());
 			if(live != null) live.remove(display);

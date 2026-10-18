@@ -1,6 +1,5 @@
 package instructions.bosses;
 
-import commands.Spectate;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.MoverType;
@@ -15,16 +14,14 @@ import org.bukkit.entity.Wither;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import plugin.BossScheduler;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.util.*;
 
 @SuppressWarnings("unused")
 public class WitherActions {
 
-	// Aggro movers run in BossScheduler's MOVEMENT lane, after fake aiStep, so the boss moves where movement
-	// normally happens, not at tick start. Value is the handle clearWitherAggro unregisters.
+	// Aggro movers run in BossScheduler's MOVEMENT lane, not at tick start. Value is the handle clearWitherAggro unregisters.
 	private static final Map<UUID, Runnable> witherAggroTasks = new HashMap<>();
 	private static BukkitTask armorTask = null;
 
@@ -36,7 +33,7 @@ public class WitherActions {
 	private static volatile Player lastDamager = null;
 	private static volatile int lastDamageTick = Integer.MIN_VALUE;
 
-	/** Set by {@code TAS.runPractice}/{@code TAS.runTAS}. Resets the aggro damager. */
+	/** Set by {@code Practice.runPractice}. Resets the aggro damager. */
 	public static void setPracticeMode(boolean on) {
 		practiceMode = on;
 		lastDamager = null;
@@ -76,7 +73,7 @@ public class WitherActions {
 	 * consumer decides what they count for (the network drops only the two whole-run boards). No-op once signalled.
 	 * <br>
 	 * Call it BEFORE any teardown: {@code ClearManager.stop} drops the score and the spectator flip empties the
-	 * roster, so the top of {@code TAS.endPractice} is the last instant the result is readable.
+	 * roster, so the top of {@code Practice.endPractice} is the last instant the result is readable.
 	 */
 	public static void signalRunAbandoned() {
 		if (!practiceMode || signalled) return;
@@ -101,7 +98,7 @@ public class WitherActions {
 	private static volatile String runId = "";
 
 	/**
-	 * Records the section and mints a run id. Called once by {@code TAS.runPractice}. The id lets a consumer drop
+	 * Records the section and mints a run id. Called once by {@code Practice.runPractice}. The id lets a consumer drop
 	 * duplicates: the 300-score milestone is signalled when reached and the run-complete payload repeats it.
 	 */
 	public static void startRunTracking(String section) {
@@ -126,7 +123,7 @@ public class WitherActions {
 	/** As last SEEN: a disconnected member keeps the state they left with. */
 	public record RosterMember(UUID uuid, String name, boolean stayedAdventure) {}
 
-	/** Skips spectators and fakes (the clear HUD's test). Safe from a quit handler: they're still in Adventure there. */
+	/** Skips spectators (the clear HUD's test). Safe from a quit handler: they're still in Adventure there. */
 	public static void noteInRun(Player p) {
 		if(!practiceMode || p == null) return;
 		if(!instructions.clear.ClearManager.isRealPlayer(p)) return;
@@ -143,11 +140,10 @@ public class WitherActions {
 				new plugin.ScoreMilestoneEvent(score, plugin.RunResult.capture(runSection, true)));
 	}
 
-	/** Despite the name, TRUE means {@code p} can NOT aggro. TAS: only fakes aggro. Practice: only real players. */
+	/** Despite the name, TRUE means {@code p} can NOT aggro: spectators, and everyone outside practice. */
 	private static boolean isAggroEligible(Player p) {
-		if(p.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(p)) return true; // spectators never aggro
-		boolean fake = FakePlayerManager.getFakePlayers().containsValue(p);
-		return practiceMode == fake;
+		if(p.getGameMode() == GameMode.SPECTATOR) return true; // spectators never aggro
+		return !practiceMode;
 	}
 
 	// --- Section splits: overall tick (Utils.runTick()) at each section's finish, for the Wither-King practice scoreboard ---
@@ -175,7 +171,7 @@ public class WitherActions {
 	/** In completion order. */
 	public static Map<String, Integer> phaseDurations() { return new java.util.LinkedHashMap<>(phaseDurations); }
 
-	/** At the start of every /tas and /m7practice run. */
+	/** At the start of every /m7practice run. */
 	public static void clearSplits() {
 		splitEnds.clear();
 		phaseDurations.clear();
@@ -184,7 +180,7 @@ public class WitherActions {
 	// --- Golden-name anti-cheat: anyone who changed game mode this run shows white, not gold ---
 	private static final Set<UUID> gameModeChanged = new HashSet<>();
 
-	/** At the start of every /tas and /m7practice run. */
+	/** At the start of every /m7practice run. */
 	public static void clearGameModeChanges() { gameModeChanged.clear(); }
 
 	public static void noteGameModeChange(UUID id) { gameModeChanged.add(id); }
@@ -248,7 +244,7 @@ public class WitherActions {
 				// world or went spectator falls back to closest.
 				Player damager = lastDamager;
 				if(damager == null || !damager.isOnline() || damager.isDead() || damager.getWorld() != wither.getWorld()
-						|| damager.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(damager)) {
+						|| damager.getGameMode() == GameMode.SPECTATOR) {
 					damager = closestPlayer(wither);
 				}
 				net.minecraft.world.entity.LivingEntity active = damager == null ? null : ((CraftLivingEntity) damager).getHandle();
@@ -374,7 +370,7 @@ public class WitherActions {
 		Location loc = wither.getLocation();
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(isAggroEligible(p)) continue;
-			if(p.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(p)) continue;
+			if(p.getGameMode() == GameMode.SPECTATOR) continue;
 			if(p.isDead() || p.getWorld() != wither.getWorld()) continue;
 			double d = p.getLocation().distanceSquared(loc);
 			if(d < best) { best = d; closest = p; }
@@ -397,7 +393,7 @@ public class WitherActions {
 				public void run() {
 					wither.setInvulnerableTicks(3);
 				}
-			}.runTaskTimer(M7tas.getInstance(), 0L, 1L); // every tick
+			}.runTaskTimer(M7.getInstance(), 0L, 1L); // every tick
 		} else {
 			wither.setInvulnerableTicks(0);
 			// So a same-tick re-arm (cap-enrage in the damage handler) still lets a Terminator/Last Breath arrow through.

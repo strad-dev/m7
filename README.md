@@ -116,22 +116,22 @@ your pet is assumed from what you're doing and wearing, so both commands refuse.
 ## For Plugin Developers
 
 **SUPER ADVANCED USERS ONLY.**  There is no published artifact to depend on yet, so the supported way in is
-reflection: you load M7 TAS's classes by name at runtime and read them through `Method#invoke`, with no
-compile-time safety net whatsoever.  A typo in a class name, a field this plugin renames, or an M7 TAS
+reflection: you load M7's classes by name at runtime and read them through `Method#invoke`, with no
+compile-time safety net whatsoever.  A typo in a class name, a field this plugin renames, or an M7
 version older than the one you tested against are all runtime surprises, not compile errors.  Nothing here
 is a stable, versioned API: it can change between releases, and it is on you to fail gracefully when it
 does.  If that trade doesn't appeal, wait for the proper option below.
 
-M7 TAS exposes a deliberately small API in two halves: an **item catalogue** (what the classes carry, as
+M7 exposes a deliberately small API in two halves: an **item catalogue** (what the classes carry, as
 real `ItemStack`s) and **custom events** (what just happened in a run).  Both halves are plain Bukkit.  You
 do **not** need NMS or `paper-nms` to consume them, even though the plugin itself is full of NMS.
 
 Two principles shape the whole thing:
 
-1. **M7 TAS never calls out.** It fires its events into the void; if nothing is listening, nothing happens.
+1. **M7 never calls out.** It fires its events into the void; if nothing is listening, nothing happens.
    The plugin stays fully standalone, so your integration is always optional and can never break a run.
 2. **Everything that crosses the plugin boundary is a Bukkit type, a `String`, or JSON.** That means you can
-   integrate *without compiling against M7 TAS at all* (see [Hooking in](#hooking-in) below).
+   integrate *without compiling against M7 at all* (see [Hooking in](#hooking-in) below).
 
 ### The item catalogue
 
@@ -168,7 +168,7 @@ loadout.Loadouts.applyFor(player);                                        // the
 Valid roles are `Archer`, `Berserk`, `Healer`, `Mage`, `Tank`.
 
 **From disk, with no dependency at all.**  On every enable, `plugin.Catalog` exports the whole catalogue to
-`<server>/../data/m7-item-catalog.json`.  M7 TAS is the sole writer of that file;
+`<server>/../data/m7-item-catalog.json`.  M7 is the sole writer of that file;
 it is the single source of truth for item definitions and anyone may read it (may change/be configurable later):
 
 ```json
@@ -298,27 +298,27 @@ try {
 				// parse json with your own DTO; field names match RunResult
 			}, this);
 } catch(ClassNotFoundException e) {
-	// M7 TAS isn't installed on this server; skip the integration
+	// M7 isn't installed on this server; skip the integration
 }
 ```
 
 Register the same way for `plugin.ScoreMilestoneEvent` if you want the live 300 (its extra `int score()` reads
 reflectively just like `json()` does) and for `plugin.BlessingChangeEvent` if you want the live blessings - every
-event here exposes that same `json()`, so one helper covers all three.  Add `softdepend: [m7tas]` to your
-`plugin.yml` so you load *after* M7 TAS
+event here exposes that same `json()`, so one helper covers all three.  Add `softdepend: [m7]` to your
+`plugin.yml` so you load *after* M7
 and the class resolves.  This is how
-the strad.dev network plugin consumes it, and it means one jar can run on servers with and without M7 TAS.
+the strad.dev network plugin consumes it, and it means one jar can run on servers with and without M7.
 
-**Route B: compile against the plugin.**  Put the M7 TAS jar on your compile classpath with `provided`
-scope and `depend: [m7tas]` in your `plugin.yml`; at runtime Paper hands you M7 TAS's classes through its
+**Route B: compile against the plugin.**  Put the M7 jar on your compile classpath with `provided`
+scope and `depend: [m7]` in your `plugin.yml`; at runtime Paper hands you M7's classes through its
 plugin classloader.  You get real types and IDE completion, at the cost of a hard dependency.
 
 The API classes (`RunCompleteEvent`, `RunResult`, `BlessingChangeEvent`, `BlessingState`, `ItemSerial`,
 `Catalog`, `FakePlayerInventory`) are pure
-Bukkit, so `paper-nms` is *not* needed to compile against them, only to build M7 TAS itself.
+Bukkit, so `paper-nms` is *not* needed to compile against them, only to build M7 itself.
 
 > **Don't copy `RunCompleteEvent` into your own plugin.**  Bukkit matches listeners by class identity; your
-> copy would be a different class from the one M7 TAS fires, and your listener would simply never run.  Depend
+> copy would be a different class from the one M7 fires, and your listener would simply never run.  Depend
 > on the jar (route B) or go reflective (route A).
 
 ### Proper Artifact When???

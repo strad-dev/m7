@@ -11,7 +11,7 @@ import net.minecraft.world.level.GameType;
 import org.bukkit.GameMode;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.lang.reflect.Field;
 
@@ -66,7 +66,7 @@ public final class SpectatorGuiAccess extends ChannelDuplexHandler {
 		if(field() == null) {
 			// Mappings moved: leave vanilla alone rather than break the GUI, but say so. A silent no-op looks
 			// exactly like "the editor is broken".
-			M7tas.getInstance().getLogger().warning("Spectator GUI bypass unavailable: "
+			M7.getInstance().getLogger().warning("Spectator GUI bypass unavailable: "
 					+ "ServerPlayerGameMode#gameModeForPlayer not found. Spectators can't edit loadouts.");
 			return;
 		}
@@ -76,7 +76,7 @@ public final class SpectatorGuiAccess extends ChannelDuplexHandler {
 				ch.pipeline().addBefore("packet_handler", HANDLER_NAME, new SpectatorGuiAccess(p));
 			}
 		} catch(Exception e) {
-			M7tas.getInstance().getLogger().warning("Could not arm the spectator GUI bypass for "
+			M7.getInstance().getLogger().warning("Could not arm the spectator GUI bypass for "
 					+ p.getName() + ": " + e);
 		}
 	}

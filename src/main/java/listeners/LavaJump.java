@@ -1,6 +1,5 @@
 package listeners;
 
-import commands.Spectate;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
@@ -9,7 +8,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.MovementAudit;
 import plugin.Utils;
 
@@ -57,7 +56,7 @@ public class LavaJump {
 			public void run() {
 				tick();
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	public static void stop() {
@@ -97,7 +96,6 @@ public class LavaJump {
 	private static void check(Player p) {
 		if(p.getGameMode() == GameMode.SPECTATOR) return;
 		if(p.isFlying()) return;
-		if(Spectate.getSpectatorMap().containsKey(p)) return;
 		Location loc = p.getLocation();
 		UUID id = p.getUniqueId();
 

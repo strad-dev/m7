@@ -5,7 +5,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import plugin.M7tas;
+import plugin.M7;
 
 /**
  * Damage carried by a guided carrier: Spirit Sceptre's bat and Mage's Guided Sheep.
@@ -38,7 +38,7 @@ public final class GuidedCarriers {
 	private static final NamespacedKey ABILITY = key("guided_ability");
 
 	private static NamespacedKey key(String name) {
-		return new NamespacedKey(M7tas.getInstance(), name);
+		return new NamespacedKey(M7.getInstance(), name);
 	}
 
 	/**

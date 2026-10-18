@@ -1,7 +1,6 @@
 package listeners;
 
 import abilities.ClassAbilities;
-import commands.Spectate;
 import damage.DamageKind;
 import damage.DamagePath;
 import instructions.Server;
@@ -32,7 +31,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import plugin.Cooldowns;
-import plugin.FakePlayerManager;
 import plugin.Utils;
 
 import java.util.*;
@@ -116,8 +114,7 @@ public class CustomItems implements Listener {
 	public static void meleeAttack(Player p, org.bukkit.entity.Entity hit) {
 		if(p == null || !(hit instanceof LivingEntity target)) return;
 		if(p.getGameMode() == GameMode.SPECTATOR) return;
-		if(Spectate.getSpectatorMap().containsKey(p)) return;
-		// Players are invulnerable, spectated fake players too.
+		// Players are invulnerable.
 		if(target instanceof Player) return;
 		ItemStack held = p.getInventory().getItemInMainHand();
 		if(leftClickIsAbility(p, held)) return;
@@ -264,33 +261,19 @@ public class CustomItems implements Listener {
 	}
 
 	@EventHandler
-	public void onPlayerAnimation(PlayerAnimationEvent e) {
-		Player p = e.getPlayer();
-		if(e.getAnimationType().equals(PlayerAnimationType.ARM_SWING) && FakePlayerManager.getFakePlayers().containsValue(p) && Spectate.getReverseSpectatorMap().containsKey(p)) {
-			for(Player spectator : Spectate.getReverseSpectatorMap().get(p)) {
-				spectator.swingMainHand();
-			}
-		}
-	}
-
-	@EventHandler
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
 		Player p = e.getPlayer();
 		droppingPlayers.add(p.getUniqueId());
 		Utils.scheduleTask(() -> droppingPlayers.remove(p.getUniqueId()), 1);
 		// Drop is an ABILITY key, never a way to lose an item: cancel first, for everyone. Gating it on Archer/Mage
 		// used to let other classes throw their kit on the floor. abilities/ClassAbilities decides if one fires.
+		// Abilities fire from the interceptor's DROP_ITEM/DROP_ALL_ITEMS path (not rate-limited by vanilla); here we
+		// only cancel.
 		e.setCancelled(true);
-		boolean ultimate = !p.isSprinting();
-		// Real players fire from the interceptor's DROP_ITEM/DROP_ALL_ITEMS path (not rate-limited by vanilla);
-		// here we only cancel for them.
-		if(!FakePlayerManager.getFakePlayers().containsValue(p)) return;
-		ClassAbilities.dispatch(p, ultimate);
 	}
 
 	/** Drop-key entry for a real player, from the packet interceptor. */
 	public static void handleDrop(Player p, boolean ultimate) {
-		if(Spectate.getSpectatorMap().containsKey(p)) return;
 		droppingPlayers.add(p.getUniqueId());
 		Utils.scheduleTask(() -> droppingPlayers.remove(p.getUniqueId()), 1);
 		ClassAbilities.dispatch(p, ultimate);
@@ -330,7 +313,6 @@ public class CustomItems implements Listener {
 	 */
 	public static void handleCustomItems(Cancellable e, EquipmentSlot hand, ItemStack stack, Action action, Player p, Block clickedBlock) {
 		if(p.getGameMode() == GameMode.SPECTATOR) return; // spectators never fire item abilities
-		if(Spectate.getSpectatorMap().containsKey(p)) return;
 		if(!Objects.equals(hand, EquipmentSlot.HAND)) return;
 
 		boolean isRightClick = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;

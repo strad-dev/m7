@@ -83,7 +83,7 @@ public final class Reforges {
 		StatBlock found = TABLE.get(key);
 		if(found != null) return found;
 		if(WARNED.add(key)) {
-			plugin.M7tas.getInstance().getLogger().warning(
+			plugin.M7.getInstance().getLogger().warning(
 					"No reforge row for " + reforge + " / " + category + " / " + rarity
 							+ " - treating it as no stats.  Add the row to damage/Reforges if this combination is real.");
 		}

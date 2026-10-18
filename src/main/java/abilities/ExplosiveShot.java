@@ -14,7 +14,7 @@ import org.bukkit.entity.*;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -134,6 +134,6 @@ public final class ExplosiveShot implements ClassAbility {
 					// Last arrow to land prints the summary.
 					if(--pending[0] == 0) damage.Damage.reportAoe(p, "Explosive Shot", damaged[0], dealt[0]);
 				}
-			}.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+			}.runTaskTimer(M7.getInstance(), 1L, 1L);
 		}
 	}}

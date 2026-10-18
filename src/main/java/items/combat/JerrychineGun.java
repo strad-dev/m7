@@ -22,7 +22,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.MovementAudit;
 import plugin.Utils;
 
@@ -150,7 +150,7 @@ public final class JerrychineGun implements Weapon, AbilityItem, ProjectileItem 
 				}
 				head.teleport(to);
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 
 		l.getWorld().playSound(l, Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
 		Utils.debug(Utils.DebugType.SERVER, p.getName() + " fired Jerry-chine #" + s.getEntityId() + " from " + Utils.round(l.getX(), 2) + " " + Utils.round(l.getY(), 2) + " " + Utils.round(l.getZ(), 2));

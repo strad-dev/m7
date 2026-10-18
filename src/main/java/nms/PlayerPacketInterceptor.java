@@ -1,9 +1,7 @@
 package nms;
 
-import commands.Spectate;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import listeners.CustomItems;
 import listeners.GoldorListener;
 import net.minecraft.network.protocol.game.*;
@@ -15,7 +13,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
-import plugin.M7tas;
+import plugin.M7;
 
 public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 	private final Player player;
@@ -26,34 +24,18 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if(msg instanceof ServerboundMovePlayerPacket pkt) {
-			if(Spectate.getSpectatorMap().containsKey(player)) {
-				if(pkt.hasPosition()) {
-					Spectate.updateClientPosition(player, pkt.getX(0), pkt.getY(0), pkt.getZ(0));
-				}
-				return;
-			}
-		}
-		if(msg instanceof ServerboundSetCarriedItemPacket) {
-			Player fakePlayer = Spectate.getSpectatorMap().get(player);
-			if(fakePlayer != null) {
-				((CraftPlayer) player).getHandle().connection.send(
-					new ClientboundSetHeldSlotPacket(fakePlayer.getInventory().getHeldItemSlot()));
-				return;
-			}
-		}
 		if(msg instanceof ServerboundPlayerActionPacket pkt) {
 			// Drop key (Q / Ctrl+Q) and bow release. DROP still goes to vanilla: CustomItems' PlayerDropItemEvent
 			// handler cancels the physical drop for class players while handleDrop fires the ability. A bow RELEASE
 			// is consumed and released by hand with instabuild on, so it fires without a real arrow.
 			var action = pkt.getAction();
 			if(action == ServerboundPlayerActionPacket.Action.DROP_ITEM) {
-				Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> {
+				Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
 					CustomItems.handleDrop(player, true);
 					player.updateInventory();
 				});
 			} else if(action == ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS) {
-				Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> {
+				Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
 					CustomItems.handleDrop(player, false);
 					player.updateInventory();
 				});
@@ -62,7 +44,7 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 				// Bow drew and fired nothing, silently.
 				if(items.ItemRegistry.of(player.getInventory().getItemInMainHand()) instanceof items.Bow bow
 						&& bow.holdToDraw()) {
-					Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> {
+					Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
 						ServerPlayer sp = ((CraftPlayer) player).getHandle();
 						boolean was = sp.getAbilities().instabuild;
 						sp.getAbilities().instabuild = true;
@@ -122,8 +104,7 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 			MinecraftServer.getServer().execute(() -> {
 				org.bukkit.Material clicked = player.getWorld().getBlockAt(bx, by, bz).getType();
 				// Reset vanilla's interact dedupe (useItemOn caches the last (block, hand, item) result), so rapid
-				// clicks on one block (Simon Says) each fire PlayerInteractEvent. Fake players do this in
-				// TASGamePacketListenerImpl#handleUseItemOn; vanilla's listener doesn't.
+				// clicks on one block (Simon Says) each fire PlayerInteractEvent; vanilla's listener doesn't.
 				//
 				// Never for a LEVER: one right-click sends UseItemOn more than once and the dedupe is what makes it
 				// one toggle. Without it the lever flips twice, which broke the S2 "Lights" device (reads lamp state).
@@ -155,18 +136,4 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 		super.channelRead(ctx, msg);
 	}
 
-	@Override
-	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-		if(msg instanceof ClientboundContainerSetContentPacket pkt && pkt.containerId() == 0) {
-			Player fakePlayer = Spectate.getSpectatorMap().get(player);
-			if(fakePlayer instanceof CraftPlayer craftFake) {
-				ServerPlayer nmsFake = craftFake.getHandle();
-				msg = new ClientboundContainerSetContentPacket(
-					0, pkt.stateId(),
-					nmsFake.containerMenu.getItems(), nmsFake.containerMenu.getCarried()
-				);
-			}
-		}
-		super.write(ctx, msg, promise);
-	}
 }

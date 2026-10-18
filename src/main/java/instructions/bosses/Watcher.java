@@ -6,7 +6,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import instructions.bosses.maxor.Maxor;
-// import instructions.players.Mage; // TAS-only player routine, disabled in the practice fork
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
@@ -25,8 +24,7 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import plugin.WatcherFix;
 import plugin.BossScheduler;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.*;
@@ -34,7 +32,7 @@ import java.util.*;
 /**
  * Blood Room pre-boss. Detection armed at clear-tick 0 spawns the Watcher the first tick a player is in bounds; kill
  * lines fire on real Blood-Mob deaths ({@link #handleMobDeath}); 80t after the last death a portal opens that
- * teleports the actors to the boss spawn and hands off to Maxor (clear-only: entry ends the run). Singleton; {@link #resetState()} clears per-fight state.
+ * teleports the party to the boss spawn and hands off to Maxor (clear-only: entry ends the run). Singleton; {@link #resetState()} clears per-fight state.
  */
 public class Watcher {
 	public static final Watcher INSTANCE = new Watcher();
@@ -67,9 +65,7 @@ public class Watcher {
 	private BossBar watcherBossBar;
 
 	private boolean active = false;            // encounter running (detection / death guard)
-	private boolean tasActive = false;         // triggering player was a fake (TAS run)
 	private boolean doContinue = false;        // chain into Maxor on portal entry (set by arm())
-	private Runnable maxorHandoff = null;      // supplied by TAS.runTAS
 	private int triggerPhaseTick = 0;          // Utils.phaseTick() at spawn, the overall-column basis
 	private BukkitTask detectTask;
 	private BukkitTask portalDetectTask;
@@ -90,14 +86,13 @@ public class Watcher {
 
 	// ============================== Arming & detection ==============================
 
-	/** Does NOT spawn or detect; that's {@link #beginDetection(World)} at clear-tick 0. From TAS.runTAS for "all" and "clear". */
-	public void arm(World w, boolean doContinue, Runnable maxorHandoff) {
+	/** Does NOT spawn or detect; that's {@link #beginDetection(World)} at clear-tick 0. From Practice.runPractice. */
+	public void arm(World w, boolean doContinue) {
 		this.world = w;
 		this.doContinue = doContinue;
-		this.maxorHandoff = maxorHandoff;
 	}
 
-	/** One-shot scan from clear-tick 0: spawns the Watcher the first tick a player is in bounds, preferring a fake (→ TAS). */
+	/** One-shot scan from clear-tick 0: spawns the Watcher the first tick a player is in bounds. */
 	public void beginDetection(World w) {
 		this.world = w;
 		if(detectTask != null && !detectTask.isCancelled()) {
@@ -110,15 +105,12 @@ public class Watcher {
 					cancel();
 					return;
 				}
-				Player fake = firstInBounds(true);
-				Player trigger = fake != null ? fake : firstInBounds(false);
-				if(trigger != null) {
-					tasActive = (fake != null);
-					spawnEncounter(trigger);
+				if(firstInBounds() != null) {
+					spawnEncounter();
 					cancel();
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	/**
@@ -128,18 +120,15 @@ public class Watcher {
 	public void startOnBloodDoor() {
 		if(active) return;
 		if(detectTask == null || detectTask.isCancelled()) return; // not armed this run
-		tasActive = !FakePlayerManager.getFakePlayers().isEmpty();
 		detectTask.cancel();
-		spawnEncounter(null); // param only sets tasActive, done above
+		spawnEncounter();
 	}
 
-	/** First in-bounds fake (wantFake) or real non-spectator, else null. */
-	private Player firstInBounds(boolean wantFake) {
+	/** First in-bounds non-spectator, else null. */
+	private Player firstInBounds() {
 		if(world == null) return null;
 		for(Player p : world.getPlayers()) {
-			boolean isFake = FakePlayerManager.getFakePlayers().containsValue(p);
-			if(wantFake != isFake) continue;
-			if(!wantFake && p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(p.getGameMode() == GameMode.SPECTATOR) continue;
 			if(inBloodRoom(p.getLocation())) return p;
 		}
 		return null;
@@ -153,7 +142,7 @@ public class Watcher {
 
 	// ============================== Encounter ==============================
 
-	private void spawnEncounter(Player trigger) {
+	private void spawnEncounter() {
 		resetState();
 		active = true;
 		triggerPhaseTick = Utils.phaseTick();
@@ -316,7 +305,7 @@ public class Watcher {
 					}
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	/** Pairs with {@link #openPortal}'s fill; from {@link #enterPortal} and {@link #cleanup}. */
@@ -340,7 +329,7 @@ public class Watcher {
 		WitherActions.recordSplit("Clear", Utils.runTick());
 		Utils.timer("<green>Portal entered in " + formatTick(phaseRel()));
 		// Console, not debug: the network runs at verbose timer, which hides who ended the clear.
-		M7tas.getInstance().getLogger().info("Watcher portal entered by " + Utils.getRealName(p) + " (" + p.getGameMode() + ") at " + fmt(p.getLocation()));
+		M7.getInstance().getLogger().info("Watcher portal entered by " + Utils.getRealName(p) + " (" + p.getGameMode() + ") at " + fmt(p.getLocation()));
 		if(!doContinue) {
 			Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + Utils.getRealName(p) + " → clear ends");
 			closePortal();
@@ -348,32 +337,15 @@ public class Watcher {
 			WitherActions.signalRunComplete();
 			return;
 		}
-		Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + Utils.getRealName(p) + " → teleporting " + (tasActive ? "fakes" : "all players"));
+		Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + Utils.getRealName(p) + " → teleporting all players");
 
-		// Teleport THIS tick; boss + player routines start together NEXT tick.
-		if(tasActive) {
-			FakePlayerManager.getFakePlayers().values().forEach(f -> Utils.teleport(f, boss));
-			Utils.timer("<green>Entered Boss in " + formatTick(phaseRel()));
-			// TAS enters the boss at once, no time to walk over the blessing drops, so they were broadcast 200t in.
-			// Disabled with the Mage routine; tasActive is always false in practice anyway.
-			// Utils.scheduleTask(() -> {
-			// 	Utils.broadcastBlessing(Mage.get(), Utils.BlessingType.POWER, 5);
-			// 	Utils.broadcastBlessing(Mage.get(), Utils.BlessingType.LIFE, 5);
-			// }, 200);
-			if(doContinue && maxorHandoff != null) {
-				Utils.scheduleTask(maxorHandoff, 1); // Maxor + each player's maxor(true) together
-			}
-		} else {
-			for(Player pl : world.getPlayers()) {
-				if(FakePlayerManager.getFakePlayers().containsValue(pl)) continue;
-				if(pl.getGameMode() == GameMode.SPECTATOR) continue;
-				// Vanilla teleport: Utils.teleport is the fake path and only updates OTHER viewers, so a real player
-				// would snap back and nothing would chain.
-				pl.teleport(boss);
-			}
-			// Practice chains too: doContinue is true for "all", so Maxor → Storm → … without fake routines.
-			Utils.scheduleTask(() -> Maxor.maxorInstructions(world, doContinue), 1);
+		// Teleport THIS tick; the boss starts NEXT tick.
+		for(Player pl : world.getPlayers()) {
+			if(pl.getGameMode() == GameMode.SPECTATOR) continue;
+			pl.teleport(boss);
 		}
+		// doContinue is true for "all", so Maxor → Storm → ….
+		Utils.scheduleTask(() -> Maxor.maxorInstructions(world, doContinue), 1);
 
 		closePortal();
 		active = false;
@@ -552,7 +524,7 @@ public class Watcher {
 					cancel();
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	private void spawnMob(Location location, String mobName) {
@@ -685,7 +657,7 @@ public class Watcher {
 		countedMobKills.clear();
 	}
 
-	// For /setup and /tas reset
+	// For /setup and /reset
 	public static void forceCleanup() {
 		INSTANCE.cleanup();
 	}

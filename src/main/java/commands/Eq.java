@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jspecify.annotations.NonNull;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Menus;
 import plugin.Utils;
 
@@ -262,7 +262,7 @@ public class Eq implements CommandExecutor, Listener {
 		gui.setItem(idx, item.clone());
 		// Helmet swap changes Max Speed next tick (MaxSpeedSync poll) and the aggregate (thousands of Intelligence
 		// for Storm's helmet), so redraw both after.
-		Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+		Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 			if(p.getOpenInventory().getTopInventory().getHolder() instanceof EqHolder) {
 				gui.setItem(PET_SLOT, petItem(p));
 				gui.setItem(MELEE_STATS_SLOT, meleeStatsItem(p));

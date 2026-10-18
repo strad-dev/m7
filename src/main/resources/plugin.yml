@@ -1,24 +1,14 @@
-name: m7tas
+name: m7
 version: '${project.version}'
-main: plugin.M7tas
+main: plugin.M7
 api-version: '26.2'
 
 commands:
   setup:
-    description: Clear all classes and spawn them
+    description: Reset the dungeon map and mobs
     usage: /setup
-  # TAS-only commands, disabled in the practice fork:
-  # spectate:
-  #   description: Spectate a class
-  #   usage: /spectate <class>
-  # unspectate:
-  #   description: Stop spectating a class
-  #   usage: /unspectate
-  # tas:
-  #   description: Begin TAS
-  #   usage: /tas <section>
   # On the network the bare label belongs to StradDevHub's queue command (an alias of /m7), which force-claims
-  # it at boot; ours stays reachable as /m7tas:m7practice, and that is what M7Bridge dispatches.
+  # it at boot; ours stays reachable as /m7:m7practice, and that is what M7Bridge dispatches.
   m7practice:
     description: Begin practice (boss instructions only, for real players)
     usage: /m7practice <section> [--no-teleport]
@@ -27,22 +17,14 @@ commands:
     usage: /eq
     aliases: [stats]
   reset:
-    description: Reset the dungeon to its pre-run state (and send any fake players out of sight)
+    description: Reset the dungeon to its pre-run state
     usage: /reset
-  # TAS-only command, disabled in the practice fork:
-  # simulate:
-  #   description: Simulates player actions
-  #   usage: /simulate <move|click|hotbar|turnhead|allblessings|undo>
   verbose:
     description: Toggle verbose debug messages
     usage: /verbose <true|false>
   setspeed:
-    description: Set movement speed (100 = default); target self or a named player (fake or real)
+    description: Set movement speed (100 = default); target self or a named player
     usage: /setspeed [player] [speed]
-  # TAS-only command, disabled in the practice fork:
-  # kickallfakes:
-  #   description: Kick all fake players
-  #   usage: /kickallfakes
   terminal:
     description: Helper command to facilitate terminals phase
     usage: /terminal <section> <terminal>

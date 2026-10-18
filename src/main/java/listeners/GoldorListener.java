@@ -1,6 +1,5 @@
 package listeners;
 
-import instructions.Actions;
 import instructions.bosses.goldor.*;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.*;
@@ -30,7 +29,7 @@ import java.util.UUID;
 
 public class GoldorListener implements Listener {
 
-	/** Single registered instance (M7tas.onEnable), so static reset paths reach instance state. */
+	/** Single registered instance (M7.onEnable), so static reset paths reach instance state. */
 	public static GoldorListener INSTANCE;
 
 	public GoldorListener() {
@@ -105,8 +104,7 @@ public class GoldorListener implements Listener {
 	private static final int LIGHTS_LAMP_Z = 143;
 
 	/**
-	 * True if {@code p} must not progress a Goldor device ({@link Utils#isSpectator}): a spectator on m7, or someone
-	 * spectating a fake.  Not redundant with vanilla: CraftBukkit still fires interact events for spectators, and the
+	 * True if {@code p} must not progress a Goldor device ({@link Utils#isSpectator}): a spectator on m7.  Not redundant with vanilla: CraftBukkit still fires interact events for spectators, and the
 	 * raw {@code ServerboundUseItemOnPacket} path ({@code PlayerPacketInterceptor} → {@link #tryRegisterSimonClick})
 	 * bypasses vanilla entirely.
 	 * <p>
@@ -150,7 +148,6 @@ public class GoldorListener implements Listener {
 			if(term.isActivated() || term.isPending()) return true;
 
 			term.setPending();
-			Actions.clearMovementInput(p);
 			// Live modes: the click opens the puzzle and solving it activates.  Pending spans the whole time the GUI is
 			// open, so a terminal is one player's at a time.  deathsEnabled(), not realPuzzles(): Perfect RNG opens the
 			// stand-in board (GoldorTerminalGui picks); only classic keeps the one-click terminal.
@@ -194,7 +191,7 @@ public class GoldorListener implements Listener {
 			term.markActivated();
 			Goldor.INSTANCE.onActivation(p, sec, "terminal");
 		}
-		Bukkit.getScheduler().runTask(plugin.M7tas.getInstance(), () -> p.closeInventory());
+		Bukkit.getScheduler().runTask(plugin.M7.getInstance(), () -> p.closeInventory());
 	}
 
 	/** Dragging moves items too, so it is refused. */
@@ -312,7 +309,7 @@ public class GoldorListener implements Listener {
 	 * Register a Simon Says click if (bx,by,bz) is a device button, deduped to once per player per tick (see
 	 * {@code lastSimonClickTick}: one click can surface twice on a tick, and a duplicate could hand out a skip).
 	 * <p>
-	 * Two main-thread callers: {@link #onInteract} (fake players via simulated packets) and the raw
+	 * Two main-thread callers: {@link #onInteract} (simulated packets) and the raw
 	 * {@code ServerboundUseItemOnPacket} in {@code PlayerPacketInterceptor} for real players, which bypasses
 	 * vanilla's interact suppression so rapid clicks aren't throttled to a few per second.
 	 */
@@ -567,11 +564,11 @@ public class GoldorListener implements Listener {
 		else INSTANCE.resetSharpHits();
 	}
 
-	/** Start the per-tick plate watch from {@code M7tas.onEnable}.  Raw and untracked like {@code OutOfBounds.start}, so a boss teardown flushing the scheduler can't kill it. */
+	/** Start the per-tick plate watch from {@code M7.onEnable}.  Raw and untracked like {@code OutOfBounds.start}, so a boss teardown flushing the scheduler can't kill it. */
 	public static void startSharpPlatePoll() {
 		if(sharpPlateTask != null) return;
 		sharpPlateTask = org.bukkit.Bukkit.getScheduler().runTaskTimer(
-				plugin.M7tas.getInstance(), GoldorListener::pollSharpPlate, 1L, 1L);
+				plugin.M7.getInstance(), GoldorListener::pollSharpPlate, 1L, 1L);
 	}
 
 	public static void stopSharpPlatePoll() {
@@ -756,7 +753,7 @@ public class GoldorListener implements Listener {
 	 * It sticks because the release is a SCHEDULED BLOCK TICK: any write without that tick pending (teardown
 	 * mid-press, a {@code clone}/{@code fill} from a region captured while someone stood on it) leaves it powered forever.
 	 * <p>
-	 * Forced on both edges of a run: here (via {@code Server.serverSetup}) and {@code TAS.endPractice}.
+	 * Forced on both edges of a run: here (via {@code Server.serverSetup}) and {@code Practice.endPractice}.
 	 * {@code applyPhysics = false}; nothing is wired to it.  Harmless with a player on it: the next
 	 * {@code entityInside} presses it again.
 	 */

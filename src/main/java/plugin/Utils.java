@@ -1,6 +1,5 @@
 package plugin;
 
-import commands.Spectate;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -12,11 +11,7 @@ import net.minecraft.advancements.predicates.BlockPredicate; // 26.2: moved from
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.entity.Relative;
 import net.minecraft.world.item.AdventureModePredicate;
 import net.minecraft.world.item.component.TooltipDisplay;
 import org.bukkit.*;
@@ -39,7 +34,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-// import nms.TASGamePacketListenerImpl; // TAS-only fake-player connection, disabled in the practice fork
 
 public class Utils {
 	/**
@@ -134,10 +128,10 @@ public class Utils {
 
 	/** Tracked runTaskLater; delay in ticks. */
 	public static void scheduleTask(Runnable task, long delay) {
-		if(!M7tas.getInstance().isEnabled()) return;
+		if(!M7.getInstance().isEnabled()) return;
 		final int generation = scheduleGeneration;
 		final int[] id = new int[1]; // set below; runTaskLater defers at least a tick, so it's set by then
-		org.bukkit.scheduler.BukkitTask handle = Bukkit.getScheduler().runTaskLater(M7tas.getInstance(), () -> {
+		org.bukkit.scheduler.BukkitTask handle = Bukkit.getScheduler().runTaskLater(M7.getInstance(), () -> {
 			scheduledTasks.remove(id[0]);
 			if(generation != scheduleGeneration) return; // a run started or ended since this was queued
 
@@ -162,7 +156,7 @@ public class Utils {
 
 	public static void setSpeed(Player p, int speed) {
 		var instance = p.getAttribute(Attribute.MOVEMENT_SPEED);
-		NamespacedKey key = new NamespacedKey(M7tas.getInstance(), "speed");
+		NamespacedKey key = new NamespacedKey(M7.getInstance(), "speed");
 		instance.removeModifier(new AttributeModifier(key, 0, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.ANY));
 		double modifier = (speed - 100) / 100.0;
 		instance.addModifier(new AttributeModifier(key, modifier, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.ANY));
@@ -173,41 +167,11 @@ public class Utils {
 	public static void setRelicDebuff(Player p, boolean active) {
 		var instance = p.getAttribute(Attribute.MOVEMENT_SPEED);
 		if(instance == null) return;
-		NamespacedKey key = new NamespacedKey(M7tas.getInstance(), "relic_debuff");
+		NamespacedKey key = new NamespacedKey(M7.getInstance(), "relic_debuff");
 		instance.removeModifier(new AttributeModifier(key, 0, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.ANY));
 		if(active) {
 			instance.addModifier(new AttributeModifier(key, -0.5, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.ANY));
 		}
-	}
-
-	public static void teleport(Player p, Location to) {
-		if(!(p instanceof CraftPlayer cp)) {
-			return;
-		}
-		ServerPlayer npc = cp.getHandle();
-
-		npc.setPos(to.getX(), to.getY(), to.getZ());
-		npc.setYRot(to.getYaw());
-		npc.setXRot(to.getPitch());
-		npc.yHeadRot = to.getYaw();
-		npc.yBodyRot = to.getYaw();
-
-		PositionMoveRotation pmr = PositionMoveRotation.of(npc);
-		ClientboundTeleportEntityPacket tp = ClientboundTeleportEntityPacket.teleport(npc.getId(), pmr, EnumSet.noneOf(Relative.class), npc.onGround());
-
-		broadcastPacket(tp);
-		Spectate.snapSpectatorsToFake(p);
-	}
-
-	/** Simulates a packet sent from a Player to the server. */
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public static void simulatePacket(Player player, Packet<?> packet) {
-		if(!(player instanceof CraftPlayer craftPlayer)) return;
-
-		Utils.debug(Utils.DebugType.CLIENT, player.getName() + " Sending Packet " + packet.getClass().getSimpleName() + (Utils.isSuperVerbose() ? (" at " + round(player.getLocation().getX(), 3) + " " + round(player.getLocation().getY(), 5) + " " + round(player.getLocation().getZ(), 3) + " " + player.getLocation().getYaw() + " " + player.getLocation().getPitch()) : ""));
-		ServerPlayer serverPlayer = craftPlayer.getHandle();
-		// TAS fake-player connection branch removed; no fake players in the practice fork.
-		((Packet) packet).handle(serverPlayer.connection);
 	}
 
 	public static void broadcastPacket(Packet<?> pkt) {
@@ -217,13 +181,12 @@ public class Utils {
 	}
 
 	/**
-	 * Action bar to every real player, spectators included; fakes skipped (no client). Shared home of the boss
+	 * Action bar to every player, spectators included. Shared home of the boss
 	 * tick-timer HUDs (Storm pad/crush, Maxor laser/stun, Necron interludes): there's one action-bar slot, so
 	 * every per-tick writer has to agree who it writes to. {@link Component#empty()} clears it.
 	 */
 	public static void broadcastActionBar(Component bar) {
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			sendActionBar(p, bar);
 		}
 	}
@@ -391,7 +354,7 @@ public class Utils {
 		ItemMeta meta = copy.getItemMeta();
 		if(meta == null) return copy;
 		meta.addAttributeModifier(Attribute.BLOCK_BREAK_SPEED, new AttributeModifier(
-				new NamespacedKey(M7tas.getInstance(), "no_break_speed"), -1024,
+				new NamespacedKey(M7.getInstance(), "no_break_speed"), -1024,
 				AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
 		copy.setItemMeta(meta);
 		return copy;
@@ -406,36 +369,17 @@ public class Utils {
 		Bukkit.getOnlinePlayers().forEach(player -> player.playSound(player, s, volume, pitch));
 	}
 
-	/** Plays to p, or to its spectators if p is a spectated fake. */
 	public static void playLocalSound(Player p, Sound s) {
-		if(FakePlayerManager.getFakePlayers().containsValue(p) && Spectate.getReverseSpectatorMap().containsKey(p)) {
-			for(Player spectator : Spectate.getReverseSpectatorMap().get(p)) {
-				spectator.playSound(spectator, s, 1.0f, 1.0f);
-			}
-		} else {
-			p.playSound(p, s, 1.0f, 1.0f);
-		}
+		p.playSound(p, s, 1.0f, 1.0f);
 	}
 
 	public static void playLocalSound(Player p, Sound s, float volume, float pitch) {
-		if(FakePlayerManager.getFakePlayers().containsValue(p) && Spectate.getReverseSpectatorMap().containsKey(p)) {
-			for(Player spectator : Spectate.getReverseSpectatorMap().get(p)) {
-				spectator.playSound(spectator, s, volume, pitch);
-			}
-		} else {
-			p.playSound(p, s, volume, pitch);
-		}
+		p.playSound(p, s, volume, pitch);
 	}
 
 	/** Same, by namespaced key ("minecraft:entity.wither.hurt"). */
 	public static void playLocalSound(Player p, String s, float volume, float pitch) {
-		if(FakePlayerManager.getFakePlayers().containsValue(p) && Spectate.getReverseSpectatorMap().containsKey(p)) {
-			for(Player spectator : Spectate.getReverseSpectatorMap().get(p)) {
-				spectator.playSound(spectator.getLocation(), s, volume, pitch);
-			}
-		} else {
-			p.playSound(p.getLocation(), s, volume, pitch);
-		}
+		p.playSound(p.getLocation(), s, volume, pitch);
 	}
 
 	// LivingEntity#getHurtSound is protected, so reflected lazily. invoke dispatches virtually, so subclass
@@ -496,7 +440,7 @@ public class Utils {
 		scheduleTask(() -> playLocalSound(p, Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.18945f), 20);
 	}
 
-	/** Nearest real player to l. */
+	/** Nearest player to l. */
 	public static @Nullable Player getNearestPlayer(Location l) {
 		ArrayList<Player> playersInWorld = new ArrayList<>(l.getWorld().getEntitiesByClass(Player.class));
 		if(playersInWorld.isEmpty()) {
@@ -508,10 +452,6 @@ public class Utils {
 				playersInWorld.remove(i);
 				i--;
 			}
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) {
-				playersInWorld.remove(i);
-				i--;
-			}
 		}
 		playersInWorld.sort(Comparator.comparingDouble(o -> o.getLocation().distanceSquared(l)));
 		return playersInWorld.getFirst();
@@ -519,7 +459,7 @@ public class Utils {
 
 	/**
 	 * True if p is WATCHING, not running: vanilla spectator (m7's idle state; the network parks non-party players
-	 * there) or spectating a fake.
+	 * there).
 	 * <p>
 	 * <b>Every player-driven dungeon mechanic must check this; vanilla won't.</b> Bukkit still fires interact events
 	 * for spectators, and clicks on a {@code MenuProvider} block or an entity hitbox aren't pre-cancelled, so a
@@ -528,7 +468,7 @@ public class Utils {
 	 * chokepoint ({@code Maxor.pickUp}, {@code WitherKing.pickUpRelic}) so future callers inherit it.
 	 */
 	public static boolean isSpectator(Player p) {
-		return p == null || p.getGameMode() == GameMode.SPECTATOR || commands.Spectate.isSpectating(p);
+		return p == null || p.getGameMode() == GameMode.SPECTATOR;
 	}
 
 	public enum DebugType {

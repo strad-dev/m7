@@ -3,8 +3,6 @@ package plugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
@@ -50,13 +48,6 @@ public class PlayerCollision {
 		if(noCollisionTeam != null) {
 			noCollisionTeam.removeEntry(entity.getUniqueId().toString());
 		}
-	}
-
-	public static void preventPlayerCollision(Player realPlayer, Player fakePlayer) {
-		addToNoCollisionTeam(realPlayer);
-		addToNoCollisionTeam(fakePlayer);
-
-		realPlayer.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, -1, 0, true, false));
 	}
 
 	public static void cleanup() {

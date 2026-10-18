@@ -15,7 +15,7 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.entity.Wither;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 @SuppressWarnings("DataFlowIssue")
@@ -83,7 +83,7 @@ public class CustomBossBar {
 				updateWitherBossBar(witherName);
 				disableVanillaWitherBossBar(activeWither);
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	private static void updateWitherBossBar(String witherName) {
@@ -176,7 +176,7 @@ public class CustomBossBar {
 					colorOffset = (colorOffset + 1) % 3;
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 
 		Utils.scheduleTask(() -> {
 			if(activeStunIndicator == indicator) activeStunIndicator = null;

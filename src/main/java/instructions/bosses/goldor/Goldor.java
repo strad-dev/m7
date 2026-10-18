@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import plugin.BossScheduler;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.time.Duration;
@@ -26,8 +26,6 @@ import java.util.*;
 
 public final class Goldor extends WitherLord {
 	public static final Goldor INSTANCE = new Goldor();
-
-	private static final int PRE_GOLDOR_TICKS = 2098;
 
 	// Patrol waypoints, block-center XZ. Y stays 118.
 	private static final double WP_AX = 100.5, WP_AZ = 40.5;
@@ -244,7 +242,6 @@ public final class Goldor extends WitherLord {
 	@Override protected String displayName() { return "Goldor"; }
 	@Override protected Location spawnLocation() { return new Location(world, 80.5, 118, 40.5, -90f, 0f); }
 	@Override protected double maxHealth() { return damage.MobStats.GOLDOR.internalHealth(); }
-	@Override protected int previousTicks() { return PRE_GOLDOR_TICKS; }
 
 	@Override
 	protected void resetState() {
@@ -285,7 +282,6 @@ public final class Goldor extends WitherLord {
 		if(doContinue) {
 			Necron.necronInstructions(world, true);
 			instructions.bosses.necron.NecronDrag.start(world);
-			runPlayerHandoff(); // players' necron() routine, same tick Necron spawns
 		} else {
 			instructions.bosses.WitherActions.signalRunComplete(); // last boss of this practice
 		}
@@ -467,7 +463,7 @@ public final class Goldor extends WitherLord {
 				}
 				moveBossTo(x + dx, loc.getY(), z + dz, (float) yaw);
 			}
-		}.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+		}.runTaskTimer(M7.getInstance(), 1L, 1L);
 	}
 
 	private void moveBossTo(double x, double y, double z, float yaw) {
@@ -742,13 +738,7 @@ public final class Goldor extends WitherLord {
 		return false;
 	}
 
-	/** Lets fake players' right-click through to the Simon button, which rightClick otherwise suppresses. MiscListener
-	 *  still cancels the press, but GoldorListener counts it first. */
-	public boolean isSimonButton(int x, int y, int z) {
-		return phaseActive && x == SIMON_BX && y == SIMON_BY && z == SIMON_BZ;
-	}
-
-	/** From M7tas.onDisable(), so a mid-fight stop never leaves gates open. */
+	/** From M7.onDisable(), so a mid-fight stop never leaves gates open. */
 	public void shutdownRegenerateGates() {
 		for(GoldorSection s : sections) {
 			if(s.gate != null) s.gate.cleanup();
@@ -878,7 +868,7 @@ public final class Goldor extends WitherLord {
 					}
 				}
 			}
-		}.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+		}.runTaskTimer(M7.getInstance(), 1L, 1L);
 	}
 
 	private void stopPatrol() {

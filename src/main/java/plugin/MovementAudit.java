@@ -14,8 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SUPER-verbose dev tool: prints a player's trajectory per tick after a launch (spring boots, lava jump, bonzo /
- * jerry-chine knockback) for physics analysis. Inert otherwise. Own 1-tick task; the fake-ticker version is in git
- * history on {@code main}.
+ * jerry-chine knockback) for physics analysis. Inert otherwise. Own 1-tick task.
  */
 public class MovementAudit {
 	// Cap so a trace that never lands can't print forever.
@@ -66,7 +65,7 @@ public class MovementAudit {
 
 	private static void ensureTask() {
 		if(task != null && !task.isCancelled()) return;
-		task = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), MovementAudit::tick, 1L, 1L);
+		task = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), MovementAudit::tick, 1L, 1L);
 	}
 
 	private static void stopTask() {

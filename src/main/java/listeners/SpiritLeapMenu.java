@@ -10,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jspecify.annotations.NonNull;
-import plugin.FakePlayerManager;
 import plugin.Utils;
 
 import java.util.*;
@@ -111,32 +110,24 @@ public class SpiritLeapMenu implements InventoryHolder {
 		return spots;
 	}
 
-	/** Online, non-spectating, non-fake players other than the viewer, by class then name, capped at 4. */
+	/** Online, non-spectating players other than the viewer, by class then name, capped at 4. */
 	private static List<Player> candidates(Player viewer) {
 		List<Player> list = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(p.equals(viewer)) continue;
 			if(p.getGameMode() == GameMode.SPECTATOR) continue;
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			list.add(p);
 		}
 		list.sort(Comparator.comparingInt((Player p) -> CLASS_ORDER.indexOf(resolveClass(p))).thenComparing(Player::getName));
 		return list.size() > 4 ? new ArrayList<>(list.subList(0, 4)) : list;
 	}
 
-	/** Class from the player's scoreboard tag (set by /class), falling back to the fake-player name. */
+	/** Class from the player's scoreboard tag (set by /class), else Mage. */
 	public static String resolveClass(Player p) {
 		for(String c : new String[]{"Archer", "Berserk", "Healer", "Mage", "Tank"}) {
 			if(p.getScoreboardTags().contains(c)) return c;
 		}
-		String n = p.getName();
-		return switch(n) {
-			case "Archer" -> "Archer";
-			case "Mage2" -> "Tank";
-			case "Mage3" -> "Berserk";
-			case "Mage4" -> "Healer";
-			default -> "Mage";
-		};
+		return "Mage";
 	}
 
 	private static Material classPane(String cls) {

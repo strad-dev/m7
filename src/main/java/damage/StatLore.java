@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.ArrayList;
@@ -143,8 +143,8 @@ public final class StatLore {
 		// NEXT TICK, always, as the method's contract: callers are mid-event (MONITOR on InventoryClickEvent before
 		// its result applies, Pets.equip from a menu click), and writing slots now races that. isEnabled guards
 		// shutdown, where the scheduler refuses tasks.
-		if(!M7tas.getInstance().isEnabled()) return;
-		Bukkit.getScheduler().runTask(M7tas.getInstance(), () -> rerenderChimeraNow(p));
+		if(!M7.getInstance().isEnabled()) return;
+		Bukkit.getScheduler().runTask(M7.getInstance(), () -> rerenderChimeraNow(p));
 	}
 
 	/** {@link #refreshChimeraLore}'s deferred half. Never call directly. */

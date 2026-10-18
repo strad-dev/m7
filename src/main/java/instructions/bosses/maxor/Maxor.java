@@ -24,7 +24,6 @@ import java.util.*;
 public final class Maxor extends WitherLord {
 	public static final Maxor INSTANCE = new Maxor();
 
-	private static final int PRE_MAXOR_TICKS = 738;
 	private static final String ENERGY_CRYSTAL_ID = "skyblock/game/energy_crystal";
 	private static final String ENERGY_CRYSTAL_NAME = "<gold><bold>﴾ <red>Energy Crystal<gold> ﴿";
 	private static final String[] LASER_MESSAGE = {"YOU TRICKED ME!", "THAT BEAM!  IT HURTS!  IT HURTS!"};
@@ -85,7 +84,7 @@ public final class Maxor extends WitherLord {
 		register(this);
 	}
 
-	/** For /tas, Watcher and the boss chain. */
+	/** For /m7practice, Watcher and the boss chain. */
 	public static void maxorInstructions(World world, boolean doContinue) {
 		INSTANCE.start(world, doContinue);
 		// Autopet "boss fight starts" trigger, after start() so the entity exists. No-op outside realistic.
@@ -110,11 +109,6 @@ public final class Maxor extends WitherLord {
 	@Override
 	protected double maxHealth() {
 		return damage.MobStats.MAXOR.internalHealth();
-	}
-
-	@Override
-	protected int previousTicks() {
-		return PRE_MAXOR_TICKS;
 	}
 
 	@Override
@@ -162,7 +156,6 @@ public final class Maxor extends WitherLord {
 	protected void chainNext(boolean doContinue) {
 		if(doContinue) {
 			Storm.stormInstructions(world, true);
-			runPlayerHandoff(); // players' storm() routine, same tick Storm spawns
 		} else {
 			instructions.bosses.WitherActions.signalRunComplete(); // last boss of this practice
 		}

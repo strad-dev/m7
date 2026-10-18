@@ -84,7 +84,6 @@ public final class M7 extends JavaPlugin {
 
 		PlayerCollision.setupNoCollisionTeam();
 
-		// TAS-only commands (tas, simulate, spectate/unspectate, reset, kickallfakes) are disabled in the practice fork.
 		loadoutEditor = new LoadoutEditor();
 		petMenu = new pets.PetMenu();
 		commands.SettingsMenu settingsMenu = new commands.SettingsMenu();
@@ -107,7 +106,6 @@ public final class M7 extends JavaPlugin {
 			command.setTabCompleter(new TabCompletor());
 		}
 		getServer().getPluginManager().registerEvents(new JoinListener(), this);
-		// getServer().getPluginManager().registerEvents(new SpectatorListener(), this); // TAS-only fake-spectate feature, disabled in the practice fork
 		getServer().getPluginManager().registerEvents(new WithersNotImmuneToArrows(), this);
 		getServer().getPluginManager().registerEvents(new PearlHelper(), this);
 		getServer().getPluginManager().registerEvents(new MiscListener(), this);
@@ -135,15 +133,11 @@ public final class M7 extends JavaPlugin {
 		damage.Procs.start();
 		items.tools.Dungeonbreaker.start();
 
-		PlayerInventoryBackup.startInventorySync();
 		MaxSpeedSync.start();
 		// Terminator fire poller (5-tick cooldown, 4 with Thermodynamic).
 		getServer().getScheduler().runTaskTimer(this, items.bows.Terminator::pollAll, 1L, 1L);
-		// Practice boss-movement driver: the fake ticker skips runMovementTickers in practice (and may not run). No-op
-		// in a TAS, where the fake ticker drives it.
-		getServer().getScheduler().runTaskTimer(this,
-				() -> { if(instructions.bosses.WitherActions.isPracticeMode()) BossScheduler.runMovementTickers(); }, 1L, 1L);
-		Spectate.startSpectatorSync();
+		// Boss-movement driver (BossScheduler's movement lane).
+		getServer().getScheduler().runTaskTimer(this, BossScheduler::runMovementTickers, 1L, 1L);
 		SpringBoots.start();
 		LavaJump.start();
 		listeners.OutOfBounds.start();
@@ -191,9 +185,6 @@ public final class M7 extends JavaPlugin {
 		if(loadoutEditor != null) loadoutEditor.restoreAll();
 		// Same for a /petloadout pet on the cursor.
 		if(petMenu != null) petMenu.restoreAll();
-		PlayerInventoryBackup.stopInventorySync();
-		FakePlayerManager.stopCustomConnection();
-		Spectate.stopSpectatorSync();
 		SpringBoots.stop();
 		LavaJump.stop();
 		listeners.OutOfBounds.stop();
@@ -224,8 +215,6 @@ public final class M7 extends JavaPlugin {
 		PlayerCollision.cleanup();
 
 		Server.hardMobCleanup();
-
-		PlayerInventoryBackup.clearAll();
 	}
 
 	public static Plugin getInstance() {

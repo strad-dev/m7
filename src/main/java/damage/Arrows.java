@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
-import plugin.M7tas;
+import plugin.M7;
 
 /**
  * Arrow damage (MAP.md §1.0.5).
@@ -38,7 +38,7 @@ public final class Arrows {
 	private static final double PIERCING_SHARE = 0.25;
 
 	private static NamespacedKey key(String name) {
-		return new NamespacedKey(M7tas.getInstance(), name);
+		return new NamespacedKey(M7.getInstance(), name);
 	}
 
 	/**

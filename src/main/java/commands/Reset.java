@@ -3,14 +3,11 @@ package commands;
 import instructions.Actions;
 import instructions.Server;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jspecify.annotations.NonNull;
-import plugin.FakePlayerManager;
 import plugin.MovementAudit;
 import plugin.Utils;
 
@@ -25,12 +22,10 @@ public class Reset implements CommandExecutor {
 		Actions.cancelAllMovement();
 		Utils.cancelAllScheduled();
 		items.combat.RagnarockAxe.reset();
-		Location hide = new Location(Bukkit.getWorld("world"), -120.5, 71, -183.5);
-		FakePlayerManager.getFakePlayers().values().forEach(npc -> npc.teleport(hide, PlayerTeleportEvent.TeleportCause.PLUGIN));
 		// Cleanup before serverSetup respawns minibosses so it never nukes the fresh spawns.
 		Server.hardMobCleanup();
 		Server.serverSetup(Bukkit.getWorld("world"));
-		p.sendMessage(Utils.msg("Reset server and all NPC locations"));
+		p.sendMessage(Utils.msg("Reset the dungeon"));
 		return true;
 	}
 }

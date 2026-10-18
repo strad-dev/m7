@@ -5,7 +5,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-// import plugin.FakePlayerManager; // unused after TAS tab-completions removed in the practice fork
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +59,6 @@ public class TabCompletor implements TabCompleter {
 				}
 			}
 
-			// "spectate" tab-completion removed: TAS-only command, disabled in the practice fork.
 
 			case "class" -> {
 				if(args.length == 1) {
@@ -138,7 +136,6 @@ public class TabCompletor implements TabCompleter {
 				}
 			}
 
-			// "simulate" tab-completion removed: TAS-only command, disabled in the practice fork.
 		}
 
 		return completions;

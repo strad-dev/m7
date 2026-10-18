@@ -6,7 +6,7 @@ import damage.Difficulty;
 import damage.Pet;
 import org.bukkit.entity.Player;
 import plugin.Catalog;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.io.Reader;
@@ -271,7 +271,7 @@ public final class Pets {
 				}
 			}
 		} catch(Exception e) {
-			M7tas.getInstance().getLogger().warning("Failed to read pets for " + uuid + ": " + e);
+			M7.getInstance().getLogger().warning("Failed to read pets for " + uuid + ": " + e);
 		}
 		Profile prof = new Profile();
 		if(f == null) {
@@ -391,7 +391,7 @@ public final class Pets {
 				Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch(Exception e) {
-			M7tas.getInstance().getLogger().warning("Failed to save pets for " + uuid + ": " + e);
+			M7.getInstance().getLogger().warning("Failed to save pets for " + uuid + ": " + e);
 		}
 	}
 

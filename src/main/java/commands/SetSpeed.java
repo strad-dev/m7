@@ -10,8 +10,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 public class SetSpeed implements CommandExecutor {
@@ -67,8 +66,6 @@ public class SetSpeed implements CommandExecutor {
 	}
 
 	private static Player resolvePlayer(String name) {
-		Player fake = FakePlayerManager.getFakePlayers().get(name);
-		if(fake != null) return fake;
 		return Bukkit.getPlayerExact(name);
 	}
 
@@ -81,7 +78,7 @@ public class SetSpeed implements CommandExecutor {
 	}
 
 	private static int getSpeed(Player p) {
-		NamespacedKey key = new NamespacedKey(M7tas.getInstance(), "speed");
+		NamespacedKey key = new NamespacedKey(M7.getInstance(), "speed");
 		for(AttributeModifier mod : p.getAttribute(Attribute.MOVEMENT_SPEED).getModifiers()) {
 			if(mod.getKey().equals(key)) {
 				return (int) Math.round(mod.getAmount() * 100 + 100);

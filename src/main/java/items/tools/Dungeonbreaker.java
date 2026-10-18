@@ -20,7 +20,7 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.EnumSet;
@@ -160,9 +160,9 @@ public final class Dungeonbreaker implements Tool, AbilityItem {
 		for(Player p : Bukkit.getOnlinePlayers()) drawCharges(p);
 	}
 
-	/** Regen ticker, one charge per player every {@code 20 / REGEN_PER_SECOND} ticks. Started from {@code M7tas}. */
+	/** Regen ticker, one charge per player every {@code 20 / REGEN_PER_SECOND} ticks. Started from {@code M7}. */
 	public static void start() {
-		Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> {
+		Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> {
 			for(Player p : Bukkit.getOnlinePlayers()) {
 				int left = charges(p);
 				if(left < MAX_CHARGES) charges.put(p.getUniqueId(), left + 1);
@@ -200,7 +200,7 @@ public final class Dungeonbreaker implements Tool, AbilityItem {
 		pickaxe.addUnsafeEnchantment(Enchantment.EFFICIENCY, 255);
 		ItemMeta meta = pickaxe.getItemMeta();
 		meta.addAttributeModifier(Attribute.BLOCK_BREAK_SPEED, new AttributeModifier(
-				new NamespacedKey(M7tas.getInstance(), "stonk"), 1024,
+				new NamespacedKey(M7.getInstance(), "stonk"), 1024,
 				AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
 		pickaxe.setItemMeta(meta);
 		return Utils.breakAnyBlockInAdventure(pickaxe);

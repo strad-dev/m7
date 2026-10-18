@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public final class GyrokineticWand implements AbilityItem {
 				Utils.playLocalSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 2.0f, pitch);
 				pitch += 0.025f;
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 
 		Material[] blockTypes = {Material.OBSIDIAN, Material.PURPLE_CONCRETE, Material.PURPLE_STAINED_GLASS};
 		List<FallingBlock> fallingBlocks = new ArrayList<>();
@@ -182,7 +182,7 @@ public final class GyrokineticWand implements AbilityItem {
 				}
 			}
 		};
-		blockChecker.runTaskTimer(M7tas.getInstance(), 1L, 1L);
+		blockChecker.runTaskTimer(M7.getInstance(), 1L, 1L);
 
 		new BukkitRunnable() {
 			int tick = 0;
@@ -252,7 +252,7 @@ public final class GyrokineticWand implements AbilityItem {
 
 				tick++;
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 
 		for(Entity e : Objects.requireNonNull(l.getWorld()).getNearbyEntities(l, 10, 10, 10)) {
 			// Immune: the Watcher, villager NPCs (Mort/Wizard) and bosses (withers, ender dragons).
@@ -282,7 +282,7 @@ public final class GyrokineticWand implements AbilityItem {
 
 						tick++;
 					}
-				}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+				}.runTaskTimer(M7.getInstance(), 0L, 1L);
 			}
 		}
 	}

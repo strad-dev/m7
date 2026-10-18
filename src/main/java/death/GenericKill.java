@@ -12,7 +12,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.metadata.MetadataValue;
-import plugin.M7tas;
+import plugin.M7;
 
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +70,7 @@ public final class GenericKill implements Listener {
 				any = true;
 			}
 		}
-		if(any) Bukkit.getScheduler().runTask(M7tas.getInstance(), pending::clear);
+		if(any) Bukkit.getScheduler().runTask(M7.getInstance(), pending::clear);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

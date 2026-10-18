@@ -422,8 +422,8 @@ public final class GoldorSimonSays {
 
 	/**
 	 * The one force-restore and public teardown: lanterns back, buttons down, run dropped. Called from all three
-	 * teardown paths ({@code TAS.endPractice}, {@code Server.serverSetup} incl. via {@code GoldorListener.resetSimon},
-	 * {@code M7tas.onDisable}); the playback timer can't cover them since {@code cancelAllScheduled} kills it.
+	 * teardown paths ({@code Practice.endPractice}, {@code Server.serverSetup} incl. via {@code GoldorListener.resetSimon},
+	 * {@code M7.onDisable}); the playback timer can't cover them since {@code cancelAllScheduled} kills it.
 	 */
 	public void cleanup() {
 		resetRuntime();

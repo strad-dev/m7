@@ -9,11 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import plugin.FakePlayerManager;
 import plugin.Menus;
 import plugin.Utils;
 
-/** Practice Spirit Leap menu ({@link SpiritLeapMenu}): the Infinileap opens it (errors in a TAS); a quadrant leaps. */
+/** Practice Spirit Leap menu ({@link SpiritLeapMenu}): the Infinileap opens it (errors outside a run); a quadrant leaps. */
 public class SpiritLeapListener implements Listener {
 
 	@EventHandler
@@ -23,7 +22,6 @@ public class SpiritLeapListener implements Listener {
 		// Resolved through the registry, so the item opens its own menu (items.MenuItem.open); this owns only the gates.
 		if(!(items.ItemRegistry.of(e.getItem()) instanceof items.MenuItem menu)) return;
 		Player p = e.getPlayer();
-		if(FakePlayerManager.getFakePlayers().containsValue(p)) return; // fakes leap via Actions.leap, never the menu
 		e.setCancelled(true);
 		p.setCooldown(Material.ENDER_PEARL, 0); // clear the ender pearl cooldown
 

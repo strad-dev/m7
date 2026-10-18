@@ -53,12 +53,12 @@ public final class ClassAbilities {
 		Cooldowns.start(p, ability.cooldownKey(), cooldown);
 	}
 
-	/** Class given by tag or fake-player name. Same lookups as {@link DungeonClass#of} minus its MAGE fallback. */
+	/** Class given by tag. Same lookup as {@link DungeonClass#of} minus its MAGE fallback. */
 	private static boolean hasExplicitClass(Player p) {
 		if(p == null) return false;
 		for(DungeonClass c : DungeonClass.values()) {
 			String name = DungeonClass.name(c);
-			if(p.getScoreboardTags().contains(name) || p.getName().startsWith(name)) return true;
+			if(p.getScoreboardTags().contains(name)) return true;
 		}
 		return false;
 	}

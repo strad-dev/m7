@@ -1,6 +1,5 @@
 package listeners;
 
-import commands.Spectate;
 import instructions.Server;
 import instructions.bosses.Watcher;
 import instructions.bosses.WitherActions;
@@ -28,7 +27,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import plugin.FakePlayerManager;
 import plugin.MovementAudit;
 import plugin.Utils;
 
@@ -75,7 +73,7 @@ public class MiscListener implements Listener {
 		double best = Double.MAX_VALUE;
 		Location deathLoc = e.getEntity().getLocation();
 		for(Player pl : Bukkit.getOnlinePlayers()) {
-			if(pl.getGameMode() == GameMode.SPECTATOR || Spectate.isSpectating(pl)) continue;
+			if(pl.getGameMode() == GameMode.SPECTATOR) continue;
 			double d = pl.getLocation().distanceSquared(deathLoc);
 			if(d < best) { best = d; picker = pl; }
 		}
@@ -108,15 +106,13 @@ public class MiscListener implements Listener {
 		}
 	}
 
-	// No vanilla pearls in the boss arena (no pearl skips). Infinileap is exempt; fake players too, since they use
-	// simulated pearls + scripted teleports.
+	// No vanilla pearls in the boss arena (no pearl skips). Infinileap is exempt.
 	@EventHandler
 	public void onPearlInBossArena(PlayerInteractEvent e) {
 		if(e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		ItemStack item = e.getItem();
 		if(item == null || item.getType() != Material.ENDER_PEARL) return;
 		if(items.ItemUtils.getID(item).equals("skyblock/utility/infinileap")) return; // leap ability is allowed
-		if(FakePlayerManager.getFakePlayers().containsValue(e.getPlayer())) return;
 		if(LavaJump.isInBossArena(e.getPlayer().getLocation())) e.setCancelled(true);
 	}
 
@@ -163,11 +159,6 @@ public class MiscListener implements Listener {
 	// (same HandlerList); getPushedBy() replaces EntityKnockbackByEntityEvent#getSourceEntity().
 	@EventHandler
 	public void onKnockback(EntityKnockbackEvent e) {
-		// No knockback on fake players (none exist in practice; kept as a guard).
-		if(e.getEntity() instanceof Player p && FakePlayerManager.getFakePlayers().containsValue(p)) {
-			e.setCancelled(true);
-			return;
-		}
 		// Bonzo's charge doesn't knock back who it hits.
 		if(e instanceof EntityPushedByEntityAttackEvent pushed
 				&& pushed.getPushedBy() instanceof WindCharge windCharge
@@ -211,8 +202,8 @@ public class MiscListener implements Listener {
 						: rawHit instanceof EnderDragonPart part ? part.getParent() : null;
 				if(hitEntity == null) return;
 
-				// Phase through all players; a fake-player arrow must never hit a real one (bypasses Creative
-				// invulnerability via genericKill).
+				// Phase through all players; an arrow must never hit one (bypasses Creative invulnerability via
+				// genericKill).
 				if(hitEntity instanceof Player) {
 					e.setCancelled(true);
 				}
@@ -243,7 +234,6 @@ public class MiscListener implements Listener {
 				p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, windCharge.getLocation(), 64, 0, 0, 0, 0.75);
 				p.getWorld().spawnParticle(Particle.CRIT, windCharge.getLocation(), 32, 0, 0, 0, 2);
 				p.getWorld().playSound(windCharge.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0F, 1.0F);
-				for(Player spectator : Spectate.getSpectatingPlayers(p)) spectator.playSound(spectator, Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0F, 1.0F);
 
 				if(distance <= 12.25) {
 					if(!(p instanceof CraftPlayer craftPlayer)) return;
@@ -262,18 +252,12 @@ public class MiscListener implements Listener {
 						direction.setZ(0);
 					}
 
-					// Fake players: queue the impulse for the next aiStep (FakePlayerManager.launch); setting it here
-					// lands after aiStep and gets clobbered, losing the first-tick rise. Real players: set directly.
-					if(FakePlayerManager.getFakePlayers().containsValue(p)) {
-						FakePlayerManager.launch(p, direction);
-					} else {
-						serverPlayer.setOnGround(false);
-						p.setVelocity(direction);
-						// Send motion now, not via hurtMarked next aiStep: that's a tick late and loses the first-tick
-						// rise. Immediate matches Hypixel, full 0.5 on tick 1.
-						serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer));
-						serverPlayer.hurtMarked = false;
-					}
+					serverPlayer.setOnGround(false);
+					p.setVelocity(direction);
+					// Send motion now, not via hurtMarked next aiStep: that's a tick late and loses the first-tick
+					// rise. Immediate matches Hypixel, full 0.5 on tick 1.
+					serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer));
+					serverPlayer.hurtMarked = false;
 					Integer fireTick = items.combat.BonzoStaff.bonzoFireTick.remove(windCharge.getEntityId());
 					int travelTicks = fireTick != null ? MinecraftServer.currentTick - fireTick : -1;
 					Location loc = p.getLocation();

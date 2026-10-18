@@ -11,8 +11,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.FakePlayerManager;
-import plugin.M7tas;
+import plugin.M7;
 import plugin.Utils;
 
 /**
@@ -31,8 +30,7 @@ import plugin.Utils;
  * into position before the countdown ends is allowed.
  * <p>
  * Only SURVIVAL and ADVENTURE die. Creative is exempt (map editing, same bypass as {@code CustomItems.onBlockBreak};
- * the practice scoreboard flags a mid-run switch), and so are spectators, by game mode and by
- * {@code Spectate.isSpectating}, which leaves them in adventure.
+ * the practice scoreboard flags a mid-run switch), and so are spectators.
  * <p>
  * A run death in every mode ({@code Deaths.forceKill}), with the ghost moved to {@link #respawnPoint} and revived
  * there, or it would revive out of bounds and die again.
@@ -47,7 +45,7 @@ public final class OutOfBounds {
 			public void run() {
 				tick();
 			}
-		}.runTaskTimer(M7tas.getInstance(), 0L, 1L);
+		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 	}
 
 	public static void stop() {
@@ -94,7 +92,6 @@ public final class OutOfBounds {
 			if(gm != GameMode.SURVIVAL && gm != GameMode.ADVENTURE) continue;
 			// The plugin's own spectate state leaves the player in ADVENTURE.
 			if(Utils.isSpectator(p)) continue;
-			if(FakePlayerManager.getFakePlayers().containsValue(p)) continue;
 			if(p.isDead() || p.getHealth() <= 0.0) continue;
 			if(isInBounds(p.getLocation())) continue;
 			kill(p);

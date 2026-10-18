@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Boss-priority tick scheduler: why all boss actions run at the start of the tick (CLAUDE.md "Boss Tick Ordering").
  * <p>
- * One heartbeat started at enable ({@link M7tas#onEnable}), so its task id is lower than any per-run choreography,
+ * One heartbeat started at enable ({@link M7#onEnable}), so its task id is lower than any per-run choreography,
  * and CraftBukkit runs same-tick tasks in task-id order. Every boss ticker therefore runs BEFORE player beam and
  * melee, so a mage beam reads this tick's stun/enrage/HP. That removed the old +1-tick beam offsets.
  * <ul>
@@ -24,9 +24,8 @@ public final class BossScheduler {
 	private BossScheduler() {}
 
 	private static final List<Runnable> tickers = new CopyOnWriteArrayList<>();
-	// Movement lane: boss entity movement (aggro movers), run from the fake-player ticker AFTER fake aiStep, where
-	// movement normally happens. So start-of-tick scans read the PRE-move position: a deliberate one-tick lag
-	// matching vanilla entity ticking.
+	// Movement lane: boss entity movement (aggro movers), run from M7.onEnable's per-tick task, not the heartbeat. So
+	// start-of-tick scans read the PRE-move position: a deliberate one-tick lag matching vanilla entity ticking.
 	private static final List<Runnable> movementTickers = new CopyOnWriteArrayList<>();
 	private static BukkitTask heartbeat;
 	// Advanced once per tick at the start of the heartbeat; schedule() targets it.
@@ -35,7 +34,7 @@ public final class BossScheduler {
 	/** Idempotent. Call at enable, before any boss can spawn. */
 	public static void start() {
 		if(heartbeat != null && !heartbeat.isCancelled()) return;
-		heartbeat = Bukkit.getScheduler().runTaskTimer(M7tas.getInstance(), () -> {
+		heartbeat = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), () -> {
 			// Advance FIRST, so bossTick is the same all tick and schedule() delays match from either lane.
 			bossTick++;
 			// These used to be independent tasks; one throwing must not stop the rest.
@@ -43,7 +42,7 @@ public final class BossScheduler {
 				try {
 					ticker.run();
 				} catch(Throwable t) {
-					M7tas.getInstance().getLogger().warning("Boss ticker threw: " + t);
+					M7.getInstance().getLogger().warning("Boss ticker threw: " + t);
 				}
 			}
 		}, 0L, 1L);
@@ -57,7 +56,7 @@ public final class BossScheduler {
 	}
 
 	/**
-	 * Drop every ticker, keep the heartbeat: {@link #stop()} for run teardown ({@code TAS.endPractice}).
+	 * Drop every ticker, keep the heartbeat: {@link #stop()} for run teardown ({@code Practice.endPractice}).
 	 * {@link Utils#cancelAllScheduled()} can't reach this lane and some {@link #schedule} one-shots keep no handle
 	 * (Maxor's crystal respawn, the Wither King's, the Watcher's), so they would fire into a torn-down session,
 	 * respawning deleted entities and setting blocks in a reset world.
@@ -77,7 +76,7 @@ public final class BossScheduler {
 		if(ticker != null) tickers.remove(ticker);
 	}
 
-	/** Per-tick boss movement step (aggro mover), run after fake aiStep, NOT at the start of the tick. */
+	/** Per-tick boss movement step (aggro mover), NOT at the start of the tick. */
 	public static void addMovementTicker(Runnable ticker) {
 		movementTickers.add(ticker);
 	}
@@ -87,13 +86,13 @@ public final class BossScheduler {
 		if(ticker != null) movementTickers.remove(ticker);
 	}
 
-	/** Called once per tick from the fake-player ticker after fake aiStep, so bosses move when fakes do. */
+	/** Called once per tick from M7.onEnable's movement driver. */
 	public static void runMovementTickers() {
 		for(Runnable ticker : movementTickers) {
 			try {
 				ticker.run();
 			} catch(Throwable t) {
-				M7tas.getInstance().getLogger().warning("Boss movement ticker threw: " + t);
+				M7.getInstance().getLogger().warning("Boss movement ticker threw: " + t);
 			}
 		}
 	}
