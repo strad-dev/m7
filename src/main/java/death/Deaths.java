@@ -11,7 +11,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import plugin.M7;
@@ -331,11 +331,11 @@ public final class Deaths {
 	 * MiniMessage display name (role prefix + colour) the network keeps on each player; its serializer escapes the
 	 * name, so parsing it can't inject tags. Standalone there is none, so gold.
 	 */
-	public static final String NAME_KEY = "m7_name";
+	public static final NamespacedKey NAME_KEY = new NamespacedKey("m7", "name");
 
 	public static Component displayName(Player p) {
-		List<MetadataValue> values = p.getMetadata(NAME_KEY);
-		if(!values.isEmpty()) return Utils.msg(values.getLast().asString());
+		String name = p.getPersistentDataContainer().get(NAME_KEY, PersistentDataType.STRING);
+		if(name != null) return Utils.msg(name);
 		return Utils.msg("<gold><name>", Placeholder.unparsed("name", Utils.getRealName(p)));
 	}
 

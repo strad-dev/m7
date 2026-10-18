@@ -2,6 +2,7 @@ package death;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -11,7 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
-import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import plugin.M7;
 
 import java.util.HashMap;
@@ -29,9 +30,9 @@ import java.util.UUID;
  * "Unknown".
  */
 public final class GenericKill implements Listener {
-	/** Plain-text metadata naming a non-command killer. Set by the caller around the damage call; the network's AFK
+	/** Plain-text PDC string naming a non-command killer. Set by the caller around the damage call; the network's AFK
 	 *  check uses it. */
-	public static final String KILLER_KEY = "m7_killer";
+	public static final NamespacedKey KILLER_KEY = new NamespacedKey("m7", "killer");
 	private static final String DEFAULT_KILLER = "Unknown";
 
 	/** {@code /kill} targets resolved this tick -> who typed it. The damage lands inside the same dispatch. */
@@ -91,7 +92,6 @@ public final class GenericKill implements Listener {
 	private static Component killer(Player p) {
 		Component typed = pending.remove(p.getUniqueId());
 		if(typed != null) return typed;
-		List<MetadataValue> values = p.getMetadata(KILLER_KEY);
-		return Deaths.mob(values.isEmpty() ? DEFAULT_KILLER : values.getLast().asString());
+		return Deaths.mob(p.getPersistentDataContainer().getOrDefault(KILLER_KEY, PersistentDataType.STRING, DEFAULT_KILLER));
 	}
 }
