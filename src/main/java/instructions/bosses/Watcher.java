@@ -60,7 +60,7 @@ public class Watcher {
 	private static final double ACCEL = 0.1;            // blocks per tick per tick
 	private static final double HEAD_ACCEL = 0.08;      // blocks per tick per tick, the head stand
 	/** Phase tick the second wave starts, from the Blood Room opening: the hard cooldown {@link WatcherFix} removes. */
-	private static final int SECOND_WAVE_TICK = 440;
+	private static final int SECOND_WAVE_TICK = 420;
 	/** {@link WatcherFix}: second wave this long after he is back on his perch. */
 	private static final int FIXED_SECOND_WAVE_DELAY = 60;
 
@@ -199,7 +199,7 @@ public class Watcher {
 
 		// Anchored to the real entry tick, not the old hardcoded 3-tick "time to bounds".
 		sendChatMessage("Ah, we meet again.  As I foresaw...");
-		Utils.scheduleTask(() -> travelToAndSpawnMob(MOB_SPAWN_LOCATIONS.getFirst(), mobNames.getFirst()), 80);
+		Utils.scheduleTask(() -> travelToAndSpawnMob(MOB_SPAWN_LOCATIONS.getFirst(), mobNames.getFirst()), 90);
 	}
 
 	/**
@@ -213,7 +213,7 @@ public class Watcher {
 		mob(-111.5, 71, -45.5, "Bonzo");          // editqble's spawn point
 		mob(-111.5, 75, -45.5, "valej");
 		mob(-111.5, 79, -45.5, "Merlynade");
-		/* -------------------- back to the perch until tick 440 -------------------- */
+		/* -------------------- back to the perch until tick 420 -------------------- */
 		mob(-109.5, 75, -52.5, "Katsumi9877");
 		mob(-109.5, 79, -52.5, "HenbotB");
 		mob(-109.5, 79, -56.5, "Beethoven_");
@@ -623,7 +623,7 @@ public class Watcher {
 					if(fixed) Utils.scheduleTask(secondWave, FIXED_SECOND_WAVE_DELAY);
 				});
 				if(fixed) return;
-				// Waits for an ABSOLUTE tick: second wave 22s after the Blood Room opened, however long the first
+				// Waits for an ABSOLUTE tick: second wave 21s after the Blood Room opened, however long the first
 				// four took. Min 1, the chain hands off through the scheduler.
 				Utils.scheduleTask(secondWave, Math.max(1, SECOND_WAVE_TICK - phaseRel()));
 			} else {

@@ -77,7 +77,7 @@ public final class SettingsMenu implements Listener {
 		for(WatcherFix w : WatcherFix.values()) fixLore.add(option(w == WatcherFix.current(), colour(w), label(w)));
 		fixLore.add("");
 		fixLore.add("<gray>Second wave 3s after the Watcher returns");
-		fixLore.add("<gray>to the center, not at tick 440");
+		fixLore.add("<gray>to the center, not at tick 420");
 		fixLore.add("<red>NOT valid for Clear or Full Run leaderboards");
 		fixLore.add("");
 		fixLore.add(CYCLE_HINT);

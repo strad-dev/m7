@@ -215,7 +215,7 @@ public class DungeonSettings implements CommandExecutor {
 
 	private static String describe(WatcherFix w) {
 		return switch(w) {
-			case OFF -> "The Watcher waits for tick 440 before his second wave, like Hypixel.";
+			case OFF -> "The Watcher waits for tick 420 before his second wave, like Hypixel.";
 			case ON -> "The Watcher starts his second wave 3s after returning to the center.  Not valid for Clear or Full Run leaderboards.";
 		};
 	}

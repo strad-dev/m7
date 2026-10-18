@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /**
  * <b>Fix Watcher Bug</b>: third dungeon setting next to {@code damage/Difficulty} and {@code damage/Mayor} (MAP.md §0).
- * Off, the Watcher's second wave waits for phase tick 440 like Hypixel's; on, it starts 60t after he is back on his
+ * Off, the Watcher's second wave waits for phase tick 420 like Hypixel's; on, it starts 60t after he is back on his
  * perch ({@code Watcher.returnToOriginalPosition}).
  * <p>
  * A fixed run never reaches the Clear or Full Run boards; boss boards still take it. {@code plugin/RunResult.watcherFix}

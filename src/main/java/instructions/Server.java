@@ -360,12 +360,12 @@ public class Server {
 
 	public static void openFirstDoor() {
 		Utils.runCommand("fill -122 69 -170 -120 72 -168 minecraft:glass");
-		Utils.scheduleTask(() -> Utils.runCommand("fill -122 69 -170 -120 72 -168 minecraft:air"), 20);
+		Utils.scheduleTask(() -> Utils.runCommand("fill -122 69 -170 -120 72 -168 minecraft:air"), 15);
 	}
 
 	public static void openWitherDoor(Player p) {
 		Utils.runCommand("fill -120 69 -106 -122 72 -104 minecraft:glass");
-		Utils.scheduleTask(() -> Utils.runCommand("fill -120 69 -106 -122 72 -104 minecraft:air"), 20);
+		Utils.scheduleTask(() -> Utils.runCommand("fill -120 69 -106 -122 72 -104 minecraft:air"), 15);
 		Utils.playGlobalSound(Sound.BLOCK_NOTE_BLOCK_PLING, 1.0F, 2.0F);
 		Bukkit.broadcast(Utils.msg("<gold><name><green> opened a <dark_gray><bold>WITHER </bold><green>door!", Placeholder.unparsed("name", Utils.getRealName(p))));
 		// Auto-explores the room behind it on the map.
@@ -374,7 +374,7 @@ public class Server {
 
 	public static void openBloodDoor() {
 		Utils.runCommand("fill -122 69 -74 -120 72 -72 minecraft:glass");
-		Utils.scheduleTask(() -> Utils.runCommand("fill -122 69 -74 -120 72 -72 minecraft:air"), 20);
+		Utils.scheduleTask(() -> Utils.runCommand("fill -122 69 -74 -120 72 -72 minecraft:air"), 15);
 		Utils.playGlobalSound(Sound.BLOCK_NOTE_BLOCK_PLING, 1.0F, 2.0F);
 		Utils.playGlobalSound(Sound.ENTITY_GHAST_HURT, 1.0F, 0.5F);
 		Bukkit.broadcast(Utils.msg("<red>The <bold>BLOOD DOOR</bold> has been opened!"));
