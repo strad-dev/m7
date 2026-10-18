@@ -556,9 +556,6 @@ public final class Damage {
 		// The Watcher can't be damaged; you win by killing its Undeads.
 		if(target.getScoreboardTags().contains("TASWatcher")) return 0;
 		if(target.getScoreboardTags().contains(instructions.bosses.necron.NecronDrag.PIG_TAG)) return 0;
-		// Blood mobs are shielded ~2 ticks so a spawn-tick arrow can't kill them before they count. Was only in
-		// MiscListener.onWatcherDamage, a vanilla event this path never fires.
-		if(target.getScoreboardTags().contains("WatcherMobSpawning")) return 0;
 		// A dying WK dragon is a corpse. Vanilla ticks dragonDeathTime toward 200 at health 0, but Bukkit
 		// setHealth(0) calls die() and EnderDragon.handleKillingBlow sets health back to 1, pausing it. So each hit
 		// rewound the animation a tick (swinging every tick froze the dragon in the air), drew a full number, fired

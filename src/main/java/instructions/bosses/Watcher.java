@@ -570,12 +570,6 @@ public class Watcher {
 		}
 		mob.setCustomNameVisible(true);
 		mob.addScoreboardTag("WatcherMob");
-		// Practice: shield it briefly so a spawn-tick arrow can't kill it before it's registered (lost kill).
-		// Not in the TAS, whose timing is exact.
-		if(WitherActions.isPracticeMode()) {
-			mob.addScoreboardTag("WatcherMobSpawning");
-			Utils.scheduleTask(() -> { if(mob.isValid()) mob.removeScoreboardTag("WatcherMobSpawning"); }, 2);
-		}
 		mob.setAI(true);
 		Utils.scheduleTask(() -> mob.setAI(false), 20);
 		mob.setGravity(true);

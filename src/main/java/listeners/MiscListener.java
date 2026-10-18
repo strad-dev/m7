@@ -58,9 +58,7 @@ public class MiscListener implements Listener {
 	// Damage.deal refuses a TASWatcher and this cancels all vanilla damage.
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onWatcherDamage(EntityDamageEvent e) {
-		// A fresh blood mob is shielded ~2 ticks so a spawn-tick arrow can't kill it before it counts toward progress.
-		if(e.getEntity().getScoreboardTags().contains("TASWatcher")
-				|| e.getEntity().getScoreboardTags().contains("WatcherMobSpawning")) {
+		if(e.getEntity().getScoreboardTags().contains("TASWatcher")) {
 			e.setCancelled(true);
 		}
 	}
