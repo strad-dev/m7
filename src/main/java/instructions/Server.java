@@ -65,7 +65,7 @@ public class Server {
 	public static void grantWitherKey(Player picker) {
 		if(hasWitherKey) return;
 		hasWitherKey = true;
-		String name = picker != null ? Utils.getRealName(picker) : "Someone";
+		String name = picker != null ? picker.getName() : "Someone";
 		Bukkit.broadcast(Utils.msg("<gold>[MVP<dark_blue>++<gold>] <name> <green>has obtained <dark_gray>Wither Key<green>!", Placeholder.unparsed("name", name)));
 		if(picker != null) Utils.playLocalSound(picker, Sound.ENTITY_ITEM_PICKUP, 2.0f, 1.0f);
 	}
@@ -73,7 +73,7 @@ public class Server {
 	public static void grantBloodKey(Player picker) {
 		if(hasBloodKey) return;
 		hasBloodKey = true;
-		String name = picker != null ? Utils.getRealName(picker) : "Someone";
+		String name = picker != null ? picker.getName() : "Someone";
 		Bukkit.broadcast(Utils.msg("<gold>[MVP<dark_blue>++<gold>] <name> <green>has obtained <red>Blood Key<green>!", Placeholder.unparsed("name", name)));
 		if(picker != null) Utils.playLocalSound(picker, Sound.ENTITY_ITEM_PICKUP, 2.0f, 1.0f);
 	}
@@ -126,34 +126,39 @@ public class Server {
 		pets.Pets.applyStartingPets();
 
 		if(section.equals("boss") || section.equals("maxor")) {
+			listeners.OutOfBounds.schedulePreRunReturns(world, section, MAXOR_GRACE_TICKS);
 			Utils.scheduleTask(() -> startSection(world, section), MAXOR_GRACE_TICKS);
 			return;
 		}
 
 		// The delay IS the countdown, starting now.
-		countdownThenStart(world, section, Math.max(1, delayTicks / 20));
+		int ticks = Math.max(1, delayTicks);
+		listeners.OutOfBounds.schedulePreRunReturns(world, section, ticks);
+		countdownThenStart(world, section, ticks);
 	}
 
 	/** Enough for warped-in clients to load. */
-	private static final int MAXOR_GRACE_TICKS = 20;
+	public static final int MAXOR_GRACE_TICKS = 20;
 
 	/**
-	 * "Starting in N seconds", then start. Only the first second, 10 and the last five are announced so a long warp-in
-	 * doesn't spam. First message at tick 0. Every section but boss/maxor.
+	 * "Starting in N seconds", then start exactly {@code ticks} later. Only the first second, 10 and the last five are
+	 * announced so a long warp-in doesn't spam. First message at tick 0, rounded up; the rest on whole seconds before
+	 * the start. Every section but boss/maxor.
 	 */
-	private static void countdownThenStart(World world, String section, int seconds) {
+	private static void countdownThenStart(World world, String section, int ticks) {
+		int seconds = (ticks + 19) / 20;
 		for(int i = seconds; i >= 1; i--) {
 			int secs = i;
 			if(secs != seconds && secs > 5 && secs != 10) continue;
 			Utils.scheduleTask(() -> {
 				Bukkit.broadcast(Utils.msg("<green>Starting in " + secs + " second" + (secs == 1 ? "" : "s")));
 				Utils.playGlobalSound(Sound.BLOCK_LEVER_CLICK, 2.0F, 1.0F);
-			}, (seconds - i) * 20L);
+			}, secs == seconds ? 0 : ticks - secs * 20L);
 		}
 		Utils.scheduleTask(() -> {
 			Bukkit.broadcast(Utils.msg("<green>Run started"));
 			startSection(world, section);
-		}, seconds * 20L);
+		}, ticks);
 	}
 
 	/** Callers own the delay/countdown. */
@@ -356,7 +361,7 @@ public class Server {
 		Utils.runCommand("fill -120 69 -106 -122 72 -104 minecraft:glass");
 		Utils.scheduleTask(() -> Utils.runCommand("fill -120 69 -106 -122 72 -104 minecraft:air"), 15);
 		Utils.playGlobalSound(Sound.BLOCK_NOTE_BLOCK_PLING, 1.0F, 2.0F);
-		Bukkit.broadcast(Utils.msg("<gold><name><green> opened a <dark_gray><bold>WITHER </bold><green>door!", Placeholder.unparsed("name", Utils.getRealName(p))));
+		Bukkit.broadcast(Utils.msg("<gold><name><green> opened a <dark_gray><bold>WITHER </bold><green>door!", Placeholder.unparsed("name", p.getName())));
 		// Auto-explores the room behind it on the map.
 		instructions.clear.ClearManager.exploreRoom(instructions.clear.Rooms.byName("Deathmite"));
 	}

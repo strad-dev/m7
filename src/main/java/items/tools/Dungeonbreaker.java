@@ -199,6 +199,9 @@ public final class Dungeonbreaker implements Tool, AbilityItem {
 		ItemStack pickaxe = ItemFactory.item(Material.DIAMOND_PICKAXE, name, "skyblock/combat/stonk", "DUNGEONBREAKER");
 		pickaxe.addUnsafeEnchantment(Enchantment.EFFICIENCY, 255);
 		ItemMeta meta = pickaxe.getItemMeta();
+		// The client hides the durability bar on anything unbreakable, so the charges never showed. Vanilla wear is
+		// cancelled in CustomItems.onItemDamage instead.
+		meta.setUnbreakable(false);
 		meta.addAttributeModifier(Attribute.BLOCK_BREAK_SPEED, new AttributeModifier(
 				new NamespacedKey(M7.getInstance(), "stonk"), 1024,
 				AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));

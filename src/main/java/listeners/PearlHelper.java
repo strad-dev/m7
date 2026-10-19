@@ -18,7 +18,7 @@ public class PearlHelper implements Listener {
 		if (!(e.getEntity() instanceof EnderPearl pearl)) return;
 		if (!(e.getEntity().getShooter() instanceof Player p)) return;
 
-		// The Infinileap IS an ender pearl and must never be thrown; Actions.leap does the leap. handleCustomItems
+		// The Infinileap IS an ender pearl and must never be thrown; Infinileap.leap does the leap. handleCustomItems
 		// normally cancels first; this is the backstop, and it asks the item (items.MenuItem.blocksVanillaUse) so
 		// any other pearl-shaped menu item is covered too.
 		items.Item held = items.ItemRegistry.of(p.getInventory().getItemInMainHand());

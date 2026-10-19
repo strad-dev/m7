@@ -5,13 +5,17 @@ import damage.DungeonClass;
 import damage.ItemCategory;
 import damage.ItemDef;
 import damage.Items;
-import instructions.Actions;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
+import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import plugin.Utils;
 
 import java.util.List;
@@ -92,7 +96,7 @@ public interface Bow extends Item {
 	 * overrides it for its own muzzle and pierce.
 	 */
 	default Arrow spawnBonusArrow(Player p, Location aimFrom, ItemStack bow, float speed) {
-		return Actions.fireDeterministicArrow(p, aimFrom, speed, 1.0);
+		return fireDeterministicArrow(p, aimFrom, speed, 1.0);
 	}
 
 	/** Drawn bows pitch the Archer's two to 1.2 at the shooter; the Terminator plays each locally at 1.0. */
@@ -131,5 +135,33 @@ public interface Bow extends Item {
 				if(arrow.isValid() && arrow.getLocation().getBlock().getType().isSolid()) arrow.remove();
 			}, 1);
 		}
+	}
+
+	/**
+	 * Arrow with no random spread. {@code launchProjectile} and the vanilla bow go through
+	 * {@code shootFromRotation} with inaccuracy 1.0F; this uses NMS {@code shoot(..., 0)}, like
+	 * {@code items.bows.Terminator}'s shotgun arrows.
+	 * <br>
+	 * Spawn (with vanilla's -0.1 Y) and direction both come from {@code aimFrom}, so delayed bonus arrows reuse the
+	 * fire-time aim rather than where the shooter moved.
+	 */
+	private static Arrow fireDeterministicArrow(Player p, Location aimFrom, float speed, double damage) {
+		ServerLevel nmsWorld = ((CraftWorld) p.getWorld()).getHandle();
+		ServerPlayer nmsPlayer = ((CraftPlayer) p).getHandle();
+		Vector dir = aimFrom.getDirection();
+
+		net.minecraft.world.entity.projectile.arrow.Arrow nmsArrow = new net.minecraft.world.entity.projectile.arrow.Arrow(
+				nmsWorld, 0, 0, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW), null);
+		nmsArrow.setPos(aimFrom.getX(), aimFrom.getY() - 0.1, aimFrom.getZ());
+		nmsArrow.shoot(dir.getX(), dir.getY(), dir.getZ(), speed, 0);
+		nmsArrow.setOwner(nmsPlayer);
+		nmsWorld.addFreshEntity(nmsArrow);
+
+		Arrow arrow = (Arrow) nmsArrow.getBukkitEntity();
+		arrow.setDamage(damage);
+		arrow.setShooter(p);
+		arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+		arrow.setWeapon(p.getInventory().getItemInMainHand());
+		return arrow;
 	}
 }

@@ -12,7 +12,7 @@ import java.util.List;
  *   <li>START / FAIRY: always GREEN, no mechanics.</li>
  *   <li>PUZZLE (Quiz, Ice Fill): GREEN when solved, no white stage.</li>
  *   <li>YELLOW: GREEN when its miniboss dies.</li>
- *   <li>NORMAL: WHITE when the miniboss dies (miniboss-less Wizard: on entry), GREEN once all counted secrets found.</li>
+ *   <li>NORMAL: WHITE when the miniboss dies (miniboss-less Wizard: last Crypt Lurker dies, on entry in classic), GREEN once all counted secrets found.</li>
  *   <li>TRAP: WHITE when the Power-II chest opens, GREEN once all secrets found.</li>
  *   <li>BLOOD: WHITE when the Watcher camp is cleared; no secrets, so effectively GREEN.</li>
  * </ul>
@@ -97,7 +97,7 @@ public class Room {
 				return allCountedFound() ? Check.GREEN : Check.WHITE;
 			}
 			case NORMAL -> {
-				// Miniboss-less Wizard: ClearManager sets `cleared` on entry.
+				// Miniboss-less Wizard: ClearManager sets `cleared` (mobs dead, or entry in classic).
 				if(!cleared) return Check.NONE;
 				return allCountedFound() ? Check.GREEN : Check.WHITE;
 			}

@@ -123,7 +123,7 @@ public final class Deaths {
 		announceDeath(p, killer);
 		// Party-wide "someone is down"; playGlobalSound plays at each listener.
 		Utils.playGlobalSound(Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f, 0.5f);
-		Utils.debug(Utils.DebugType.SERVER, Utils.getRealName(p) + " was killed by "
+		Utils.debug(Utils.DebugType.SERVER, p.getName() + " was killed by "
 				+ PlainTextComponentSerializer.plainText().serialize(killer));
 
 		// Before ghosting: last one standing never becomes a ghost (avoids a flicker and inventory round trip).
@@ -288,7 +288,7 @@ public final class Deaths {
 	private static void showReviveTitle(Player p, int ticksLeft) {
 		int seconds = ticksLeft / 20;
 		p.showTitle(Title.title(
-				Utils.msg("<yellow>BEING REVIVED"),
+				Utils.msg("<yellow><bold>BEING REVIVED"),
 				Utils.msg("<green>You will be revived in " + seconds + "s."),
 				Title.Times.times(Duration.ZERO, Duration.ofMillis(TITLE_STAY_TICKS * 50L), Duration.ZERO)));
 	}
@@ -305,7 +305,7 @@ public final class Deaths {
 		g.inventory().restore(p);
 		p.clearTitle();
 
-		String name = "<gold>" + Utils.getRealName(p);
+		String name = "<gold>" + p.getName();
 		Bukkit.broadcast(Utils.msg("<green> ❣ " + name + " <green>was revived by " + name + "<green>!"));
 	}
 
@@ -336,7 +336,7 @@ public final class Deaths {
 	public static Component displayName(Player p) {
 		String name = p.getPersistentDataContainer().get(NAME_KEY, PersistentDataType.STRING);
 		if(name != null) return Utils.msg(name);
-		return Utils.msg("<gold><name>", Placeholder.unparsed("name", Utils.getRealName(p)));
+		return Utils.msg("<gold><name>", Placeholder.unparsed("name", p.getName()));
 	}
 
 	// ==================== lifecycle ====================

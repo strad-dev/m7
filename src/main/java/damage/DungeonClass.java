@@ -1,7 +1,6 @@
 package damage;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 /**
@@ -37,7 +36,7 @@ public enum DungeonClass {
 		DungeonClass mine = of(p);
 		int count = 0;
 		for(Player other : Bukkit.getOnlinePlayers()) {
-			if(other.getGameMode() == GameMode.SPECTATOR) continue;
+			if(plugin.Utils.isSpectator(other)) continue;
 			if(of(other) == mine) count++;
 		}
 		return count <= 1;

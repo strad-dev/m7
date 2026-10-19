@@ -41,6 +41,19 @@ public final class ClearManager {
 	// Wizard crystal ball, not one of the 47
 	private static boolean crystalPickedUp, crystalHandedIn;
 
+	// Wizard room mobs, live modes only: the last kill white-checks Wizard. Classic checks it on entry instead.
+	private static final Set<UUID> wizardMobs = new HashSet<>();
+	private static boolean wizardByKills;
+	/** {x, y, z, count, max horizontal displacement}. */
+	private static final double[][] WIZARD_GROUPS = {
+			{-88.5, 69, -184.5, 8, 3},
+			{-88.5, 69, -168.5, 5, 3.5},
+			{-88.5, 68, -152.5, 8, 3},
+			{-88.5, 69, -136.5, 5, 3.5},
+			{-80.5, 69, -118.5, 5, 4},
+			{-96.5, 69, -118.5, 5, 4},
+	};
+
 	// Read by damage/Difficulty in either live mode; published as plugin/BlessingState (#awardBlessing).
 	private static final Map<Blessing, Integer> blessingTally = new LinkedHashMap<>();
 
@@ -59,6 +72,7 @@ public final class ClearManager {
 	public static final String TAG_BAT = "SecretBat";
 	public static final String TAG_MIMIC = "SecretMimic";
 	public static final String TAG_CRYPT = "SecretCryptLurker";
+	public static final String TAG_WIZARD_MOB = "WizardCryptLurker";
 
 	/** Placed skull block, right-clicked to collect; not an entity. */
 	private static final Material ESSENCE_BLOCK = Material.WITHER_SKELETON_SKULL;
@@ -116,6 +130,8 @@ public final class ClearManager {
 		firstPrince = firstBat = mimicKilled = false;
 		deaths = 0;
 		crystalPickedUp = crystalHandedIn = false;
+		wizardMobs.clear();
+		wizardByKills = false;
 		milestone300 = false;
 		score300Tick = bloodDoneTick = fullClearTick = -1;
 		// Publish the clear too, or a consumer shows last run's blessings through a run that collects none. Only
@@ -131,6 +147,10 @@ public final class ClearManager {
 		reset();
 		placeSecretBlocks();
 		spawnSecretEntities();
+		if(damage.Difficulty.liveInputs()) {
+			wizardByKills = true;
+			spawnWizardMobs();
+		}
 		PuzzleQuiz.reset();
 		PuzzleIceFill.begin(w);
 		active = true;
@@ -270,11 +290,51 @@ public final class ClearManager {
 		s.entityId = bat.getUniqueId();
 	}
 
+	private static void spawnWizardMobs() {
+		java.util.concurrent.ThreadLocalRandom rng = java.util.concurrent.ThreadLocalRandom.current();
+		for(double[] g : WIZARD_GROUPS) {
+			for(int i = 0; i < (int) g[3]; i++) {
+				// Uniform over the disc, not clumped at the centre.
+				double r = g[4] * Math.sqrt(rng.nextDouble());
+				double a = rng.nextDouble() * 2 * Math.PI;
+				Location loc = new Location(world, g[0] + r * Math.cos(a), g[1], g[2] + r * Math.sin(a), rng.nextFloat() * 360f - 180f, 0f);
+				try {
+					wizardMobs.add(spawnWizardMob(loc).getUniqueId());
+				} catch(Throwable ex) {
+					Bukkit.getLogger().warning("[M7 clear] failed to spawn Crypt Lurker at " + loc + ": " + ex);
+				}
+			}
+		}
+	}
+
+	private static Zombie spawnWizardMob(Location loc) {
+		Zombie z = (Zombie) world.spawnEntity(loc, EntityType.ZOMBIE);
+		z.setAdult();
+		// finalizeSpawn can make a chicken jockey and hand out armour or a held item.
+		if(z.isInsideVehicle()) {
+			Entity vehicle = z.getVehicle();
+			z.leaveVehicle();
+			if(vehicle != null) vehicle.remove();
+		}
+		z.getEquipment().clear();
+		z.getEquipment().setItemInMainHand(new ItemStack(Material.BONE));
+		z.setAI(false);
+		z.setSilent(true);
+		z.setPersistent(true);
+		z.setRemoveWhenFarAway(false);
+		z.setCustomNameVisible(true);
+		z.addScoreboardTag(TAG_WIZARD_MOB);
+		damage.MobStats.apply(z, damage.MobStats.CRYPT_LURKER);
+		z.customName(Utils.msg("<red>Crypt Lurker <yellow>" + Utils.formatHealthM(z) + "<red>❤"));
+		return z;
+	}
+
 	private static void removeSecretEntities(World w) {
 		for(Entity e : w.getEntities()) {
 			if(e.getScoreboardTags().contains(TAG_ITEM)
 					|| e.getScoreboardTags().contains(TAG_BAT)
-					|| e.getScoreboardTags().contains(TAG_MIMIC)) {
+					|| e.getScoreboardTags().contains(TAG_MIMIC)
+					|| e.getScoreboardTags().contains(TAG_WIZARD_MOB)) {
 				e.remove();
 			}
 		}
@@ -322,7 +382,7 @@ public final class ClearManager {
 	/** Spectator-mode viewers don't reveal. */
 	private static void markExploration() {
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			Room r = Rooms.roomAt(p.getLocation());
 			if(r != null && !r.explored) {
 				r.explored = true;
@@ -350,10 +410,10 @@ public final class ClearManager {
 		}
 		// Spectators aren't in realPlayers() but still get the bar.
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR) updateActionBar(p);
+			if(Utils.isSpectator(p)) updateActionBar(p);
 		}
-		// Wizard has no miniboss: white check on first entry.
-		if(!Rooms.WIZARD.cleared) {
+		// Wizard has no miniboss: in classic, white check on first entry.
+		if(!wizardByKills && !Rooms.WIZARD.cleared) {
 			for(Player p : players) {
 				if(Rooms.roomAt(p.getLocation()) == Rooms.WIZARD) {
 					Rooms.WIZARD.cleared = true;
@@ -469,6 +529,13 @@ public final class ClearManager {
 		cryptLurkers++;
 		if(isPrince && !firstPrince) firstPrince = true;
 		afterEvent(null);
+	}
+
+	/** The last one white-checks Wizard. */
+	public static void wizardMobKilled(UUID id) {
+		if(!wizardMobs.remove(id) || !wizardMobs.isEmpty() || Rooms.WIZARD.cleared) return;
+		Rooms.WIZARD.cleared = true;
+		afterEvent(Rooms.WIZARD);
 	}
 
 	public static void mimicKilledEvent(Player p, Secret mimicSecret) {
@@ -792,7 +859,7 @@ public final class ClearManager {
 	 */
 	public static boolean isRealPlayer(Player p) {
 		if(p == null) return false;
-		return p.getGameMode() != GameMode.SPECTATOR;
+		return !Utils.isSpectator(p);
 	}
 
 	private static final Set<Material> ESSENCE_SKULLS =

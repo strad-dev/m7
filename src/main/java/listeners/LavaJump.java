@@ -94,7 +94,7 @@ public class LavaJump {
 	}
 
 	private static void check(Player p) {
-		if(p.getGameMode() == GameMode.SPECTATOR) return;
+		if(Utils.isSpectator(p)) return;
 		if(p.isFlying()) return;
 		Location loc = p.getLocation();
 		UUID id = p.getUniqueId();

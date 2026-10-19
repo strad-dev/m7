@@ -215,7 +215,7 @@ public final class Maxor extends WitherLord {
 		if(crystal.equals(topLeftCrystal)) topLeftCrystal = null;
 		else if(crystal.equals(topRightCrystal)) topRightCrystal = null;
 
-		Bukkit.broadcast(Utils.msg("<gold>" + Utils.getRealName(p) + "<green> picked up an <aqua>Energy Crystal<green>!"));
+		Bukkit.broadcast(Utils.msg("<gold>" + p.getName() + "<green> picked up an <aqua>Energy Crystal<green>!"));
 		Utils.timer(formatTick(displayTick()));
 	}
 

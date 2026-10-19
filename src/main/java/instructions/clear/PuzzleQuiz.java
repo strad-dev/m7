@@ -42,7 +42,7 @@ public final class PuzzleQuiz {
 	};
 	/** Q3 for the non-bald player: A/B swapped so B ("No") is still correct. */
 	private static final String[] ANSWERS_NOT_BALD = {"Yes", "No", "Decline to Answer"};
-	/** Matched against {@link Utils#getRealName(Player)}. */
+	/** Matched against the opener's name. */
 	private static final String NOT_BALD = "Beethoven_";
 	/** Q3 subject if no opener was recorded. Shouldn't happen: the quiz starts on entry. */
 	private static final String FALLBACK_OPENER = "akc0303";
@@ -76,7 +76,7 @@ public final class PuzzleQuiz {
 		for(Player p : players) {
 			if(Rooms.roomAt(p.getLocation()) == Rooms.QUIZ) {
 				world = w;
-				opener = Utils.getRealName(p); // question 3 is about whoever walked in first
+				opener = p.getName(); // question 3 is about whoever walked in first
 				begin();
 				return;
 			}
@@ -140,7 +140,7 @@ public final class PuzzleQuiz {
 		awaiting = false;
 		Server.Quiz.removeOptions(options);
 		if(index == CORRECT) {
-			Bukkit.broadcast(Utils.msg(ORUO + "<gold>" + Utils.getRealName(p) + " <green>answered <gold>Question #" + (question + 1) + "<green> correctly!"));
+			Bukkit.broadcast(Utils.msg(ORUO + "<gold>" + p.getName() + " <green>answered <gold>Question #" + (question + 1) + "<green> correctly!"));
 			Utils.playGlobalSound(Sound.ENTITY_PLAYER_LEVELUP, 2.0f, 0.75f);
 			if(question < 2) {
 				final int g = ++gen;
@@ -161,7 +161,7 @@ public final class PuzzleQuiz {
 			Utils.scheduleTask(() -> {
 				if(g != gen) return;
 				Bukkit.broadcast(Utils.msg(ORUO + "<gold><name><red> chose the wrong answer!  I shall never forget this moment of misrememberance.",
-						Placeholder.unparsed("name", Utils.getRealName(p))));
+						Placeholder.unparsed("name", p.getName())));
 				Utils.playGlobalSound(Sound.ENTITY_GUARDIAN_HURT, 2.0f, 0.5f);
 			}, 20);
 			Utils.scheduleTask(() -> {

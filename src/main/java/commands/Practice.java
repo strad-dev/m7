@@ -1,6 +1,6 @@
 package commands;
 
-import instructions.Actions;
+import instructions.bosses.BossMotion;
 import instructions.Server;
 import instructions.bosses.Watcher;
 import instructions.bosses.WitherActions;
@@ -54,6 +54,12 @@ public class Practice implements CommandExecutor {
 			"goldor", new double[]{100.5, 116.06250, 40.5, 0f, 0f},
 			"necron", new double[]{54.5, 64, 114.5, 180f, 0f},
 			"witherking", new double[]{54.5, 5, 76.5, 180f, 0f});
+
+	/** Where the section's run starts: {@code /m7practice}'s teleport target. */
+	public static Location spawn(World world, String section) {
+		double[] loc = DEFAULT_LOCATIONS.get(section);
+		return new Location(world, loc[0], loc[1], loc[2], (float) loc[3], (float) loc[4]);
+	}
 
 	public boolean onCommand(@NonNull CommandSender sender, @NonNull Command cmd, @NonNull String label, String @NonNull [] args) {
 		if(!(sender instanceof Player p)) {
@@ -113,7 +119,7 @@ public class Practice implements CommandExecutor {
 		// hand-out and teleport so all three agree.
 		List<Player> participants = new ArrayList<>();
 		for(Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
-			if(online.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(online)) continue;
 			participants.add(online);
 		}
 
@@ -144,8 +150,7 @@ public class Practice implements CommandExecutor {
 		// Skipped with --no-teleport so players start where they are.
 
 		if(!noTeleport) {
-			double[] loc = DEFAULT_LOCATIONS.get(section);
-			Location target = new Location(world, loc[0], loc[1], loc[2], (float) loc[3], (float) loc[4]);
+			Location target = spawn(world, section);
 			for(Player participant : participants) {
 				participant.teleport(target, PlayerTeleportEvent.TeleportCause.PLUGIN);
 			}
@@ -169,6 +174,11 @@ public class Practice implements CommandExecutor {
 
 		runPractice(world, section, delayTicks);
 		return true;
+	}
+
+	/** A practice run is set up or running (from {@link #runPractice} until {@link #endPractice}). */
+	public static boolean isActive() {
+		return WitherActions.isPracticeMode();
 	}
 
 	/**
@@ -207,7 +217,7 @@ public class Practice implements CommandExecutor {
 		// Overall-run timer anchors at first boss spawn ("Overall" column reads it).
 		Utils.markRunStart();
 		MovementAudit.cancelAll();
-		Actions.cancelAllMovement();
+		BossMotion.cancelAll();
 		// Purge strays a prior (maybe aborted) run leaked. BEFORE serverSetup (minibosses) and serverInstructions
 		// (bosses) so it never nukes this run's spawns, same order as /reset and /setup. Catches untracked withers
 		// and crystals that serverSetup's forceCleanups miss, since those only free tracked refs.
@@ -244,7 +254,7 @@ public class Practice implements CommandExecutor {
 		Utils.cancelAllScheduled();
 		items.combat.RagnarockAxe.reset();
 		MovementAudit.cancelAll();
-		Actions.cancelAllMovement();
+		BossMotion.cancelAll();
 		Watcher.INSTANCE.arm(world, false);
 		// arm() only sets fields, so the Watcher's portal detector would keep scanning (including the spectators
 		// made below) and warp them to Maxor after the run. forceCleanup stops it and closes the portal.
@@ -280,7 +290,7 @@ public class Practice implements CommandExecutor {
 		}
 		if(toSpectator) {
 			for(Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
-				if(p.getGameMode() != org.bukkit.GameMode.SPECTATOR) p.setGameMode(org.bukkit.GameMode.SPECTATOR);
+				if(!Utils.isSpectator(p)) p.setGameMode(org.bukkit.GameMode.SPECTATOR);
 			}
 		}
 	}

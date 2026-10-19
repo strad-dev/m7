@@ -1,6 +1,6 @@
 package commands;
 
-import instructions.Actions;
+import instructions.bosses.BossMotion;
 import instructions.Server;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -19,7 +19,7 @@ public class Reset implements CommandExecutor {
 		}
 
 		MovementAudit.cancelAll();
-		Actions.cancelAllMovement();
+		BossMotion.cancelAll();
 		Utils.cancelAllScheduled();
 		items.combat.RagnarockAxe.reset();
 		// Cleanup before serverSetup respawns minibosses so it never nukes the fresh spawns.

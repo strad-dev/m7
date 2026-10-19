@@ -98,7 +98,7 @@ public final class CheatDeath {
 		// Saved player only, Hypixel words it in second person.
 		p.sendMessage(Utils.msg(used.chatLine));
 		Utils.playLocalSound(p, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0f, 2.0f);
-		Utils.debug(Utils.DebugType.BOSS, Utils.getRealName(p) + " cheated death with " + used.label);
+		Utils.debug(Utils.DebugType.BOSS, p.getName() + " cheated death with " + used.label);
 		return true;
 	}
 

@@ -19,7 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import plugin.Utils;
 
 /**
- * Clear-phase interactions: chests, essence, Quiz, Wizard crystal hand-in, and miniboss / bat / crypt / mimic deaths
+ * Clear-phase interactions: chests, essence, Quiz, Wizard crystal hand-in, and miniboss / bat / crypt / mimic / Wizard mob deaths
  * into {@link ClearManager}. Every handler is gated on {@link ClearManager#isActive()}.
  */
 public class ClearListener implements Listener {
@@ -45,6 +45,9 @@ public class ClearListener implements Listener {
 		}
 		if(ent.getScoreboardTags().contains(ClearManager.TAG_CRYPT)) {
 			ClearManager.cryptKilled(ent.getScoreboardTags().contains("SecretPrince"));
+		}
+		if(ent.getScoreboardTags().contains(ClearManager.TAG_WIZARD_MOB)) {
+			ClearManager.wizardMobKilled(ent.getUniqueId());
 		}
 		if(ent.getScoreboardTags().contains(ClearManager.TAG_MIMIC)) {
 			ClearManager.mimicKilledEvent(killer, ClearManager.findSecretByEntity(ent.getUniqueId()));

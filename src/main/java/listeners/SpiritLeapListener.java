@@ -1,6 +1,5 @@
 package listeners;
 
-import instructions.Actions;
 import instructions.bosses.WitherActions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -45,6 +44,6 @@ public class SpiritLeapListener implements Listener {
 		Player target = menu.targetForSlot(e.getRawSlot());
 		if(target == null || !target.isOnline()) return;
 		p.closeInventory();
-		Actions.leap(p, target); // viewer still holds the Infinileap
+		items.util.Infinileap.leap(p, target); // viewer still holds the Infinileap
 	}
 }

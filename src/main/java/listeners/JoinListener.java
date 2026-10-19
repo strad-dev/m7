@@ -9,7 +9,6 @@ import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import nms.PlayerPacketInterceptor;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -132,7 +131,7 @@ public class JoinListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onJoinSpawn(PlayerJoinEvent ev) {
 		Player jp = ev.getPlayer();
-		if (jp.getGameMode() == GameMode.SPECTATOR) return;              // don't yank spectators
+		if (plugin.Utils.isSpectator(jp)) return;              // don't yank spectators
 		Location entrance = dungeonEntrance();
 		if (entrance != null) jp.teleport(entrance);
 	}

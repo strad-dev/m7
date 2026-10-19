@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wither;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import plugin.Utils;
 import plugin.BossScheduler;
 import plugin.M7;
 
@@ -142,7 +143,7 @@ public class WitherActions {
 
 	/** Despite the name, TRUE means {@code p} can NOT aggro: spectators, and everyone outside practice. */
 	private static boolean isAggroEligible(Player p) {
-		if(p.getGameMode() == GameMode.SPECTATOR) return true; // spectators never aggro
+		if(Utils.isSpectator(p)) return true; // spectators never aggro
 		return !practiceMode;
 	}
 
@@ -244,7 +245,7 @@ public class WitherActions {
 				// world or went spectator falls back to closest.
 				Player damager = lastDamager;
 				if(damager == null || !damager.isOnline() || damager.isDead() || damager.getWorld() != wither.getWorld()
-						|| damager.getGameMode() == GameMode.SPECTATOR) {
+						|| Utils.isSpectator(damager)) {
 					damager = closestPlayer(wither);
 				}
 				net.minecraft.world.entity.LivingEntity active = damager == null ? null : ((CraftLivingEntity) damager).getHandle();
@@ -370,7 +371,7 @@ public class WitherActions {
 		Location loc = wither.getLocation();
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(isAggroEligible(p)) continue;
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			if(p.isDead() || p.getWorld() != wither.getWorld()) continue;
 			double d = p.getLocation().distanceSquared(loc);
 			if(d < best) { best = d; closest = p; }

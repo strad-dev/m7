@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import plugin.M7;
@@ -27,7 +28,8 @@ import plugin.Utils;
  * player walk past a closed door. A door is the only legal way through one.
  * <p>
  * Gated on {@link Server#isRunStarted()}, same as {@code CustomItems.onBlockBreak}'s door/ceiling lock, so getting
- * into position before the countdown ends is allowed.
+ * into position before the countdown ends is allowed. Before that, live modes only send strays back to spawn every
+ * 40 ticks ({@link #schedulePreRunReturns}).
  * <p>
  * Only SURVIVAL and ADVENTURE die. Creative is exempt (map editing, same bypass as {@code CustomItems.onBlockBreak};
  * the practice scoreboard flags a mid-run switch), and so are spectators.
@@ -86,15 +88,39 @@ public final class OutOfBounds {
 	private static void tick() {
 		if(!Server.isRunStarted()) return;
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			// Only survival or adventure. Creative gets the same bypass as CustomItems.onBlockBreak. An allowlist, not
-			// "not creative", so no new game mode gets this without someone saying so.
-			GameMode gm = p.getGameMode();
-			if(gm != GameMode.SURVIVAL && gm != GameMode.ADVENTURE) continue;
-			// The plugin's own spectate state leaves the player in ADVENTURE.
-			if(Utils.isSpectator(p)) continue;
-			if(p.isDead() || p.getHealth() <= 0.0) continue;
-			if(isInBounds(p.getLocation())) continue;
-			kill(p);
+			if(outOfBounds(p)) kill(p);
+		}
+	}
+
+	private static boolean outOfBounds(Player p) {
+		// Only survival or adventure. Creative gets the same bypass as CustomItems.onBlockBreak. An allowlist, not
+		// "not creative", so no new game mode gets this without someone saying so.
+		GameMode gm = p.getGameMode();
+		if(gm != GameMode.SURVIVAL && gm != GameMode.ADVENTURE) return false;
+		// The plugin's own spectate state leaves the player in ADVENTURE.
+		if(Utils.isSpectator(p)) return false;
+		if(p.isDead() || p.getHealth() <= 0.0) return false;
+		return !isInBounds(p.getLocation());
+	}
+
+	private static final int PRE_RUN_CHECK_TICKS = 40;
+
+	/**
+	 * Before the run, live modes only: every {@link #PRE_RUN_CHECK_TICKS} after {@code /m7practice} until the section
+	 * starts at {@code startTick}, anyone out of bounds goes back to the section's spawn, alive. Tracked tasks, so a new
+	 * run or {@code endPractice} cancels them.
+	 */
+	public static void schedulePreRunReturns(World world, String section, int startTick) {
+		if(damage.Difficulty.current() == damage.Difficulty.CLASSIC) return;
+		for(int t = PRE_RUN_CHECK_TICKS; t < startTick; t += PRE_RUN_CHECK_TICKS) {
+			Utils.scheduleTask(() -> {
+				Location spawn = commands.Practice.spawn(world, section);
+				for(Player p : Bukkit.getOnlinePlayers()) {
+					if(!outOfBounds(p)) continue;
+					Utils.debug(Utils.DebugType.SERVER, p.getName() + " out of bounds before the run, back to spawn");
+					p.teleport(spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+				}
+			}, t);
 		}
 	}
 

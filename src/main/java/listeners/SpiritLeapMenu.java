@@ -1,7 +1,6 @@
 package listeners;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -115,7 +114,7 @@ public class SpiritLeapMenu implements InventoryHolder {
 		List<Player> list = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(p.equals(viewer)) continue;
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			list.add(p);
 		}
 		list.sort(Comparator.comparingInt((Player p) -> CLASS_ORDER.indexOf(resolveClass(p))).thenComparing(Player::getName));

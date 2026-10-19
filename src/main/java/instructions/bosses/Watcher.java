@@ -128,7 +128,7 @@ public class Watcher {
 	private Player firstInBounds() {
 		if(world == null) return null;
 		for(Player p : world.getPlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			if(inBloodRoom(p.getLocation())) return p;
 		}
 		return null;
@@ -329,19 +329,19 @@ public class Watcher {
 		WitherActions.recordSplit("Clear", Utils.runTick());
 		Utils.timer("<green>Portal entered in " + formatTick(phaseRel()));
 		// Console, not debug: the network runs at verbose timer, which hides who ended the clear.
-		M7.getInstance().getLogger().info("Watcher portal entered by " + Utils.getRealName(p) + " (" + p.getGameMode() + ") at " + fmt(p.getLocation()));
+		M7.getInstance().getLogger().info("Watcher portal entered by " + p.getName() + " (" + p.getGameMode() + ") at " + fmt(p.getLocation()));
 		if(!doContinue) {
-			Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + Utils.getRealName(p) + " → clear ends");
+			Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + p.getName() + " → clear ends");
 			closePortal();
 			active = false;
 			WitherActions.signalRunComplete();
 			return;
 		}
-		Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + Utils.getRealName(p) + " → teleporting all players");
+		Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + p.getName() + " → teleporting all players");
 
 		// Teleport THIS tick; the boss starts NEXT tick.
 		for(Player pl : world.getPlayers()) {
-			if(pl.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(pl)) continue;
 			pl.teleport(boss);
 		}
 		// doContinue is true for "all", so Maxor → Storm → ….

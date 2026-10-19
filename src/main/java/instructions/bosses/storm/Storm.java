@@ -1,11 +1,7 @@
 package instructions.bosses.storm;
 
-import instructions.Actions;
 import instructions.Server;
-import instructions.bosses.CustomBossBar;
-import instructions.bosses.MobGroup;
-import instructions.bosses.MobSpawnSpec;
-import instructions.bosses.WitherLord;
+import instructions.bosses.*;
 import instructions.bosses.goldor.Goldor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -170,7 +166,7 @@ public final class Storm extends WitherLord {
 		Utils.scheduleTask(() -> sendChatMessage("The memory of your death will be your fondest, focus up!"), 180);
 		// Belongs to the FLIGHT, not the dialogue.
 		Utils.scheduleTask(() -> {
-			Actions.turnHead(boss, 90f, 0f);
+			BossMotion.turnHead(boss, 90f, 0f);
 			sendChatMessage("The power of lightning is quite phenomenal.  A single strike can vaporize a person whole.");
 		}, 400);
 		countdownTitle("4", 420);
@@ -302,19 +298,19 @@ public final class Storm extends WitherLord {
 	}
 
 	private void initialMovement() {
-		Actions.turnHead(boss, 45f, 0f);
-		Actions.forceMove(boss, new Vector(-0.29, 0, 0.29), 100);
+		BossMotion.turnHead(boss, 45f, 0f);
+		BossMotion.forceMove(boss, new Vector(-0.29, 0, 0.29), 100);
 		Utils.scheduleTask(() -> {
-			Actions.turnHead(boss, 135f, 0f);
-			Actions.forceMove(boss, new Vector(-0.29, 0, -0.29), 100);
+			BossMotion.turnHead(boss, 135f, 0f);
+			BossMotion.forceMove(boss, new Vector(-0.29, 0, -0.29), 100);
 		}, 100);
 		Utils.scheduleTask(() -> {
-			Actions.turnHead(boss, -135f, 0f);
-			Actions.forceMove(boss, new Vector(0.29, 0, -0.29), 100);
+			BossMotion.turnHead(boss, -135f, 0f);
+			BossMotion.forceMove(boss, new Vector(0.29, 0, -0.29), 100);
 		}, 200);
 		Utils.scheduleTask(() -> {
-			Actions.turnHead(boss, -45f, 0f);
-			Actions.forceMove(boss, new Vector(0.29, 0, 0.29), 100);
+			BossMotion.turnHead(boss, -45f, 0f);
+			BossMotion.forceMove(boss, new Vector(0.29, 0, 0.29), 100);
 		}, 300);
 	}
 
@@ -443,7 +439,7 @@ public final class Storm extends WitherLord {
 
 	private boolean padOccupied(BoundingBox padBox) {
 		for(Player p : world.getPlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			int bx = p.getLocation().getBlockX();
 			int by = p.getLocation().getBlockY();
 			int bz = p.getLocation().getBlockZ();

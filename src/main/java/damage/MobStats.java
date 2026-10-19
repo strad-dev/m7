@@ -91,6 +91,12 @@ public final class MobStats {
 	/** Undead + Subterranean: Smite +50, Undead Ruler +39 AND Subterranean Ruler +39. */
 	public static final MobStat CRYPT_UNDEAD = new MobStat("Crypt Undead", 9_000_000d, 0, false, false,
 			types(MobType.UNDEAD, MobType.SUBTERRANEAN));
+	/**
+	 * Wizard room mobs, live modes only (not the crypt ones above). 14.3M = 13M at depth II, flat: one group stands
+	 * on Wizard's z -137 seam, where depth reads I. Zero defense.
+	 */
+	public static final MobStat CRYPT_LURKER = new MobStat("Crypt Lurker", 14_300_000d, 0, false, false,
+			types(MobType.UNDEAD, MobType.SUBTERRANEAN));
 	public static final MobStat PRINCE = new MobStat("Prince", 1_000_000d, 0, false, false,
 			types(MobType.UNDEAD, MobType.SUBTERRANEAN));
 	/**
@@ -166,6 +172,7 @@ public final class MobStats {
 		}
 		if(tags.contains("SecretPrince")) return PRINCE.atDepth(depthAt(entity));
 		if(tags.contains(instructions.clear.ClearManager.TAG_CRYPT)) return CRYPT_UNDEAD.atDepth(depthAt(entity));
+		if(tags.contains(instructions.clear.ClearManager.TAG_WIZARD_MOB)) return CRYPT_LURKER;
 		if(name.contains("Angry Archaeologist")) return ANGRY_ARCHAEOLOGIST.atDepth(depthAt(entity));
 		if(name.contains("Shadow Assassin")) {
 			// Two mobs share the name: Yellow-room ClearMiniboss (140M, depth-scaled) and Storm's pad-corner ones

@@ -10,7 +10,12 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.advancements.predicates.BlockPredicate; // 26.2: moved from advancements.criterion
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.component.DataComponents;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.AdventureModePredicate;
 import net.minecraft.world.item.component.TooltipDisplay;
@@ -172,6 +177,54 @@ public class Utils {
 		if(active) {
 			instance.addModifier(new AttributeModifier(key, -0.5, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.ANY));
 		}
+	}
+
+	// Spigot-mojang compile name is detectEquipmentUpdatesPublic; Paper runtime has only detectEquipmentUpdates.
+	// Resolve whichever exists at class-load time.
+	private static final java.lang.reflect.Method DETECT_EQUIPMENT_UPDATES = resolveDetectEquipmentUpdates();
+
+	private static java.lang.reflect.Method resolveDetectEquipmentUpdates() {
+		for(String name : new String[]{"detectEquipmentUpdates", "detectEquipmentUpdatesPublic"}) {
+			try {
+				java.lang.reflect.Method m = net.minecraft.world.entity.LivingEntity.class.getMethod(name);
+				m.setAccessible(true);
+				return m;
+			} catch (NoSuchMethodException ignored) {
+			}
+		}
+		throw new IllegalStateException("LivingEntity.detectEquipmentUpdates[Public] not found on runtime");
+	}
+
+	/**
+	 * Change which hotbar slot (0-8) the player is “holding”,
+	 * and broadcast that slot change.
+	 *
+	 * @param p           The player whose hotbar slot is to be changed.
+	 * @param hotbarIndex The index of the new hotbar slot (0-8).
+	 */
+	public static void setHotbarSlot(Player p, int hotbarIndex) {
+		if(!(p instanceof CraftPlayer cp)) {
+			return;
+		}
+		ServerPlayer npc = cp.getHandle();
+
+		// Update the NMS held-slot index
+		npc.getInventory().setSelectedSlot(hotbarIndex);
+
+		// Apply item attribute modifiers (Dungeonbreaker's BLOCK_BREAK_SPEED) this frame, not next entity tick.
+		try {
+			DETECT_EQUIPMENT_UPDATES.invoke(npc);
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		}
+
+		// Tell that player's client "your held slot is now hotbarIndex"
+		ClientboundSetHeldSlotPacket heldPkt = new ClientboundSetHeldSlotPacket(hotbarIndex);
+		cp.getHandle().connection.send(heldPkt);
+
+		// Broadcast the new main-hand item to all viewers
+		ClientboundSetEquipmentPacket equipPkt = new ClientboundSetEquipmentPacket(npc.getId(), List.of(Pair.of(EquipmentSlot.MAINHAND, npc.getInventory().getSelectedItem())));
+		broadcastPacket(equipPkt);
 	}
 
 	public static void broadcastPacket(Packet<?> pkt) {
@@ -448,7 +501,7 @@ public class Utils {
 		}
 		for(int i = 0; i < playersInWorld.size(); i++) {
 			Player p = playersInWorld.get(i);
-			if(p.getGameMode().equals(GameMode.SPECTATOR) && playersInWorld.size() > 1) {
+			if(isSpectator(p) && playersInWorld.size() > 1) {
 				playersInWorld.remove(i);
 				i--;
 			}
@@ -459,7 +512,7 @@ public class Utils {
 
 	/**
 	 * True if p is WATCHING, not running: vanilla spectator (m7's idle state; the network parks non-party players
-	 * there).
+	 * there), or tagged {@link #WATCHING_TAG} by another plugin to watch from adventure (mc-tas-lang's /spectate).
 	 * <p>
 	 * <b>Every player-driven dungeon mechanic must check this; vanilla won't.</b> Bukkit still fires interact events
 	 * for spectators, and clicks on a {@code MenuProvider} block or an entity hitbox aren't pre-cancelled, so a
@@ -468,8 +521,11 @@ public class Utils {
 	 * chokepoint ({@code Maxor.pickUp}, {@code WitherKing.pickUpRelic}) so future callers inherit it.
 	 */
 	public static boolean isSpectator(Player p) {
-		return p == null || p.getGameMode() == GameMode.SPECTATOR;
+		return p == null || p.getGameMode() == GameMode.SPECTATOR || p.getScoreboardTags().contains(WATCHING_TAG);
 	}
+
+	/** Scoreboard tag: this player watches and is not in the run, whatever their game mode. */
+	public static final String WATCHING_TAG = "m7_watching";
 
 	public enum DebugType {
 		CLIENT, SERVER, BOSS, ERROR
@@ -611,29 +667,6 @@ public class Utils {
 		LIFE, POWER, STONE, WISDOM, TIME
 	}
 
-	public static String getRealName(Player p) {
-		switch(p.getName()) {
-			case "Archer" -> {
-				return "akc0303";
-			}
-			case "Berserk", "Mage3" -> {
-				return "Cubpletionist";
-			}
-			case "Mage4" -> {
-				return "Meepy_";
-			}
-			case "Mage", "Mage1" -> {
-				return "Beethoven_";
-			}
-			case "Tank", "Mage2" -> {
-				return "cookiethebald";
-			}
-			default -> {
-				return p.getName();
-			}
-		}
-	}
-
 	public static String round(double value, int places) {
 		BigDecimal bd = new BigDecimal(Double.toString(value));
 		bd = bd.setScale(places, RoundingMode.HALF_UP);
@@ -685,7 +718,7 @@ public class Utils {
 			case WISDOM -> "Wisdom";
 			case TIME -> "Time";
 		};
-		Bukkit.broadcast(msg("<gold><bold>DUNGEON BUFF!<reset><gold> " + getRealName(p)
+		Bukkit.broadcast(msg("<gold><bold>DUNGEON BUFF!<reset><gold> " + p.getName()
 				+ "<white> found a <light_purple>Blessing of " + name + " " + romanLevel + "<white>!"));
 		Bukkit.broadcast(msg(damage.Blessings.describe(type, level)));
 	}

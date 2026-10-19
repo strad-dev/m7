@@ -5,12 +5,27 @@ import damage.ReforgeId;
 import items.ItemFactory;
 import items.MenuItem;
 import listeners.SpiritLeapMenu;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.phys.Vec3;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.WindCharge;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.util.Vector;
+import plugin.MovementAudit;
+import plugin.Utils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.EnumSet;
+
 /**
- * An ender pearl that must never be thrown (leaps go through {@code Actions.leap}): interact cancel first,
+ * An ender pearl that must never be thrown (leaps go through {@link #leap}): interact cancel first,
  * {@code listeners/PearlHelper} as backstop. Right-click opens Spirit Leap, gated by
  * {@code listeners/SpiritLeapListener} on practice mode and someone to leap to.
  */
@@ -52,5 +67,56 @@ public final class Infinileap implements MenuItem {
 	@Override
 	public void open(Player p) {
 		SpiritLeapMenu.open(p);
+	}
+
+	public static void leap(Player p, Player target) {
+		// Needs the Infinileap in hand.
+		ItemStack held = p.getInventory().getItemInMainHand();
+		if(!"skyblock/utility/infinileap".equals(items.ItemUtils.getID(held))) {
+			String heldDesc;
+			if(held.getType().isAir()) {
+				heldDesc = "an empty hand";
+			} else {
+				items.ItemUtils.getID(held);
+				heldDesc = held.getType() + (held.hasItemMeta() && held.getItemMeta().hasDisplayName() ? " (" + Utils.displayName(held.getItemMeta()) + ")" : "")
+						+ " [id=" + items.ItemUtils.getID(held) + "]";
+			}
+			Utils.debug(Utils.DebugType.ERROR, p.getName() + " tried to leap while holding " + heldDesc + " instead of an Infinileap");
+			return;
+		}
+
+		// Leap voids bonzo motion: cancel the airborne audit (would log a giant delta and bogus "landed") and remove
+		// their in-flight wind charges so a late hit can't push them.
+		MovementAudit.cancelAirborneAudit(p.getUniqueId());
+		for(WindCharge windCharge : p.getWorld().getEntitiesByClass(WindCharge.class)) {
+			if(windCharge.getScoreboardTags().contains("Bonzo") && windCharge.getShooter() == p) {
+				items.combat.BonzoStaff.bonzoFireTick.remove(windCharge.getEntityId());
+				windCharge.remove();
+			}
+		}
+
+		Location targetLoc = target.getLocation();
+		teleport(p, targetLoc);
+
+		if(p instanceof CraftPlayer cp) {
+			ServerPlayer npc = cp.getHandle();
+			npc.setDeltaMovement(Vec3.ZERO);
+			// Leaps are usually mid-air, so onGround is unreliable; false makes the next move() use air physics
+			// (~0.02/tick, ignores speed). Force grounded; gravity still applies, onGround only sets friction.
+			npc.setOnGround(true);
+			npc.hurtMarked = true;
+			// The tracker lags a tick, so observers glide on pre-leap momentum. Broadcast position + zero velocity now.
+			PositionMoveRotation pmr = PositionMoveRotation.of(npc);
+			Utils.broadcastPacket(ClientboundTeleportEntityPacket.teleport(npc.getId(), pmr, EnumSet.noneOf(net.minecraft.world.entity.Relative.class), npc.onGround()));
+			Utils.broadcastPacket(new ClientboundSetEntityMotionPacket(npc.getId(), Vec3.ZERO));
+		}
+
+		p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+		Utils.debug(Utils.DebugType.CLIENT, p.getName() + " leaped to " + target.getName() + " at " + Utils.round(targetLoc.getX(), 3) + " " + Utils.round(targetLoc.getY(), 5) + " " + Utils.round(targetLoc.getZ(), 3));
+	}
+
+	private static void teleport(Player player, Location location) {
+		player.setVelocity(new Vector(0, 0, 0));
+		player.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
 	}
 }

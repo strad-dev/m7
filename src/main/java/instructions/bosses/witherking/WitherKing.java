@@ -214,7 +214,7 @@ public class WitherKing {
 
 		// Back to the SkyBlock-menu nether star, as placeRelic does.
 		p.getInventory().setItem(8, items.util.SkyblockMenu.INSTANCE.build());
-		instructions.Actions.setHotbarSlot(p, 8);
+		Utils.setHotbarSlot(p, 8);
 		spawnRelicEntities(relic);
 	}
 
@@ -302,10 +302,10 @@ public class WitherKing {
 		// So it can't be picked up twice.
 		removeRelicEntities(relic);
 
-		Bukkit.broadcast(Utils.msg("<gold>" + Utils.getRealName(p) + "<green> picked up the " + relic.mm + relic.label + " Relic<green>!"));
+		Bukkit.broadcast(Utils.msg("<gold>" + p.getName() + "<green> picked up the " + relic.mm + relic.label + " Relic<green>!"));
 		Utils.timer("<green>Picked up in " + formatTick());
 		p.getInventory().setItem(8, Utils.placeOnAltarsInAdventure(itemStack));
-		instructions.Actions.setHotbarSlot(p, 8);
+		Utils.setHotbarSlot(p, 8);
 		Utils.playGlobalSound(Sound.ENTITY_ENDERMAN_SCREAM, 2.0f, 0.5f);
 	}
 
@@ -330,7 +330,7 @@ public class WitherKing {
 
 		// Back to the SkyBlock-menu nether star.
 		p.getInventory().setItem(8, items.util.SkyblockMenu.INSTANCE.build());
-		instructions.Actions.setHotbarSlot(p, 8);
+		Utils.setHotbarSlot(p, 8);
 		Utils.playGlobalSound(Sound.ENTITY_ENDERMAN_SCREAM, 2.0f, 0.5f);
 
 		if(placedRelics.size() == 5) {
@@ -711,9 +711,9 @@ public class WitherKing {
 	private static List<String> packPlayerLines() {
 		List<String> names = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(p.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(p)) continue;
 			String colorTag = WitherActions.stayedAdventure(p) ? "<gold>" : "<white>";
-			names.add(Utils.mmLegacy(colorTag + Utils.getRealName(p)));
+			names.add(Utils.mmLegacy(colorTag + p.getName()));
 		}
 		if(names.isEmpty()) names.add(Utils.mmLegacy("<gray>(none)"));
 		return packLines(names);

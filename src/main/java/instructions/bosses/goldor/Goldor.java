@@ -697,7 +697,7 @@ public final class Goldor extends WitherLord {
 	}
 
 	public static void broadcastActivation(Player p, String thing, int order, int total) {
-		String msg = "<gold>" + Utils.getRealName(p) + " "
+		String msg = "<gold>" + p.getName() + " "
 				+ "<green>activated a " + thing + " ("
 				+ "<red>" + order + "<green>/" + total + ")";
 		Bukkit.broadcast(Utils.msg(msg));

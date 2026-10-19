@@ -113,7 +113,7 @@ public class CustomItems implements Listener {
 	 */
 	public static void meleeAttack(Player p, org.bukkit.entity.Entity hit) {
 		if(p == null || !(hit instanceof LivingEntity target)) return;
-		if(p.getGameMode() == GameMode.SPECTATOR) return;
+		if(Utils.isSpectator(p)) return;
 		// Players are invulnerable.
 		if(target instanceof Player) return;
 		ItemStack held = p.getInventory().getItemInMainHand();
@@ -134,6 +134,12 @@ public class CustomItems implements Listener {
 	}
 
 	// ===================================== listeners =====================================
+
+	/** The Dungeonbreaker isn't unbreakable (its bar draws the charges), so vanilla wear never touches it. */
+	@EventHandler
+	public void onItemDamage(PlayerItemDamageEvent e) {
+		if(items.tools.Dungeonbreaker.INSTANCE.matches(e.getItem())) e.setCancelled(true);
+	}
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
@@ -312,7 +318,7 @@ public class CustomItems implements Listener {
 	 *                     own ray trace, so range and target match vanilla's.
 	 */
 	public static void handleCustomItems(Cancellable e, EquipmentSlot hand, ItemStack stack, Action action, Player p, Block clickedBlock) {
-		if(p.getGameMode() == GameMode.SPECTATOR) return; // spectators never fire item abilities
+		if(Utils.isSpectator(p)) return; // spectators never fire item abilities
 		if(!Objects.equals(hand, EquipmentSlot.HAND)) return;
 
 		boolean isRightClick = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;

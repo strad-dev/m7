@@ -9,7 +9,7 @@ public interface MenuItem extends Item {
 	void open(Player p);
 
 	/**
-	 * Suppress vanilla use outright. The Infinileap IS an ender pearl and leaps via {@code Actions.leap}, so it must
+	 * Suppress vanilla use outright. The Infinileap IS an ender pearl and leaps via {@code Infinileap.leap}, so it must
 	 * never be thrown; {@code listeners/PearlHelper} backstops the interact cancel.
 	 */
 	default boolean blocksVanillaUse() {

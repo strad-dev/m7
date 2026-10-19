@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Fires a vanilla wind charge and records its fire tick so {@code MiscListener} and {@code Actions} can age it.
+ * Fires a vanilla wind charge and records its fire tick so {@code MiscListener} and {@code Infinileap.leap} can age it.
  */
 public final class BonzoStaff implements Weapon, AbilityItem {
 	public static final BonzoStaff INSTANCE = new BonzoStaff();

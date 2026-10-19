@@ -73,7 +73,7 @@ public class MiscListener implements Listener {
 		double best = Double.MAX_VALUE;
 		Location deathLoc = e.getEntity().getLocation();
 		for(Player pl : Bukkit.getOnlinePlayers()) {
-			if(pl.getGameMode() == GameMode.SPECTATOR) continue;
+			if(Utils.isSpectator(pl)) continue;
 			double d = pl.getLocation().distanceSquared(deathLoc);
 			if(d < best) { best = d; picker = pl; }
 		}

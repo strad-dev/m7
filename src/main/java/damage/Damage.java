@@ -753,7 +753,7 @@ public final class Damage {
 
 		// `super`: every term. Player-side rows come from the Breakdown, so an ability has no Strength row, not a x1.
 		StringBuilder sb = new StringBuilder();
-		sb.append(kind).append(' ').append(attacker == null ? "?" : Utils.getRealName(attacker)).append(" -> ").append(target.getName());
+		sb.append(kind).append(' ').append(attacker == null ? "?" : attacker.getName()).append(" -> ").append(target.getName());
 		if(b != null && Math.abs(b.total - sbDamage) <= 1e-6) {
 			sb.append("\n  ").append(b.baseLabel).append(": +").append(trimZeros(Utils.roundCommas(b.baseValue, 2)));
 			for(String row : b.rows) sb.append("\n  ").append(row);

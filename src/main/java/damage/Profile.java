@@ -1,7 +1,6 @@
 package damage;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -138,7 +137,7 @@ public final class Profile {
 		if(p == null) return 0;
 		int n = 0;
 		for(Player other : Bukkit.getOnlinePlayers()) {
-			if(other == p || other.getGameMode() == GameMode.SPECTATOR) continue;
+			if(other == p || plugin.Utils.isSpectator(other)) continue;
 			if(!other.getWorld().equals(p.getWorld())) continue;
 			if(other.getLocation().distanceSquared(p.getLocation()) <= 30 * 30) n++;
 		}
