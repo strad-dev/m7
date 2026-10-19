@@ -622,7 +622,13 @@ public class Utils {
 	public static String formatHealthM(LivingEntity entity) {
 		// Dying withers always show "1".
 		if(entity.getScoreboardTags().contains("TASDying")) return "1";
-		return formatHealthM(entity.getHealth() + entity.getAbsorptionAmount());
+		double hp = entity.getHealth() + entity.getAbsorptionAmount();
+		// 1M..100M non-withers get a tenth (14.3M); withers stay whole millions.
+		if(!(entity instanceof org.bukkit.entity.Wither) && hp >= 1 && hp < 100) {
+			int tenths = (int) Math.round(hp * 10);
+			if(tenths < 1000) return tenths % 10 == 0 ? (tenths / 10) + "M" : (tenths / 10) + "." + (tenths % 10) + "M";
+		}
+		return formatHealthM(hp);
 	}
 
 	/** One internal health point is 1M SkyBlock HP. */
