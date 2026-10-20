@@ -63,10 +63,15 @@ public class CustomItems implements Listener {
 
 	/**
 	 * Tick of last RIGHT_CLICK_BLOCK per player. A block right-click sends UseItemOn (BLOCK) then UseItem (AIR);
-	 * this drops the trailing AIR so the ability fires once even across a tick boundary.
+	 * this drops the trailing AIR so the ability fires once even across a tick boundary. One AIR per BLOCK: a fixed
+	 * two-tick window also ate a real air click on the next tick (a TAS etherwarp off a block, then one into air).
+	 * Packet path only: Paper's handleUseItem ray-traces an AIR click and fires it as a RIGHT_CLICK_BLOCK event when
+	 * a block is in reach, which recorded a block click that never happened and ate the next real air click.
 	 */
 	private static final Map<UUID, Integer> lastRightBlockTick = new ConcurrentHashMap<>();
 	private static final Map<UUID, Integer> lastLeftClickAbilityTick = new ConcurrentHashMap<>();
+	/** Tick a right-click ability moved its player; the same click must not then open a door or take a secret. */
+	private static final Map<UUID, Integer> lastTeleportClickTick = new ConcurrentHashMap<>();
 	private static final Set<UUID> droppingPlayers = new HashSet<>();
 
 	/** Melee's 5-tick cooldown (4 with full Thermodynamic), same rule as the beam: hit on tick 0, denied 1-4, hit on 5 ({@link #meleeAttack}). */
@@ -78,6 +83,16 @@ public class CustomItems implements Listener {
 	 */
 	private static final int MAGE_BEAM_COOLDOWN_TICKS = 5;
 	private static final String MAGE_BEAM_KEY = "mage-beam";
+
+	/**
+	 * The right-click being handled is the one that just teleported {@code p}. Within a tick, like
+	 * {@link #rightClickGate} (the packet and event halves of one click), and spent by the first caller, so the next
+	 * click opens doors again.
+	 */
+	public static boolean takeClickTeleport(Player p) {
+		Integer t = lastTeleportClickTick.remove(p.getUniqueId());
+		return t != null && MinecraftServer.currentTick - t <= 1;
+	}
 
 	public static boolean abilityFiredThisTick(Player p) {
 		return lastLeftClickAbilityTick.getOrDefault(p.getUniqueId(), -1) == MinecraftServer.currentTick;
@@ -318,7 +333,7 @@ public class CustomItems implements Listener {
 	 *                     own ray trace, so range and target match vanilla's.
 	 */
 	public static void handleCustomItems(Cancellable e, EquipmentSlot hand, ItemStack stack, Action action, Player p, Block clickedBlock) {
-		if(Utils.isSpectator(p)) return; // spectators never fire item abilities
+		if(Utils.isSpectator(p) && !watcherMayUse(p, stack, action)) return; // spectators never fire item abilities
 		if(!Objects.equals(hand, EquipmentSlot.HAND)) return;
 
 		boolean isRightClick = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
@@ -329,7 +344,7 @@ public class CustomItems implements Listener {
 		if(isRightClick && instructions.clear.ClearManager.isActive()
 				&& instructions.clear.Rooms.roomAt(p.getLocation()) == instructions.clear.Rooms.TRAP) {
 			boolean allowed = stack != null && (stack.getType() == Material.ENDER_PEARL
-					|| (item != null && item.usableInTrapRoom()));
+					|| (item != null && (item.usableInTrapRoom() || (Utils.isSpectator(p) && item.usableWhileWatching()))));
 			if(!allowed) return;
 		}
 		if(action == Action.LEFT_CLICK_AIR && droppingPlayers.contains(p.getUniqueId())) return;
@@ -350,9 +365,12 @@ public class CustomItems implements Listener {
 			if(tick > lastLeftClickAbilityTick.getOrDefault(p.getUniqueId(), -1)) {
 				if(isMageBeamItem(p, stack)) {
 					if(Cooldowns.ready(p, MAGE_BEAM_KEY)) {
+						Utils.debug(Utils.DebugType.SERVER, p.getName() + " mage beam");
 						ItemUtils.mageBeam(p);
 						Cooldowns.start(p, MAGE_BEAM_KEY, MAGE_BEAM_COOLDOWN_TICKS);
 						fired = true;
+					} else {
+						Utils.debug(Utils.DebugType.SERVER, p.getName() + " mage beam on cooldown");
 					}
 				} else if(ability != null && ability.hasLeftClick()) {
 					fired = fire(p, ability, new Cast(p, stack, clickedBlock, action, tick), false);
@@ -368,18 +386,36 @@ public class CustomItems implements Listener {
 			// warmup lag after a restart can split them and fire twice. Drop an AIR trailing a BLOCK by <= 1 tick;
 			// standalone air-clicks and fake-player spam have no recent BLOCK.
 			if(action == Action.RIGHT_CLICK_BLOCK) {
-				lastRightBlockTick.put(p.getUniqueId(), tick);
+				if(e == null) lastRightBlockTick.put(p.getUniqueId(), tick);
 			} else {
-				int blockTick = lastRightBlockTick.getOrDefault(p.getUniqueId(), Integer.MIN_VALUE);
-				if(tick == blockTick || tick == blockTick + 1) return;
+				// Spent on the trailing AIR, so a fresh air click the next tick still fires.
+				Integer blockTick = lastRightBlockTick.get(p.getUniqueId());
+				if(blockTick != null && (tick == blockTick || tick == blockTick + 1)) {
+					lastRightBlockTick.remove(p.getUniqueId());
+					Utils.debug(Utils.DebugType.SERVER, "Dropped " + p.getName() + "'s trailing air right-click (block click on tick " + blockTick + ")");
+					return;
+				}
 			}
 			if(ability != null && ability.hasRightClick() && rightClickGate(p, e != null, tick)) {
+				org.bukkit.Location before = p.getLocation();
 				fired = fire(p, ability, new Cast(p, stack, clickedBlock, action, tick), true);
+				org.bukkit.Location after = p.getLocation();
+				if(fired && (before.getWorld() != after.getWorld() || before.distanceSquared(after) > 0)) {
+					lastTeleportClickTick.put(p.getUniqueId(), tick);
+				}
 			}
 		}
 
 		// Cancel left-click events only if an ability actually fired
 		if(e != null && fired) e.setCancelled(true);
+	}
+
+	/** A watcher in adventure may still right-click an {@code Item.usableWhileWatching} item; spectator mode never. */
+	private static boolean watcherMayUse(Player p, ItemStack stack, Action action) {
+		if(p == null || p.getGameMode() == GameMode.SPECTATOR) return false;
+		if(action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return false;
+		Item item = ItemRegistry.of(stack);
+		return item != null && item.usableWhileWatching();
 	}
 
 	/** One per tick per source, and none within a tick of the other source's (the same click seen twice). */

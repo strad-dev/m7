@@ -343,7 +343,16 @@ public final class ClearManager {
 	// ==================== offhand map ====================
 
 	private static void giveMaps() {
-		for(Player p : realPlayers()) manageMapAndMenu(p);
+		for(Player p : mapHolders()) manageMapAndMenu(p);
+	}
+
+	/** Everyone who can see an offhand: real players and adventure watchers (WATCHING_TAG), not spectator mode. */
+	private static List<Player> mapHolders() {
+		List<Player> out = new ArrayList<>();
+		for(Player p : Bukkit.getOnlinePlayers()) {
+			if(p.getGameMode() != org.bukkit.GameMode.SPECTATOR) out.add(p);
+		}
+		return out;
 	}
 
 	private static ItemStack skyblockMenu() {
@@ -368,7 +377,7 @@ public final class ClearManager {
 	}
 
 	private static void restoreMenus() {
-		for(Player p : realPlayers()) {
+		for(Player p : mapHolders()) {
 			if(DungeonMap.isDungeonMap(p.getInventory().getItemInOffHand())) {
 				p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
 			}
@@ -403,8 +412,8 @@ public final class ClearManager {
 		if(!active) return;
 		markExploration();
 		List<Player> players = realPlayers();
+		for(Player p : mapHolders()) manageMapAndMenu(p);
 		for(Player p : players) {
-			manageMapAndMenu(p);
 			collectItems(p);
 			updateActionBar(p);
 		}

@@ -106,7 +106,7 @@ public final class PuzzleIceFill {
 		} else if(adjacent(here, previous)) {
 			freeze(p, below, here);
 		} else {
-			fail(p, "<red>Don't move diagnoally!  Bad!"); // diagonal or non-adjacent
+			fail(p, "<red>Don't move diagonally!  Bad!"); // diagonal or non-adjacent
 		}
 	}
 

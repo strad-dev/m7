@@ -93,7 +93,8 @@ public class MiscListener implements Listener {
 		if(!Server.isRunStarted() && items.ItemUtils.getID(e.getPlayer().getInventory().getItemInMainHand()).equals("skyblock/combat/stonk")) return;
 		// Spectator clicks are consumed, never open anything. The key check is team-wide, so otherwise an idle
 		// watcher could open a door for the party (and the blood door starts the Watcher).
-		if(Utils.isSpectator(e.getPlayer())) {
+		if(Utils.isSpectator(e.getPlayer())
+				|| (e.getAction() == Action.RIGHT_CLICK_BLOCK && CustomItems.takeClickTeleport(e.getPlayer()))) {
 			e.setCancelled(true);
 			return;
 		}

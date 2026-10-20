@@ -36,8 +36,8 @@ commands:
     usage: /m7loadout [reset]
   # Both are Realistic-mode only; in any other mode the pet is assumed from what you are doing.
   pets:
-    description: Summon one of your pets
-    usage: /pets
+    description: Summon one of your pets, or view another player's
+    usage: /pets [player]
     aliases: [pet]
   petloadout:
     description: Rearrange the pets in your pet menu

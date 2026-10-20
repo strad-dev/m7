@@ -139,15 +139,30 @@ public final class PetMenu implements CommandExecutor, Listener {
 					+ "</white>, where your pet follows from what you are doing."));
 			return true;
 		}
+		// /pets <player>: a look at someone else's menu (mc-tas-lang sends a watcher's /pets here for the fake).
+		if(!arranging && args.length > 0) {
+			Player owner = Bukkit.getPlayerExact(args[0]);
+			if(owner == null) {
+				sender.sendMessage(Utils.msg("<red>No player named <white>" + args[0] + "</white> is online"));
+				return true;
+			}
+			open(p, false, owner);
+			return true;
+		}
 		open(p, arranging);
 		return true;
 	}
 
 	/** Package-private so {@link AutopetMenu}'s Back button can reopen the summoning half. */
 	void open(Player p, boolean arranging) {
-		Holder holder = new Holder(arranging);
+		open(p, arranging, p);
+	}
+
+	/** {@code owner} other than {@code p}: their pets, view-only. */
+	private void open(Player p, boolean arranging, Player owner) {
+		Holder holder = new Holder(arranging, owner);
 		Inventory gui = Bukkit.createInventory(holder, SIZE,
-				Utils.msg(arranging ? "<dark_gray>Pets: Arrange" : "<dark_gray>Pets"));
+				Utils.msg(arranging ? "<dark_gray>Pets: Arrange" : owner != p ? "<dark_gray>Pets: " + owner.getName() : "<dark_gray>Pets"));
 		holder.inv = gui;
 		if(arranging) sessions.put(p.getUniqueId(), new LinkedHashMap<>(Pets.layout(p)));
 		draw(p, holder);
@@ -161,15 +176,18 @@ public final class PetMenu implements CommandExecutor, Listener {
 		Inventory gui = holder.inv;
 		for(int slot : FILLER_SLOTS) gui.setItem(slot, filler());
 
-		PetType out = Pets.equipped(p);
+		Player owner = holder.owner;
+		PetType out = Pets.equipped(owner);
 		gui.setItem(HEADER_SLOT, button(Material.BONE, "<green>Pets",
 				List.of("<gray>Currently summoned:", out.colouredName())));
 		gui.setItem(AUTOPET_SLOT, autopetButton());
 		gui.setItem(CLOSE_SLOT, button(Material.BARRIER, "<red>Close", List.of()));
-		gui.setItem(RESET_SLOT, button(Material.LAVA_BUCKET, "<yellow>Reset to Default",
-				List.of("<gray>Put your pets back on the first", "<gray>four slots of the menu.")));
+		if(owner == p) {
+			gui.setItem(RESET_SLOT, button(Material.LAVA_BUCKET, "<yellow>Reset to Default",
+					List.of("<gray>Put your pets back on the first", "<gray>four slots of the menu.")));
+		}
 
-		Map<Integer, PetType> layout = layoutFor(p, holder);
+		Map<Integer, PetType> layout = layoutFor(owner, holder);
 		for(int slot : PET_SLOTS) {
 			PetType pet = layout.get(slot);
 			gui.setItem(slot, pet == null ? null : pet.icon(pet == out, holder.arranging));
@@ -190,6 +208,11 @@ public final class PetMenu implements CommandExecutor, Listener {
 		if(Menus.ignoreDoubleClick(e)) return;
 		e.setCancelled(true); // every slot, both inventories, before anything is read
 		if(!(e.getWhoClicked() instanceof Player p)) return;
+		if(holder.owner != p) {
+			// Someone else's pets: look, don't touch.
+			if(e.getRawSlot() == CLOSE_SLOT) Bukkit.getScheduler().runTask(M7.getInstance(), () -> p.closeInventory());
+			return;
+		}
 
 		if(e.getClickedInventory() != e.getView().getTopInventory()) {
 			// Click in the player's own inventory. With a pet on the cursor it's an attempt to put it where it can
@@ -431,13 +454,15 @@ public final class PetMenu implements CommandExecutor, Listener {
 		return it;
 	}
 
-	/** Marker holder carrying which mode this window is. */
+	/** Marker holder carrying which mode this window is, and whose pets it shows. */
 	public static final class Holder implements InventoryHolder {
 		final boolean arranging;
+		final Player owner;
 		Inventory inv;
 
-		Holder(boolean arranging) {
+		Holder(boolean arranging, Player owner) {
 			this.arranging = arranging;
+			this.owner = owner;
 		}
 
 		@Override

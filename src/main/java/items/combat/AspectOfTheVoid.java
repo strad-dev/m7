@@ -87,14 +87,21 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 	}
 
 	@Override
+	public boolean usableWhileWatching() {
+		return true;
+	}
+
+	@Override
 	public boolean onRightClick(Cast cast) {
 		aotv(cast.player());
 		return true;
 	}
 
 	public static void aotv(Player p) {
-		// Disabled only in the boss arena in adventure (practice default), so it can't skip boss mechanics.
-		if(p.getGameMode() == org.bukkit.GameMode.ADVENTURE && LavaJump.isInBossArena(p.getLocation())) return;
+		// Disabled only in the boss arena in adventure (practice default), so it can't skip boss mechanics. A watcher
+		// isn't in the run, so it has none to skip.
+		if(p.getGameMode() == org.bukkit.GameMode.ADVENTURE && LavaJump.isInBossArena(p.getLocation())
+				&& !Utils.isSpectator(p)) return;
 		Utils.debug(Utils.DebugType.SERVER, "Starting at " + Utils.round(p.getLocation().getX(), 2) + " " + Utils.round(p.getLocation().getY(), 2) + " " + Utils.round(p.getLocation().getZ(), 2) + " " + Utils.round(p.getLocation().getYaw(), 2) + " " + Utils.round(p.getLocation().getPitch(), 2));
 		if(p.isSneaking()) {
 			RayTraceResult result = p.rayTraceBlocks(61);

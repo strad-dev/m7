@@ -55,8 +55,9 @@ public class ClearListener implements Listener {
 	}
 
 	/**
-	 * True if {@code p} may not progress the clear: a spectator (idle on m7, watching someone's run). Shared
-	 * predicate {@link Utils#isSpectator}, like {@code GoldorListener.cannotSolve}.
+	 * True if {@code p} may not progress the clear: a spectator (idle on m7, watching someone's run), or a click
+	 * that just teleported them ({@code CustomItems.takeClickTeleport}). Shared predicate {@link Utils#isSpectator},
+	 * like {@code GoldorListener.cannotSolve}.
 	 * <p>
 	 * Not redundant with vanilla, and placement matters. {@code ServerPlayerGameMode.useItemOn} no-ops a spectator's
 	 * click only when the block has no {@code MenuProvider}; a CHEST has one, so a secret chest fires
@@ -65,7 +66,7 @@ public class ClearListener implements Listener {
 	 * the party. So: cancel FIRST (shuts the chest GUI), then check this.
 	 */
 	private static boolean cannotInteract(Player p) {
-		return Utils.isSpectator(p);
+		return Utils.isSpectator(p) || CustomItems.takeClickTeleport(p);
 	}
 
 	@EventHandler

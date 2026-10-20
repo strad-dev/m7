@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import plugin.Utils;
@@ -79,9 +80,19 @@ public final class Hyperion implements Weapon, AbilityItem {
 	}
 
 	public static void witherImpact(Player p) {
-		// implosion
-		p.getWorld().spawnParticle(Particle.EXPLOSION, p.getEyeLocation(), 1);
-		List<Entity> entities = p.getNearbyEntities(10, 10, 10);
+		impactTeleport(p);
+		implode(p);
+	}
+
+	/** Implosion radius, eye to the nearest point of a mob's hitbox. */
+	private static final double IMPLOSION_RADIUS = 10;
+
+	// After the teleport: it hits around where you land, not where you cast.
+	private static void implode(Player p) {
+		Location eye = p.getEyeLocation();
+		p.getWorld().spawnParticle(Particle.EXPLOSION, eye, 1);
+		List<Entity> entities = p.getWorld().getNearbyEntities(eye, IMPLOSION_RADIUS, IMPLOSION_RADIUS, IMPLOSION_RADIUS,
+				entity -> withinSphere(eye, entity, IMPLOSION_RADIUS)).stream().toList();
 		List<EntityType> doNotKill = ItemUtils.doNotKill();
 		int damaged = 0;
 		double dealt = 0;
@@ -106,7 +117,17 @@ public final class Hyperion implements Weapon, AbilityItem {
 
 		// wither shield sound, on a 100-tick cooldown per player.
 		ItemUtils.playWitherShieldSound(p);
+	}
 
+	private static boolean withinSphere(Location eye, Entity entity, double radius) {
+		BoundingBox b = entity.getBoundingBox();
+		double dx = Math.max(Math.max(b.getMinX() - eye.getX(), 0), eye.getX() - b.getMaxX());
+		double dy = Math.max(Math.max(b.getMinY() - eye.getY(), 0), eye.getY() - b.getMaxY());
+		double dz = Math.max(Math.max(b.getMinZ() - eye.getZ(), 0), eye.getZ() - b.getMaxZ());
+		return dx * dx + dy * dy + dz * dz <= radius * radius;
+	}
+
+	private static void impactTeleport(Player p) {
 		// Inside the F7 Goldor/Necron arena, Wither Impact implodes but does not teleport.
 		if(LavaJump.isInBossArena(p.getLocation())) {
 			return;
@@ -243,8 +264,6 @@ public final class Hyperion implements Weapon, AbilityItem {
 								Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 								p.setFallDistance(0);
 								Utils.playLocalSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-								Utils.playLocalSound(p, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
-								ItemUtils.playWitherShieldSound(p);
 								return;
 							}
 						}

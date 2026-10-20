@@ -160,6 +160,11 @@ public interface Item {
 		return false;
 	}
 
+	/** Right-click still works for a watcher ({@code Utils.WATCHING_TAG}), boss arena and Trap room included. Only the AOTV. */
+	default boolean usableWhileWatching() {
+		return false;
+	}
+
 	// ===== matching =====
 
 	/** Any reforge. Material + plain name, like paletteKey. */
