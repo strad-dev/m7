@@ -315,6 +315,7 @@ public class CustomItems implements Listener {
 	/** A {@code ProjectileItem}'s projectile landed. Matched on its scoreboard tag, since the shooter may have swapped. */
 	@EventHandler
 	public void onProjectileHit(ProjectileHitEvent e) {
+		if(Utils.hitsWatcher(e)) return;
 		Projectile projectile = e.getEntity();
 		items.ProjectileItem source = ItemRegistry.projectileSource(projectile.getScoreboardTags());
 		if(source == null) return;

@@ -193,6 +193,26 @@ public final class Maxor extends WitherLord {
 
 		topLeftCrystal = spawnEnergyCrystal(new Location(world, 82.5, 238.48, 50.5));
 		topRightCrystal = spawnEnergyCrystal(new Location(world, 64.5, 238.48, 50.5));
+		autoPickUp(topLeftCrystal, LEFT_AUTO_PICKUP);
+		autoPickUp(topRightCrystal, RIGHT_AUTO_PICKUP);
+	}
+
+	private static final BoundingBox LEFT_AUTO_PICKUP = new BoundingBox(85, 238, 49, 80, 240, 53);
+	private static final BoundingBox RIGHT_AUTO_PICKUP = new BoundingBox(67, 238, 49, 62, 240, 53);
+
+	private void autoPickUp(EnderCrystal crystal, BoundingBox box) {
+		List<Player> inside = new ArrayList<>();
+		for(Player p : world.getPlayers()) {
+			Location l = p.getLocation();
+			if(l.getX() >= box.getMinX() && l.getX() <= box.getMaxX()
+					&& l.getY() >= box.getMinY() && l.getY() <= box.getMaxY()
+					&& l.getZ() >= box.getMinZ() && l.getZ() <= box.getMaxZ()) inside.add(p);
+		}
+		inside.sort(Comparator.comparing(Player::getName, String.CASE_INSENSITIVE_ORDER));
+		for(Player p : inside) {
+			pickUp(p, crystal);
+			if(crystal.isDead()) return;
+		}
 	}
 
 	/**

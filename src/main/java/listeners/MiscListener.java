@@ -168,8 +168,16 @@ public class MiscListener implements Listener {
 		}
 	}
 
+	// Watchers stand inside the players they watch. A cancelled entity hit makes Paper skip it (deflection NONE) and the
+	// projectile flies on, as through a spectator.
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onProjectileHitWatcher(ProjectileHitEvent e) {
+		if(Utils.hitsWatcher(e)) e.setCancelled(true);
+	}
+
 	@EventHandler
 	public void onProjectileHit(ProjectileHitEvent e) {
+		if(Utils.hitsWatcher(e)) return;
 		// Handle arrows hitting blocks, and remove Terminator arrows
 		if(e.getEntity() instanceof Arrow arrow) {
 			// Super-verbose: log Last Breath hits on a boss (wither, or WK dragon via its EnderDragonPart parent)

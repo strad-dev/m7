@@ -524,6 +524,14 @@ public class Utils {
 		return p == null || p.getGameMode() == GameMode.SPECTATOR || p.getScoreboardTags().contains(WATCHING_TAG);
 	}
 
+	/**
+	 * A projectile hitting a watcher, which {@code MiscListener.onProjectileHitWatcher} cancels so it flies on. Hit
+	 * listeners that act on a cancelled event too check this first.
+	 */
+	public static boolean hitsWatcher(org.bukkit.event.entity.ProjectileHitEvent e) {
+		return e.getHitEntity() instanceof Player p && isSpectator(p);
+	}
+
 	/** Scoreboard tag: this player watches and is not in the run, whatever their game mode. */
 	public static final String WATCHING_TAG = "m7_watching";
 

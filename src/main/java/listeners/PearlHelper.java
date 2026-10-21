@@ -36,6 +36,7 @@ public class PearlHelper implements Listener {
 
 	@EventHandler
 	public void onPearlLand(ProjectileHitEvent e) {
+		if(Utils.hitsWatcher(e)) return;
 		if(e.getEntity() instanceof EnderPearl pearl && pearl.getShooter() instanceof Player p) {
 			e.setCancelled(true);
 			Location l;
