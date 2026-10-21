@@ -200,20 +200,20 @@ public class Watcher {
 		mobNames.clear();
 		mob(-109.5, 71, -52.5, "Diamante Giant"); // s3a3m3's spawn point
 		mob(-111.5, 71, -45.5, "Bonzo");          // editqble's spawn point
-		mob(-111.5, 75, -45.5, "valej");
-		mob(-111.5, 79, -45.5, "Merlynade");
+		mob(-111.5, 75, -45.5, "BeansBeans13");
+		mob(-111.5, 79, -45.5, "valej");
 		/* -------------------- back to the perch until tick 420 -------------------- */
-		mob(-109.5, 75, -52.5, "Katsumi9877");
-		mob(-109.5, 79, -52.5, "HenbotB");
-		mob(-109.5, 79, -56.5, "Beethoven_");
-		mob(-109.5, 79, -60.5, "AsapIcey");
-		mob(-111.5, 79, -67.5, "akc0303");
-		mob(-111.5, 75, -67.5, "Cubpletionist");
-		mob(-111.5, 71, -67.5, "aalatif_");
-		mob(-109.5, 71, -60.5, "TypeW");
-		mob(-109.5, 75, -60.5, "derM0RITZZ");
-		mob(-109.5, 75, -56.5, "BananaBrigade");
-		mob(-109.5, 71, -56.5, "JennAiel");
+		mob(-109.5, 75, -52.5, "JennAiel");
+		mob(-109.5, 79, -52.5, "_a18");
+		mob(-109.5, 79, -56.5, "BananaBrigade");
+		mob(-109.5, 79, -60.5, "Katsumi9877");
+		mob(-111.5, 79, -67.5, "derM0RITZZ");
+		mob(-111.5, 75, -67.5, "aalatif_");
+		mob(-111.5, 71, -67.5, "oystor");
+		mob(-109.5, 71, -60.5, "Cubpletionist");
+		mob(-109.5, 75, -60.5, "akc0303");
+		mob(-109.5, 75, -56.5, "AsapIcey");
+		mob(-109.5, 71, -56.5, "Beethoven_");
 	}
 
 	/** Where he flies to and who he drops there. */
