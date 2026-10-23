@@ -396,6 +396,7 @@ public class MiscListener implements Listener {
 		if(!(e.getRightClicked() instanceof EnderCrystal crystal)) return;
 		if(Maxor.INSTANCE.notEnergyCrystal(crystal)) return;
 		e.setCancelled(true);
+		CustomItems.noteRightClick(e.getPlayer(), true);
 		Maxor.INSTANCE.pickUp(e.getPlayer(), crystal);
 	}
 

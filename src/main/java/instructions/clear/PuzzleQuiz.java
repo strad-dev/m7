@@ -135,8 +135,12 @@ public final class PuzzleQuiz {
 	}
 
 	/** {@code index} 0=A, 1=B, 2=C. */
+	public static boolean acceptsAnswer() {
+		return started && !solved && awaiting;
+	}
+
 	public static void answer(Player p, int index) {
-		if(!started || solved || !awaiting) return;
+		if(!acceptsAnswer()) return;
 		awaiting = false;
 		Server.Quiz.removeOptions(options);
 		if(index == CORRECT) {

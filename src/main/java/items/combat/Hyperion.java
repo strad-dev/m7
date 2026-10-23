@@ -74,6 +74,11 @@ public final class Hyperion implements Weapon, AbilityItem {
 	}
 
 	@Override
+	public boolean usableWhileWatching() {
+		return true;
+	}
+
+	@Override
 	public boolean onRightClick(Cast cast) {
 		witherImpact(cast.player());
 		return true;
@@ -81,7 +86,7 @@ public final class Hyperion implements Weapon, AbilityItem {
 
 	public static void witherImpact(Player p) {
 		impactTeleport(p);
-		implode(p);
+		if(!Utils.isSpectator(p)) implode(p);
 	}
 
 	/** Implosion radius, eye to the nearest point of a mob's hitbox. */

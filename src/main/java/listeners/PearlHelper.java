@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import plugin.Utils;
 
@@ -84,7 +85,14 @@ public class PearlHelper implements Listener {
 			}
 			Utils.debug(Utils.DebugType.SERVER, "Landed at " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3) + ", due to colliding with " + hit);
 			pearl.remove();
-			p.teleport(l);
+			if(p.teleport(l) && standsOn(p, l)) p.setVelocity(new Vector(0, STANDING_DELTA_Y, 0));
 		}
+	}
+
+	private static final double STANDING_DELTA_Y = -0.08 * 0.98;
+
+	private static boolean standsOn(Player p, Location l) {
+		double w = p.getWidth() / 2;
+		return l.getWorld().hasCollisionsIn(new BoundingBox(l.getX() - w, l.getY() - 1.0E-3, l.getZ() - w, l.getX() + w, l.getY(), l.getZ() + w));
 	}
 }

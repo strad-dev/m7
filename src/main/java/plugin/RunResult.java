@@ -59,6 +59,12 @@ public final class RunResult {
 	 */
 	public boolean watcherFix;
 
+	/**
+	 * Run had Bat Bug on ({@code plugin/BatBug}). The network's {@code Leaderboards.submit} keeps it off the 300 Score and
+	 * Full Clear boards and never counts it as S+.
+	 */
+	public boolean batBug;
+
 	/** {@link Utils#runTick()} at completion. */
 	public int runTicks;
 
@@ -122,6 +128,7 @@ public final class RunResult {
 		r.difficulty = damage.Difficulty.current().id();
 		r.mayor = damage.Mayor.current().id();
 		r.watcherFix = WatcherFix.enabled();
+		r.batBug = BatBug.enabled();
 		r.runTicks = Utils.runTick();
 		r.phaseDurations = WitherActions.phaseDurations();
 		r.splitEnds = WitherActions.splitEnds();

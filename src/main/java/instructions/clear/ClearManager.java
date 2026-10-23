@@ -36,6 +36,7 @@ public final class ClearManager {
 	// bonus counters
 	private static int cryptLurkers;
 	private static boolean firstPrince, firstBat, mimicKilled;
+	private static final Set<UUID> batKillers = new HashSet<>();
 	private static int deaths; // noteDeath(), from death/Deaths.kill
 
 	// Wizard crystal ball, not one of the 47
@@ -128,6 +129,7 @@ public final class ClearManager {
 		DungeonMap.markDirty();
 		cryptLurkers = 0;
 		firstPrince = firstBat = mimicKilled = false;
+		batKillers.clear();
 		deaths = 0;
 		crystalPickedUp = crystalHandedIn = false;
 		wizardMobs.clear();
@@ -458,7 +460,7 @@ public final class ClearManager {
 		List<String> flags = new ArrayList<>();
 		if(mimicKilled) flags.add("M");
 		if(firstPrince) flags.add("P");
-		if(firstBat) flags.add("B");
+		if(firstBat) flags.add(plugin.BatBug.enabled() ? batBonus() + "B" : "B");
 		String crypts = "Crypts <white>" + Math.min(cryptLurkers, 5) + "/5" + (flags.isEmpty() ? "" : " (" + String.join(", ", flags) + ")");
 		String bar = "";
 		if(room != null) {
@@ -553,16 +555,25 @@ public final class ClearManager {
 		afterEvent(mimicSecret == null ? null : mimicSecret.room);
 	}
 
-	public static void noteBatKill() {
-		if(!firstBat) {
-			firstBat = true;
-			afterEvent(null);
-		}
+	public static void noteBatKill(Player killer) {
+		boolean scored = !firstBat;
+		firstBat = true;
+		if(killer != null && !Utils.isSpectator(killer) && batKillers.add(killer.getUniqueId()) && plugin.BatBug.enabled()) scored = true;
+		if(scored) afterEvent(null);
+	}
+
+	private static int batBonus() {
+		if(!firstBat) return 0;
+		return plugin.BatBug.enabled() ? Math.max(1, batKillers.size()) : 1;
 	}
 
 	// ---- Wizard crystal ball (not a counted secret) ----
 	public static boolean hasCrystal() {
 		return crystalPickedUp && !crystalHandedIn;
+	}
+
+	public static boolean crystalBallAvailable() {
+		return !crystalPickedUp;
 	}
 
 	public static void pickUpCrystal(Player p) {
@@ -596,11 +607,6 @@ public final class ClearManager {
 			}
 		}
 		return null;
-	}
-
-	/** Right-click secret (chest or essence). The click owns the interaction, so the held item's ability must not fire. */
-	public static boolean isSecretBlock(Block b) {
-		return active && b != null && findSecretAtBlock(b.getX(), b.getY(), b.getZ()) != null;
 	}
 
 	/** Chest or essence at these coords, or null. */
@@ -790,7 +796,7 @@ public final class ClearManager {
 	/** Flat +10 is Mayor Paul's EZPZ perk, 0 under other mayors ({@code damage/Mayor}); read live, not a literal. */
 	public static int bonus() {
 		return damage.Mayor.scoreBonus()
-				+ Math.min(cryptLurkers, 5) + (firstPrince ? 1 : 0) + (firstBat ? 1 : 0) + (mimicKilled ? 2 : 0);
+				+ Math.min(cryptLurkers, 5) + (firstPrince ? 1 : 0) + batBonus() + (mimicKilled ? 2 : 0);
 	}
 
 	/** Max score: 300 + best {@link #bonus()}. 319 under Paul, 309 otherwise. */

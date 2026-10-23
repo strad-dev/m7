@@ -663,12 +663,6 @@ public class WitherKing {
 			Bukkit.broadcast(Utils.nameComponent(ChatFont.centerPad(line)));
 		}
 		Bukkit.broadcast(Utils.msg(""));
-		// The one place a party is told their time didn't count; earlier would be forgotten by now.
-		if(plugin.WatcherFix.enabled()) {
-			Bukkit.broadcast(Utils.nameComponent(ChatFont.centerPad(Utils.mmLegacy(
-					"<red><bold>WATCHER FIX - NO CLEAR OR FULL RUN LEADERBOARDS"))));
-			Bukkit.broadcast(Utils.msg(""));
-		}
 		Bukkit.broadcast(Utils.msg("   <green><bold>Plugin by </bold><aqua>Stradivarius Violin<green>, also known as <aqua>Beethoven_"));
 		Bukkit.broadcast(Utils.msg("    <red><bold>YOUTUBE</bold><aqua>: https://www.youtube.com/@Stradivarius_Violin"));
 		Bukkit.broadcast(Utils.msg("               <blue><bold>DISCORD</bold><aqua>: https://discord.gg/gNfPwa8"));

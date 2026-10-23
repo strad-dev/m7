@@ -533,9 +533,12 @@ public final class ItemUtils {
 		return !(e instanceof Wither wither && wither.getInvulnerableTicks() != 0);
 	}
 
+	public static boolean canStonk(Block b) {
+		return !Goldor.INSTANCE.isProtected(b) && !Maxor.INSTANCE.isProtected(b) && b.getType().getHardness() != -1;
+	}
+
 	public static void stonk(Player p, Block b) {
-		if(Goldor.INSTANCE.isProtected(b) || Maxor.INSTANCE.isProtected(b)) return;
-		if(b.getType().getHardness() != -1) {
+		if(canStonk(b)) {
 			BlockData data = b.getBlockData().clone();
 			Location loc = b.getLocation();
 			Utils.debug(Utils.DebugType.SERVER, p.getName() + " Stonking block at " + Utils.round(loc.getX(), 3) + " " + Utils.round(loc.getY(), 5) + " " + Utils.round(loc.getZ(), 3));

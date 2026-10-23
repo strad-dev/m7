@@ -17,6 +17,7 @@ import plugin.M7;
 
 public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 	private final Player player;
+	private boolean afterClick;
 
 	public PlayerPacketInterceptor(Player player) {
 		this.player = player;
@@ -24,6 +25,9 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		boolean trailing = afterClick && msg instanceof ServerboundUseItemPacket;
+		afterClick = msg instanceof ServerboundInteractPacket
+				|| (msg instanceof ServerboundUseItemOnPacket on && on.getHand() == InteractionHand.MAIN_HAND);
 		if(msg instanceof ServerboundPlayerActionPacket pkt) {
 			// Drop key (Q / Ctrl+Q) and bow release. DROP still goes to vanilla: CustomItems' PlayerDropItemEvent
 			// handler cancels the physical drop for class players while handleDrop fires the ability. A bow RELEASE
@@ -113,22 +117,29 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 				}
 				// Simon Says clicks straight from the packet so rapid clicks all register (1/tick in GoldorListener).
 				GoldorListener.tryRegisterSimonClick(player, bx, by, bz);
-				// A lever, button or any block vanilla would use (Utils.usesBlock) owns the click, so no item ability on
-				// top. Mirrors CustomItems.onPlayerInteract's guard; without it an item's right-click fired on S2 levers
-				// and hijacked the toggle.
+				// A lever, button, clear interactable (CustomItems.takesClick) or any block vanilla would use
+				// (Utils.usesBlock) owns the click, so no item ability on top. Mirrors CustomItems.onPlayerInteract's
+				// guard; without it an item's right-click fired on S2 levers and hijacked the toggle.
 
 				org.bukkit.block.Block clickedBlock = player.getWorld().getBlockAt(bx, by, bz);
-				if(clicked != org.bukkit.Material.LEVER && !org.bukkit.Tag.BUTTONS.isTagged(clicked)
-						&& !instructions.clear.ClearManager.isSecretBlock(clickedBlock)
-						&& !plugin.Utils.usesBlock(player, clickedBlock)) {
+				boolean takesClick = CustomItems.takesClick(clickedBlock);
+				boolean vanillaUses = plugin.Utils.usesBlock(player, clickedBlock);
+				if(!takesClick && !vanillaUses) {
+					CustomItems.noteRightClick(player, false);
 					// Vanilla's hit block, so block abilities (Superboom TNT) match vanilla's range and target.
 					CustomItems.handleCustomItems(null, EquipmentSlot.HAND,
 							player.getInventory().getItemInMainHand(), Action.RIGHT_CLICK_BLOCK, player, clickedBlock);
+				} else if(takesClick && !vanillaUses) {
+					plugin.Utils.debug(plugin.Utils.DebugType.SERVER, player.getName() + "'s right-click taken by " + clicked + " at " + bx + " " + by + " " + bz);
+					CustomItems.noteRightClick(player, true);
 				}
 			});
 		} else if(msg instanceof ServerboundUseItemPacket airPkt && airPkt.getHand() == InteractionHand.MAIN_HAND) {
 			MinecraftServer.getServer().execute(() -> {
+				CustomItems.RightClick trailed = CustomItems.takeTrailingClick(player, trailing);
+				if(trailed != null && trailed.taken()) return;
 				((CraftPlayer) player).getHandle().gameMode.firedInteract = false;
+				if(trailed != null) return;
 				CustomItems.handleCustomItems(null, EquipmentSlot.HAND,
 						player.getInventory().getItemInMainHand(), Action.RIGHT_CLICK_AIR, player);
 			});

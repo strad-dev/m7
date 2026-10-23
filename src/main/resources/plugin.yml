@@ -44,4 +44,4 @@ commands:
     usage: /petloadout
   dungeonsettings:
     description: Show or change the dungeon settings (difficulty, mayor, watcherfix)
-    usage: /dungeonsettings [difficulty [realistic|perfect_rng|classic] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off]]
+    usage: /dungeonsettings [difficulty [realistic|perfect_rng|classic] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off] | batbug [on|off]]

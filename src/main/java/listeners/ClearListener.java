@@ -39,7 +39,7 @@ public class ClearListener implements Listener {
 			ClearManager.minibossKilled(Rooms.roomAt(loc), killer);
 		}
 		if(ent.getScoreboardTags().contains(ClearManager.TAG_BAT)) {
-			ClearManager.noteBatKill();
+			ClearManager.noteBatKill(killer);
 			ClearManager.secretFound(killer, ClearManager.findSecretByEntity(ent.getUniqueId()));
 			ent.remove(); // drop the hitbox now, no dying-bat corpse
 		}
@@ -85,7 +85,7 @@ public class ClearListener implements Listener {
 			return;
 		}
 		// Crystal ball
-		if(Math.abs(b.getX() - CRYSTAL[0]) <= 1 && Math.abs(b.getY() - CRYSTAL[1]) <= 1 && Math.abs(b.getZ() - CRYSTAL[2]) <= 1) {
+		if(isCrystalBall(b)) {
 			e.setCancelled(true);
 			if(cannotInteract(p)) return;
 			ClearManager.pickUpCrystal(p);
@@ -103,6 +103,19 @@ public class ClearListener implements Listener {
 				else ClearManager.secretFound(p, s); // essence
 			}
 		}
+	}
+
+	/** The right-click on {@code b} does something here, so the held item's ability must not fire. A secret chest always takes it. */
+	public static boolean takesClick(Block b) {
+		if(!ClearManager.isActive() || b == null) return false;
+		if(PuzzleQuiz.buttonIndex(b) >= 0) return PuzzleQuiz.acceptsAnswer();
+		if(isCrystalBall(b)) return ClearManager.crystalBallAvailable();
+		Secret s = ClearManager.findSecretAtBlock(b.getX(), b.getY(), b.getZ());
+		return s != null && (s.isChest() || !s.found);
+	}
+
+	private static boolean isCrystalBall(Block b) {
+		return Math.abs(b.getX() - CRYSTAL[0]) <= 1 && Math.abs(b.getY() - CRYSTAL[1]) <= 1 && Math.abs(b.getZ() - CRYSTAL[2]) <= 1;
 	}
 
 	// Wizard hand-in via right-click. NOT ignoreCancelled: MiscListener cancels villager right-clicks at LOWEST to

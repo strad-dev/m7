@@ -7,7 +7,7 @@ package items;
  * A hook returns <b>true only if it fired</b>; that spends the cooldown, so declining costs nothing.
  * <p>
  * Click gates stay in {@code CustomItems}: spectator, trap room, drop-key overlap, two-tick right-click gate,
- * {@code lastRightBlockTick} (drops the AIR trailing a BLOCK click), one-per-tick left-click cap. Cooldowns are in
+ * {@code lastRightClick} (drops the AIR trailing a BLOCK click), one-per-tick left-click cap. Cooldowns are in
  * {@code plugin/Cooldowns}, keyed on {@link #cooldownKey()}.
  * <p>
  * Arena/mode restrictions stay INSIDE the ability (AOTV and Tactical Insertion refuse in the boss arena in

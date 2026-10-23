@@ -3,6 +3,7 @@ package commands;
 import damage.Difficulty;
 import damage.Mayor;
 import plugin.BadBonzo;
+import plugin.BatBug;
 import plugin.WatcherFix;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -14,7 +15,7 @@ import org.jspecify.annotations.NonNull;
 import plugin.Utils;
 
 /**
- * {@code /dungeonsettings [difficulty [<mode>] | mayor [<jerry_paul|paul|jerry|other|derpy>] | watcherfix [<on|off>] | badbonzo [<on|off>]]} - this server's
+ * {@code /dungeonsettings [difficulty [<mode>] | mayor [<jerry_paul|paul|jerry|other|derpy>] | watcherfix [<on|off>] | badbonzo [<on|off>] | batbug [<on|off>]]} - this server's
  * dungeon settings (MAP.md §0). No args prints them; a setting with no value steps it to the next value.
  * <p>
  * Four independent settings, any combination is valid:
@@ -46,7 +47,7 @@ import plugin.Utils;
  */
 public class DungeonSettings implements CommandExecutor {
 	private static final String USAGE =
-			"<red>Usage: /dungeonsettings [difficulty [" + modeIds() + "] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off]]";
+			"<red>Usage: /dungeonsettings [difficulty [" + modeIds() + "] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off] | batbug [on|off]]";
 
 	/**
 	 * Typed mode names, joined from {@link Difficulty} so the usage line can't drift from the enum.
@@ -79,6 +80,7 @@ public class DungeonSettings implements CommandExecutor {
 			case "mayor" -> mayor(sender, args);
 			case "watcherfix" -> watcherFix(sender, args);
 			case "badbonzo" -> badBonzo(sender, args);
+			case "batbug" -> batBug(sender, args);
 			default -> sender.sendMessage(Utils.msg(USAGE));
 		}
 		return true;
@@ -99,6 +101,9 @@ public class DungeonSettings implements CommandExecutor {
 		sender.sendMessage(Utils.msg("<dark_gray>- <gray>badbonzo: <yellow><value>  <dark_gray><desc>",
 				Placeholder.unparsed("value", BadBonzo.current().id()),
 				Placeholder.unparsed("desc", describe(BadBonzo.current()))));
+		sender.sendMessage(Utils.msg("<dark_gray>- <gray>batbug: <yellow><value>  <dark_gray><desc>",
+				Placeholder.unparsed("value", BatBug.current().id()),
+				Placeholder.unparsed("desc", describe(BatBug.current()))));
 		sender.sendMessage(Utils.msg("<dark_gray>Change one with <white>/dungeonsettings <setting> [value]"));
 	}
 
@@ -197,6 +202,28 @@ public class DungeonSettings implements CommandExecutor {
 		Bukkit.broadcast(Utils.msg("<gray><desc>", Placeholder.unparsed("desc", describe(next))));
 	}
 
+	private static void batBug(CommandSender sender, String[] args) {
+		BatBug next;
+		if(args.length >= 2) {
+			next = BatBug.parse(args[1]);
+			if(next == null) {
+				sender.sendMessage(Utils.msg(USAGE));
+				return;
+			}
+			BatBug.set(next);
+		} else {
+			next = BatBug.toggle();
+		}
+		applyBatBug(next);
+	}
+
+	/** Announce Bat Bug on/off. Same split and reason as {@link #applyDifficulty}. */
+	static void applyBatBug(BatBug next) {
+		Bukkit.broadcast(Utils.msg("<gold><bold>BAT BUG<reset><gray> is now <yellow><value>",
+				Placeholder.unparsed("value", next.id())));
+		Bukkit.broadcast(Utils.msg("<gray><desc>", Placeholder.unparsed("desc", describe(next))));
+	}
+
 	/** One line on what a value means. MiniMessage: inserted as a parsed placeholder. */
 	private static String describe(Difficulty d) {
 		return switch(d) {
@@ -216,7 +243,14 @@ public class DungeonSettings implements CommandExecutor {
 	private static String describe(WatcherFix w) {
 		return switch(w) {
 			case OFF -> "The Watcher waits for tick 420 before his second wave, like Hypixel.";
-			case ON -> "The Watcher starts his second wave 3s after returning to the center.  Not valid for Clear or Full Run leaderboards.";
+			case ON -> "The Watcher starts his second wave 3s after returning to the center.";
+		};
+	}
+
+	private static String describe(BatBug b) {
+		return switch(b) {
+			case OFF -> "First bat killed by any player grants +1 score.";
+			case ON -> "First bat killed by each player grants +1 score.";
 		};
 	}
 }

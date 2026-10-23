@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * CLICK rather than the item, and calls the item's hook. Abilities live under {@code items/}, cooldowns in
  * {@code plugin/Cooldowns}, drop-key abilities in {@code abilities/}. What stays here: spectator gate (vanilla
  * doesn't do it; a ghost is a spectator), Trap room right-click ban, {@link #rightClickGate},
- * {@link #lastRightBlockTick}, {@link #lastLeftClickAbilityTick}, and the melee/mage-beam tests, which depend on
+ * {@link #lastRightClick}, {@link #lastLeftClickAbilityTick}, and the melee/mage-beam tests, which depend on
  * the holder's CLASS.
  *
  * <h2>ONE CLICK, TWO DISPATCHES</h2>
@@ -62,13 +62,15 @@ public class CustomItems implements Listener {
 	private static final Map<UUID, int[]> rightClickGates = new ConcurrentHashMap<>();
 
 	/**
-	 * Tick of last RIGHT_CLICK_BLOCK per player. A block right-click sends UseItemOn (BLOCK) then UseItem (AIR);
-	 * this drops the trailing AIR so the ability fires once even across a tick boundary. One AIR per BLOCK: a fixed
-	 * two-tick window also ate a real air click on the next tick (a TAS etherwarp off a block, then one into air).
-	 * Packet path only: Paper's handleUseItem ray-traces an AIR click and fires it as a RIGHT_CLICK_BLOCK event when
-	 * a block is in reach, which recorded a block click that never happened and ate the next real air click.
+	 * Last block (or taken entity) right-click per player. A block right-click sends UseItemOn (BLOCK) then UseItem
+	 * (AIR); {@link #takeTrailingClick} drops the trailing AIR so the ability fires once even across a tick boundary.
+	 * One AIR per BLOCK: a fixed two-tick window also ate a real air click on the next tick (a TAS etherwarp off a
+	 * block, then one into air). Packet path only: Paper's handleUseItem ray-traces an AIR click and fires it as a
+	 * RIGHT_CLICK_BLOCK event when a block is in reach, which recorded a block click that never happened and ate the
+	 * next real air click. {@code taken}: the block or entity took the click ({@link #takesClick}, Energy Crystal).
 	 */
-	private static final Map<UUID, Integer> lastRightBlockTick = new ConcurrentHashMap<>();
+	private static final Map<UUID, RightClick> lastRightClick = new ConcurrentHashMap<>();
+	public record RightClick(int tick, boolean taken) {}
 	private static final Map<UUID, Integer> lastLeftClickAbilityTick = new ConcurrentHashMap<>();
 	/** Tick a right-click ability moved its player; the same click must not then open a door or take a secret. */
 	private static final Map<UUID, Integer> lastTeleportClickTick = new ConcurrentHashMap<>();
@@ -92,6 +94,28 @@ public class CustomItems implements Listener {
 	public static boolean takeClickTeleport(Player p) {
 		Integer t = lastTeleportClickTick.remove(p.getUniqueId());
 		return t != null && MinecraftServer.currentTick - t <= 1;
+	}
+
+	public static boolean takesClick(Block b) {
+		return b != null && (b.getType() == Material.LEVER || Tag.BUTTONS.isTagged(b.getType())
+				|| Server.inWitherDoor(b) || Server.inBloodDoor(b) || ClearListener.takesClick(b));
+	}
+
+	public static void noteRightClick(Player p, boolean taken) {
+		lastRightClick.put(p.getUniqueId(), new RightClick(MinecraftServer.currentTick, taken));
+	}
+
+	/**
+	 * The UseItem trailing {@code p}'s last block click, spent, or null. Stamps the packet source in
+	 * {@link #rightClickGate} so the event half of the same UseItem doesn't fire either.
+	 */
+	public static RightClick takeTrailingClick(Player p, boolean trailing) {
+		RightClick c = lastRightClick.remove(p.getUniqueId());
+		int tick = MinecraftServer.currentTick;
+		if(!trailing || c == null || tick - c.tick() > 1) return null;
+		Utils.debug(Utils.DebugType.SERVER, "Dropped " + p.getName() + "'s trailing air right-click (" + (c.taken() ? "taken " : "") + "click on tick " + c.tick() + ")");
+		rightClickGates.computeIfAbsent(p.getUniqueId(), k -> new int[]{Integer.MIN_VALUE / 2, Integer.MIN_VALUE / 2})[0] = tick;
+		return c;
 	}
 
 	public static boolean abilityFiredThisTick(Player p) {
@@ -158,15 +182,12 @@ public class CustomItems implements Listener {
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		// A button/lever owns the click: skip entirely so the ability doesn't fire and the event isn't cancelled.
-		if(e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock() != null
-				&& (e.getClickedBlock().getType() == Material.LEVER || Tag.BUTTONS.isTagged(e.getClickedBlock().getType()))) {
-			return;
-		}
-		// Same for a clear-phase secret (chest/essence), and any block vanilla would use (chest, door...).
-		if(e.getAction() == Action.RIGHT_CLICK_BLOCK && (instructions.clear.ClearManager.isSecretBlock(e.getClickedBlock())
-				|| Utils.usesBlock(e.getPlayer(), e.getClickedBlock()))) {
-			return;
+		// A button/lever, clear-phase interactable, or any block vanilla would use (chest, door...) owns the click: skip
+		// so the ability doesn't fire and the event isn't cancelled.
+		if(e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			boolean takesClick = takesClick(e.getClickedBlock());
+			if(takesClick && e.getPlayer().isSneaking()) e.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+			if(takesClick || Utils.usesBlock(e.getPlayer(), e.getClickedBlock())) return;
 		}
 		// getClickedBlock() is vanilla's hit result (null for air); block abilities use it as their reach.
 		handleCustomItems(e, e.getHand(), e.getItem(), e.getAction(), e.getPlayer(), e.getClickedBlock());
@@ -222,8 +243,14 @@ public class CustomItems implements Listener {
 		}
 		// CREATIVE BYPASS: breaks anything past every protection below, through vanilla (with physics), as a map
 		// editor expects. Same bypass as GoldorListener's S3 frames. Below the Superboom check on purpose: that is
-		// item behaviour, not a protection.
-		if(p.getGameMode() == GameMode.CREATIVE) return;
+		// item behaviour, not a protection, and so is a Dungeonbreaker's restore (no charges or IMMUNE in creative).
+		if(p.getGameMode() == GameMode.CREATIVE) {
+			if(held == items.tools.Dungeonbreaker.INSTANCE && ItemUtils.canStonk(e.getBlock())) {
+				e.setCancelled(true);
+				ItemUtils.stonk(p, e.getBlock());
+			}
+			return;
+		}
 		// Goldor interactables and Maxor crystal plates: unbreakable with any tool, any phase.
 		if(Goldor.INSTANCE.isProtected(e.getBlock()) || Maxor.INSTANCE.isProtected(e.getBlock())) {
 			e.setCancelled(true);
@@ -383,20 +410,6 @@ public class CustomItems implements Listener {
 		}
 
 		if(isRightClick) {
-			// A block right-click sends BLOCK then AIR. Usually same tick and the rate gate collapses them, but
-			// warmup lag after a restart can split them and fire twice. Drop an AIR trailing a BLOCK by <= 1 tick;
-			// standalone air-clicks and fake-player spam have no recent BLOCK.
-			if(action == Action.RIGHT_CLICK_BLOCK) {
-				if(e == null) lastRightBlockTick.put(p.getUniqueId(), tick);
-			} else {
-				// Spent on the trailing AIR, so a fresh air click the next tick still fires.
-				Integer blockTick = lastRightBlockTick.get(p.getUniqueId());
-				if(blockTick != null && (tick == blockTick || tick == blockTick + 1)) {
-					lastRightBlockTick.remove(p.getUniqueId());
-					Utils.debug(Utils.DebugType.SERVER, "Dropped " + p.getName() + "'s trailing air right-click (block click on tick " + blockTick + ")");
-					return;
-				}
-			}
 			if(ability != null && ability.hasRightClick() && rightClickGate(p, e != null, tick)) {
 				org.bukkit.Location before = p.getLocation();
 				fired = fire(p, ability, new Cast(p, stack, clickedBlock, action, tick), true);
