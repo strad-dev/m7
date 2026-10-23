@@ -255,7 +255,7 @@ public final class Autopet implements Listener {
 		// EVERY skip below logs why at BOSS verbosity. Not firing and firing onto the pet already out are both
 		// silent in chat, so "autopet did nothing" has five causes; these lines tell them apart.
 		if(Utils.isSpectator(p)) {
-			Utils.debug(Utils.DebugType.BOSS, "Autopet " + t.name() + ": " + p.getName() + " is a spectator");
+			Utils.debug(Utils.DebugType.BOSS, p, "Autopet " + t.name() + ": " + p.getName() + " is a spectator");
 			return;
 		}
 		if(t.isCycle()) {
@@ -264,16 +264,16 @@ public final class Autopet implements Listener {
 		}
 		Rule rule = Pets.rule(p, t);
 		if(rule == null || rule.pet() == null) {
-			Utils.debug(Utils.DebugType.BOSS, "Autopet " + t.name() + ": " + p.getName() + " has no rule for it");
+			Utils.debug(Utils.DebugType.BOSS, p, "Autopet " + t.name() + ": " + p.getName() + " has no rule for it");
 			return;
 		}
 		if(rule.excepts(Pets.equipped(p))) {
-			Utils.debug(Utils.DebugType.BOSS, "Autopet " + t.name() + ": vetoed for " + p.getName()
+			Utils.debug(Utils.DebugType.BOSS, p, "Autopet " + t.name() + ": vetoed for " + p.getName()
 					+ " - " + Pets.equipped(p).name() + " is an exception");
 			return;
 		}
 		if(!Pets.equip(p, rule.pet(), ANNOUNCEMENT)) {
-			Utils.debug(Utils.DebugType.BOSS, "Autopet " + t.name() + ": nothing to do for " + p.getName()
+			Utils.debug(Utils.DebugType.BOSS, p, "Autopet " + t.name() + ": nothing to do for " + p.getName()
 					+ " - " + rule.pet().name() + " was already out");
 		}
 	}

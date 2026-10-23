@@ -106,6 +106,7 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 			net.minecraft.core.BlockPos bp = usePkt.getHitResult().getBlockPos();
 			int bx = bp.getX(), by = bp.getY(), bz = bp.getZ();
 			MinecraftServer.getServer().execute(() -> {
+				CustomItems.forgetClickTeleport(player);
 				org.bukkit.Material clicked = player.getWorld().getBlockAt(bx, by, bz).getType();
 				// Reset vanilla's interact dedupe (useItemOn caches the last (block, hand, item) result), so rapid
 				// clicks on one block (Simon Says) each fire PlayerInteractEvent; vanilla's listener doesn't.
@@ -130,12 +131,13 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 					CustomItems.handleCustomItems(null, EquipmentSlot.HAND,
 							player.getInventory().getItemInMainHand(), Action.RIGHT_CLICK_BLOCK, player, clickedBlock);
 				} else if(takesClick && !vanillaUses) {
-					plugin.Utils.debug(plugin.Utils.DebugType.SERVER, player.getName() + "'s right-click taken by " + clicked + " at " + bx + " " + by + " " + bz);
+					plugin.Utils.debug(plugin.Utils.DebugType.SERVER, player, player.getName() + "'s right-click taken by " + clicked + " at " + bx + " " + by + " " + bz);
 					CustomItems.noteRightClick(player, true);
 				}
 			});
 		} else if(msg instanceof ServerboundUseItemPacket airPkt && airPkt.getHand() == InteractionHand.MAIN_HAND) {
 			MinecraftServer.getServer().execute(() -> {
+				if(!trailing) CustomItems.forgetClickTeleport(player);
 				CustomItems.RightClick trailed = CustomItems.takeTrailingClick(player, trailing);
 				if(trailed != null && trailed.taken()) return;
 				((CraftPlayer) player).getHandle().gameMode.firedInteract = false;

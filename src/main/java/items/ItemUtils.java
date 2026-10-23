@@ -186,10 +186,18 @@ public final class ItemUtils {
 	 */
 	public static void noRotateTeleport(Player p, Location l) {
 		ServerPlayer sp = ((CraftPlayer) p).getHandle();
+		Vec3 delta = standsOn(p, l) ? new Vec3(0, STANDING_DELTA_Y, 0) : Vec3.ZERO;
 		sp.connection.teleport(
-				new PositionMoveRotation(new Vec3(l.getX(), l.getY(), l.getZ()), Vec3.ZERO, 0f, 0f),
+				new PositionMoveRotation(new Vec3(l.getX(), l.getY(), l.getZ()), delta, 0f, 0f),
 				Set.of(Relative.Y_ROT, Relative.X_ROT),
 				PlayerTeleportEvent.TeleportCause.PLUGIN);
+	}
+
+	public static final double STANDING_DELTA_Y = -0.08 * 0.98;
+
+	public static boolean standsOn(Player p, Location l) {
+		double w = p.getWidth() / 2;
+		return l.getWorld().hasCollisionsIn(new BoundingBox(l.getX() - w, l.getY() - 1.0E-3, l.getZ() - w, l.getX() + w, l.getY(), l.getZ() + w));
 	}
 
 	/** Clear the per-run crypt-farm guard (called at run start). */
@@ -541,7 +549,7 @@ public final class ItemUtils {
 		if(canStonk(b)) {
 			BlockData data = b.getBlockData().clone();
 			Location loc = b.getLocation();
-			Utils.debug(Utils.DebugType.SERVER, p.getName() + " Stonking block at " + Utils.round(loc.getX(), 3) + " " + Utils.round(loc.getY(), 5) + " " + Utils.round(loc.getZ(), 3));
+			Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " Stonking block at " + Utils.round(loc.getX(), 3) + " " + Utils.round(loc.getY(), 5) + " " + Utils.round(loc.getZ(), 3));
 
 			b.setType(Material.AIR, false); // no-physics: attached neighbours (carpets, portals, …) don't pop off
 			pendingStonkRestorations.put(loc, data);

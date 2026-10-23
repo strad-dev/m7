@@ -117,7 +117,7 @@ public final class OutOfBounds {
 				Location spawn = commands.Practice.spawn(world, section);
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					if(!outOfBounds(p)) continue;
-					Utils.debug(Utils.DebugType.SERVER, p.getName() + " out of bounds before the run, back to spawn");
+					Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " out of bounds before the run, back to spawn");
 					p.teleport(spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
 				}
 			}, t);
@@ -126,7 +126,7 @@ public final class OutOfBounds {
 
 	private static void kill(Player p) {
 		Location loc = p.getLocation();
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + " out of bounds at "
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " out of bounds at "
 				+ Utils.round(loc.getX(), 2) + " " + Utils.round(loc.getY(), 2) + " " + Utils.round(loc.getZ(), 2));
 		death.Deaths.forceKill(p, death.Deaths.mob("The World Border"), respawnPoint(p.getWorld()));
 	}

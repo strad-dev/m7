@@ -110,7 +110,7 @@ public final class RagnarockAxe implements Weapon, AbilityItem {
 			if(ragCastStart.getOrDefault(uid, Integer.MIN_VALUE) != castStart) return;
 			if(!p.isOnline() || !ItemUtils.getID(p.getInventory().getItemInMainHand()).equals("skyblock/combat/rag")) {
 				ragCastStart.remove(uid);
-				Utils.debug(Utils.DebugType.SERVER, "Rag cast cancelled (axe left the hand) for " + p.getName());
+				Utils.debug(Utils.DebugType.SERVER, p, "Rag cast cancelled (axe left the hand) for " + p.getName());
 				return;
 			}
 			int tick = elapsed + 1;
@@ -131,14 +131,14 @@ public final class RagnarockAxe implements Weapon, AbilityItem {
 			// terms, so it tracks a retune. Keeps applying after the axe leaves the hand: cast, then swap to a
 			// hitting weapon is the point of the item.
 			damage.Stats.invalidate(p);
-			Utils.debug(Utils.DebugType.SERVER, "Rag Buff applied to " + p.getName());
+			Utils.debug(Utils.DebugType.SERVER, p, "Rag Buff applied to " + p.getName());
 			// Only at the latest expiry: after a re-cast this earlier removal no-ops and the later one clears it.
 			Utils.scheduleTask(() -> {
 				if(MinecraftServer.currentTick >= ragBuffExpiry.getOrDefault(uid, 0)) {
 					p.removeScoreboardTag(damage.RagnarockBuff.TAG);
 					ragBuffExpiry.remove(uid);
 					damage.Stats.invalidate(p);
-					Utils.debug(Utils.DebugType.SERVER, "Rag Buff expired for " + p.getName());
+					Utils.debug(Utils.DebugType.SERVER, p, "Rag Buff expired for " + p.getName());
 				}
 			}, BUFF_TICKS);
 		}, 1);

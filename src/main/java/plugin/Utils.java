@@ -569,6 +569,16 @@ public class Utils {
 		return verboseLevel == VerboseLevel.SUPER;
 	}
 
+	private static String verboseFilter;
+
+	public static String getVerboseFilter() {
+		return verboseFilter;
+	}
+
+	public static void setVerboseFilter(String name) {
+		verboseFilter = name;
+	}
+
 	/** Server tick the current phase began; basis for the {@code [tick: N]} prefix. */
 	private static int phaseStartTick = 0;
 	/** Server tick the live overall-run timer was anchored at. */
@@ -605,6 +615,11 @@ public class Utils {
 		if(showTimers()) Bukkit.broadcast(msg(message));
 	}
 
+	public static void debug(DebugType type, Player who, String message) {
+		if(type != DebugType.ERROR && verboseFilter != null && who != null && !who.getName().equalsIgnoreCase(verboseFilter)) return;
+		debug(type, message);
+	}
+
 	public static void debug(DebugType type, String message) {
 		// Unparsed so a stray '<' in the payload can't break parsing or inject tags.
 		TagResolver m = Placeholder.unparsed("m", message);
@@ -614,7 +629,7 @@ public class Utils {
 			return;
 		}
 		if(!isVerbose()) return;
-		String prefix = isSuperVerbose() ? "<gray>[tick: " + phaseTick() + "] " : "";
+		String prefix = "<gray>[tick: " + phaseTick() + "] ";
 		switch(type) {
 			case CLIENT -> Bukkit.broadcast(msg(prefix + "<dark_aqua>[Client] <m>", m));
 			case SERVER -> Bukkit.broadcast(msg(prefix + "<green>[Server] <m>", m));

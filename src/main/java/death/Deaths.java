@@ -123,7 +123,7 @@ public final class Deaths {
 		announceDeath(p, killer);
 		// Party-wide "someone is down"; playGlobalSound plays at each listener.
 		Utils.playGlobalSound(Sound.BLOCK_NOTE_BLOCK_PLING, 2.0f, 0.5f);
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + " was killed by "
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " was killed by "
 				+ PlainTextComponentSerializer.plainText().serialize(killer));
 
 		// Before ghosting: last one standing never becomes a ghost (avoids a flicker and inventory round trip).

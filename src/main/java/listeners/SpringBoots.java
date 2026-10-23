@@ -182,7 +182,7 @@ public class SpringBoots {
 		sp.setDeltaMovement(new Vec3(m.x(), v, m.z()));
 		sp.hurtMarked = true;
 		Utils.playLocalSound(p, Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + " Spring Boots launched after " + chargeTicks + " sneak ticks with upwards velocity " + Utils.round(v, 4));
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " Spring Boots launched after " + chargeTicks + " sneak ticks with upwards velocity " + Utils.round(v, 4));
 		MovementAudit.startAirborneAudit(p, "springboots");
 	}
 

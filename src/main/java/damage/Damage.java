@@ -747,7 +747,7 @@ public final class Damage {
 
 		if(!Utils.isSuperVerbose()) {
 			// `on`: total, target-side reductions as ONE factor, result; a fourth line only if a clamp bit.
-			Utils.debug(Utils.DebugType.BOSS, "Total Damage: " + integer(sbDamage) + "\n  Defense & Boss Multiplier: " + factorText(defenseFactor * resistance) + "\n  Final Damage: " + integer(finalDamage) + (clamped ? "\n  Dealt (boss clamp): " + integer(dealt) : ""));
+			Utils.debug(Utils.DebugType.BOSS, attacker, "Total Damage: " + integer(sbDamage) + "\n  Defense & Boss Multiplier: " + factorText(defenseFactor * resistance) + "\n  Final Damage: " + integer(finalDamage) + (clamped ? "\n  Dealt (boss clamp): " + integer(dealt) : ""));
 			return;
 		}
 
@@ -765,7 +765,7 @@ public final class Damage {
 		// What boss mechanics let through, only when different. Clamps act AFTER everything above, so it's a line,
 		// not a factor.
 		if(clamped) sb.append("\n  Dealt (boss clamp): ").append(integer(dealt));
-		Utils.debug(Utils.DebugType.BOSS, sb.toString());
+		Utils.debug(Utils.DebugType.BOSS, attacker, sb.toString());
 	}
 
 	/** EFFECTIVE defense, or {@code raw -> effective} when Lethality, Last Breath or Armorshred reduced it. */

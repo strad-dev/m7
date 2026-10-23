@@ -1,5 +1,7 @@
 package commands;
 
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,8 +17,8 @@ public class Verbose implements CommandExecutor {
 			return true;
 		}
 
-		if(args.length < 1) {
-			p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super>"));
+		if(args.length < 1 || args.length > 2) {
+			p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super> [player]"));
 			return true;
 		}
 
@@ -28,12 +30,22 @@ public class Verbose implements CommandExecutor {
 			// `super` toggles: on, or back to normal if already on.
 			case "super" -> level = (Utils.getVerboseLevel() == VerboseLevel.SUPER) ? VerboseLevel.ON : VerboseLevel.SUPER;
 			default -> {
-				p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super>"));
+				p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super> [player]"));
 				return true;
 			}
 		}
+		String filter = null;
+		if(args.length == 2) {
+			Player target = Bukkit.getPlayerExact(args[1]);
+			if(target == null) {
+				p.sendMessage(Utils.msg("<red>No player named <n>", Placeholder.unparsed("n", args[1])));
+				return true;
+			}
+			filter = target.getName();
+		}
 		Utils.setVerboseLevel(level);
-		p.sendMessage(Utils.msg("<green>Verbose Mode: " + level));
+		Utils.setVerboseFilter(filter);
+		p.sendMessage(Utils.msg("<green>Verbose Mode: " + level + (filter == null ? "" : " (only <n>)"), Placeholder.unparsed("n", filter == null ? "" : filter)));
 		return true;
 	}
 }

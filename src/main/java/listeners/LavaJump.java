@@ -111,7 +111,7 @@ public class LavaJump {
 		if(last != null && !mayRelaunch(loc, last, now)) return;
 		lastLaunch.put(id, new Launch(now, loc.getY(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
 
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + (last == null ? " lava contact" : " still-in-lava rebounce") + " detected at Y=" + Utils.round(loc.getY(), 5));
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + (last == null ? " lava contact" : " still-in-lava rebounce") + " detected at Y=" + Utils.round(loc.getY(), 5));
 		Utils.playLocalSound(p, Sound.ENTITY_PLAYER_HURT, 1.0F, 1.0F);
 
 		ServerPlayer npc = ((CraftPlayer) p).getHandle();
@@ -125,7 +125,7 @@ public class LavaJump {
 			npc.hurtMarked = true;
 			MovementAudit.startAirborneAudit(p, "lavajump");
 
-			Utils.debug(Utils.DebugType.SERVER, p.getName() + (superBounce ? " SUPER" : " normal") + " bounce (pitch "
+			Utils.debug(Utils.DebugType.SERVER, p, p.getName() + (superBounce ? " SUPER" : " normal") + " bounce (pitch "
 					+ Utils.round(pitch, 2) + ") launched at " + launch);
 
 			// Classify big/small from lava DEPTH, vanilla's own test (LivingEntity.travelInLava: getFluidHeight(LAVA)
@@ -133,7 +133,7 @@ public class LavaJump {
 			// old post-launch getDeltaMovement().y always looked "big". Depth is server-authoritative.
 			double lavaHeight = npc.getFluidHeight(net.minecraft.tags.FluidTags.LAVA);
 			String kind = lavaHeight <= PLAYER_FLUID_JUMP_THRESHOLD ? "big" : "small";
-			Utils.debug(Utils.DebugType.SERVER, p.getName() + " lava launched (lava height " + Utils.round(lavaHeight, 4) + ") classified " + kind);
+			Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " lava launched (lava height " + Utils.round(lavaHeight, 4) + ") classified " + kind);
 		}, 1);
 	}
 }

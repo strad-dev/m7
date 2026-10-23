@@ -88,8 +88,8 @@ public class CustomItems implements Listener {
 
 	/**
 	 * The right-click being handled is the one that just teleported {@code p}. Within a tick, like
-	 * {@link #rightClickGate} (the packet and event halves of one click), and spent by the first caller, so the next
-	 * click opens doors again.
+	 * {@link #rightClickGate} (the packet and event halves of one click), spent by the first caller, and forgotten
+	 * when the next click's packet arrives ({@link #forgetClickTeleport}), so the next click opens doors again.
 	 */
 	public static boolean takeClickTeleport(Player p) {
 		Integer t = lastTeleportClickTick.remove(p.getUniqueId());
@@ -113,9 +113,13 @@ public class CustomItems implements Listener {
 		RightClick c = lastRightClick.remove(p.getUniqueId());
 		int tick = MinecraftServer.currentTick;
 		if(!trailing || c == null || tick - c.tick() > 1) return null;
-		Utils.debug(Utils.DebugType.SERVER, "Dropped " + p.getName() + "'s trailing air right-click (" + (c.taken() ? "taken " : "") + "click on tick " + c.tick() + ")");
+		if(Utils.isSuperVerbose()) Utils.debug(Utils.DebugType.SERVER, p, "Dropped " + p.getName() + "'s trailing air right-click (" + (c.taken() ? "taken " : "") + "click on tick " + c.tick() + ")");
 		rightClickGates.computeIfAbsent(p.getUniqueId(), k -> new int[]{Integer.MIN_VALUE / 2, Integer.MIN_VALUE / 2})[0] = tick;
 		return c;
+	}
+
+	public static void forgetClickTeleport(Player p) {
+		lastTeleportClickTick.remove(p.getUniqueId());
 	}
 
 	public static boolean abilityFiredThisTick(Player p) {
@@ -393,12 +397,12 @@ public class CustomItems implements Listener {
 			if(tick > lastLeftClickAbilityTick.getOrDefault(p.getUniqueId(), -1)) {
 				if(isMageBeamItem(p, stack)) {
 					if(Cooldowns.ready(p, MAGE_BEAM_KEY)) {
-						Utils.debug(Utils.DebugType.SERVER, p.getName() + " mage beam");
+						Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " mage beam");
 						ItemUtils.mageBeam(p);
 						Cooldowns.start(p, MAGE_BEAM_KEY, MAGE_BEAM_COOLDOWN_TICKS);
 						fired = true;
 					} else {
-						Utils.debug(Utils.DebugType.SERVER, p.getName() + " mage beam on cooldown");
+						Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " mage beam on cooldown");
 					}
 				} else if(ability != null && ability.hasLeftClick()) {
 					fired = fire(p, ability, new Cast(p, stack, clickedBlock, action, tick), false);

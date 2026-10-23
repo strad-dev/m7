@@ -83,6 +83,12 @@ public class TabCompletor implements TabCompleter {
 							completions.add(val);
 						}
 					}
+				} else if(args.length == 2) {
+					for(Player online : Bukkit.getOnlinePlayers()) {
+						if(online.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+							completions.add(online.getName());
+						}
+					}
 				}
 			}
 

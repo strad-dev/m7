@@ -9,7 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import plugin.Utils;
 
@@ -31,7 +30,7 @@ public class PearlHelper implements Listener {
 		Vector direction = p.getEyeLocation().getDirection();
 		pearl.setVelocity(direction.multiply(1.5));
 
-		Utils.debug(Utils.DebugType.SERVER, "Ender Pearl #" + pearl.getEntityId() + " from " + p.getName() + " thrown at " + Utils.round(p.getLocation().getX(), 3) + " " + Utils.round(p.getLocation().getY(), 5) + " " + Utils.round(p.getLocation().getZ(), 3) + " " + p.getLocation().getYaw() + " " + p.getLocation().getPitch() + " " + (p.isSneaking() ? "sneaking" : "standing"));
+		Utils.debug(Utils.DebugType.SERVER, p, "Ender Pearl #" + pearl.getEntityId() + " from " + p.getName() + " thrown at " + Utils.round(p.getLocation().getX(), 3) + " " + Utils.round(p.getLocation().getY(), 5) + " " + Utils.round(p.getLocation().getZ(), 3) + " " + p.getLocation().getYaw() + " " + p.getLocation().getPitch() + " " + (p.isSneaking() ? "sneaking" : "standing"));
 		Utils.scheduleTask(() -> p.setCooldown(Material.ENDER_PEARL, 0), 1);
 	}
 
@@ -74,7 +73,7 @@ public class PearlHelper implements Listener {
 			}
 			l.setYaw(p.getLocation().getYaw());
 			l.setPitch(p.getLocation().getPitch());
-			Utils.debug(Utils.DebugType.SERVER, "Ender Pearl #" + pearl.getEntityId() + " from " + p.getName() + " landed in " + pearl.getTicksLived() + " ticks");
+			Utils.debug(Utils.DebugType.SERVER, p, "Ender Pearl #" + pearl.getEntityId() + " from " + p.getName() + " landed in " + pearl.getTicksLived() + " ticks");
 			String hit;
 			if(e.getHitBlock() != null) {
 				hit = "block " + e.getHitBlockFace();
@@ -83,16 +82,9 @@ public class PearlHelper implements Listener {
 			} else {
 				hit = "something intangible";
 			}
-			Utils.debug(Utils.DebugType.SERVER, "Landed at " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3) + ", due to colliding with " + hit);
+			Utils.debug(Utils.DebugType.SERVER, p, "Landed at " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3) + ", due to colliding with " + hit);
 			pearl.remove();
-			if(p.teleport(l) && standsOn(p, l)) p.setVelocity(new Vector(0, STANDING_DELTA_Y, 0));
+			if(p.teleport(l) && items.ItemUtils.standsOn(p, l)) p.setVelocity(new Vector(0, items.ItemUtils.STANDING_DELTA_Y, 0));
 		}
-	}
-
-	private static final double STANDING_DELTA_Y = -0.08 * 0.98;
-
-	private static boolean standsOn(Player p, Location l) {
-		double w = p.getWidth() / 2;
-		return l.getWorld().hasCollisionsIn(new BoundingBox(l.getX() - w, l.getY() - 1.0E-3, l.getZ() - w, l.getX() + w, l.getY(), l.getZ() + w));
 	}
 }

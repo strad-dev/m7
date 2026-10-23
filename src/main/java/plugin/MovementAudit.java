@@ -48,7 +48,7 @@ public class MovementAudit {
 		if(isFlying(p)) return; // no trajectory to trace
 		Location at = p.getLocation();
 		audits.put(p.getUniqueId(), new State(source, at));
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + " [" + source + "] airborne trace START at Y="
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " [" + source + "] airborne trace START at Y="
 				+ Utils.round(at.getY(), 5) + " vel=" + fmtVec(p.getVelocity()));
 		ensureTask();
 	}
@@ -87,7 +87,7 @@ public class MovementAudit {
 			// Flight kills the trajectory: it replaces gravity, and a forced spectator flip (run end, death) also
 			// teleports, so the rest would be noise and "landed" might never come.
 			if(isFlying(p)) {
-				Utils.debug(Utils.DebugType.SERVER, p.getName() + " [" + st.source + "] airborne trace CANCELLED after "
+				Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " [" + st.source + "] airborne trace CANCELLED after "
 						+ st.ticks + "t (started flying), peak Y=" + Utils.round(st.peakY, 5));
 				it.remove();
 				continue;
@@ -101,7 +101,7 @@ public class MovementAudit {
 			if(cur.getY() > st.peakY) st.peakY = cur.getY();
 			boolean onGround = ((org.bukkit.craftbukkit.entity.CraftPlayer) p).getHandle().onGround(); // server-side flag; Player#isOnGround() is deprecated
 			if(!onGround) st.leftGround = true;
-			Utils.debug(Utils.DebugType.SERVER, p.getName() + " [" + st.source + "] t+" + st.ticks
+			Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " [" + st.source + "] t+" + st.ticks
 					+ " Y=" + Utils.round(cur.getY(), 5)
 					+ " dY=" + Utils.round(dy, 5)
 					+ " dXZ=" + Utils.round(Math.hypot(dx, dz), 5)
@@ -109,7 +109,7 @@ public class MovementAudit {
 					+ (onGround ? " [GROUND]" : ""));
 			// End once they've left the ground and come back (the launch tick can still read grounded), or at the cap.
 			if((onGround && st.leftGround) || st.ticks >= MAX_TRACE_TICKS) {
-				Utils.debug(Utils.DebugType.SERVER, p.getName() + " [" + st.source + "] airborne trace END after "
+				Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " [" + st.source + "] airborne trace END after "
 						+ st.ticks + "t, peak Y=" + Utils.round(st.peakY, 5));
 				it.remove();
 			}

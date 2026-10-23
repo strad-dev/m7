@@ -102,22 +102,22 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 		// isn't in the run, so it has none to skip.
 		if(p.getGameMode() == org.bukkit.GameMode.ADVENTURE && LavaJump.isInBossArena(p.getLocation())
 				&& !Utils.isSpectator(p)) return;
-		Utils.debug(Utils.DebugType.SERVER, "Starting at " + Utils.round(p.getLocation().getX(), 2) + " " + Utils.round(p.getLocation().getY(), 2) + " " + Utils.round(p.getLocation().getZ(), 2) + " " + Utils.round(p.getLocation().getYaw(), 2) + " " + Utils.round(p.getLocation().getPitch(), 2));
+		Utils.debug(Utils.DebugType.SERVER, p, "Starting at " + Utils.round(p.getLocation().getX(), 2) + " " + Utils.round(p.getLocation().getY(), 2) + " " + Utils.round(p.getLocation().getZ(), 2) + " " + Utils.round(p.getLocation().getYaw(), 2) + " " + Utils.round(p.getLocation().getPitch(), 2));
 		if(p.isSneaking()) {
 			RayTraceResult result = p.rayTraceBlocks(61);
 			if(result != null) {
 				Block b = result.getHitBlock();
 				Location l = b.getLocation().add(0.5, 1, 0.5);
 				if(l.getBlock().getType().isSolid() || l.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
-					Utils.debug(Utils.DebugType.SERVER, "Could not Etherwarp " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+					Utils.debug(Utils.DebugType.SERVER, p, "Could not Etherwarp " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 					return;
 				}
 				p.setFallDistance(0);
 				Utils.playLocalSound(p, Sound.ENTITY_ENDER_DRAGON_HURT, 1, 0.50F);
-				Utils.debug(Utils.DebugType.SERVER, "Etherwarping " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+				Utils.debug(Utils.DebugType.SERVER, p, "Etherwarping " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 				ItemUtils.noRotateTeleport(p, l);
 			} else {
-				Utils.debug(Utils.DebugType.SERVER, "Could not Etherwarp " + p.getName() + " at all");
+				Utils.debug(Utils.DebugType.SERVER, p, "Could not Etherwarp " + p.getName() + " at all");
 			}
 		} else {
 			Location origin = p.getLocation().clone();
@@ -193,7 +193,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 					}
 				}
 				ItemUtils.noRotateTeleport(p, l);
-				Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+				Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 			} else {
 				switch(result.getHitBlockFace()) {
 					case SELF -> {
@@ -202,12 +202,12 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 					case UP -> {
 						Location l = result.getHitBlock().getLocation().add(0.5, 1, 0.5);
 						ItemUtils.noRotateTeleport(p, l);
-						Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+						Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 					}
 					case DOWN -> {
 						Location l = result.getHitBlock().getLocation().add(0.5, -2, 0.5);
 						ItemUtils.noRotateTeleport(p, l);
-						Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+						Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 					}
 					default -> {
 						// Hit a side face, so backtrack until we find a safe spot
@@ -246,7 +246,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 									// Center on the block we're in
 									Location l = new Location(checkLoc.getWorld(), Math.floor(checkLoc.getX()) + 0.5, Math.floor(checkLoc.getY()), Math.floor(checkLoc.getZ()) + 0.5);
 									ItemUtils.noRotateTeleport(p, l);
-									Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+									Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 									p.setFallDistance(0);
 									Utils.playLocalSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
 									return;
@@ -258,7 +258,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 						if(lastSafe != null) {
 							Location l = new Location(lastSafe.getWorld(), Math.floor(lastSafe.getX()) + 0.5, Math.floor(lastSafe.getY()), Math.floor(lastSafe.getZ()) + 0.5);
 							ItemUtils.noRotateTeleport(p, l);
-							Utils.debug(Utils.DebugType.SERVER, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
+							Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 						}
 					}
 				}

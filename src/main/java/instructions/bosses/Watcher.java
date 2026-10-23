@@ -331,13 +331,13 @@ public class Watcher {
 		// Console, not debug: the network runs at verbose timer, which hides who ended the clear.
 		M7.getInstance().getLogger().info("Watcher portal entered by " + p.getName() + " (" + p.getGameMode() + ") at " + fmt(p.getLocation()));
 		if(!doContinue) {
-			Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + p.getName() + " → clear ends");
+			Utils.debug(Utils.DebugType.BOSS, p, "Portal entered by " + p.getName() + " → clear ends");
 			closePortal();
 			active = false;
 			WitherActions.signalRunComplete();
 			return;
 		}
-		Utils.debug(Utils.DebugType.BOSS, "Portal entered by " + p.getName() + " → teleporting all players");
+		Utils.debug(Utils.DebugType.BOSS, p, "Portal entered by " + p.getName() + " → teleporting all players");
 
 		// Teleport THIS tick; the boss starts NEXT tick.
 		for(Player pl : world.getPlayers()) {

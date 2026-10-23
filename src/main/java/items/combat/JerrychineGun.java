@@ -153,7 +153,7 @@ public final class JerrychineGun implements Weapon, AbilityItem, ProjectileItem 
 		}.runTaskTimer(M7.getInstance(), 0L, 1L);
 
 		l.getWorld().playSound(l, Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
-		Utils.debug(Utils.DebugType.SERVER, p.getName() + " fired Jerry-chine #" + s.getEntityId() + " from " + Utils.round(l.getX(), 2) + " " + Utils.round(l.getY(), 2) + " " + Utils.round(l.getZ(), 2));
+		Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " fired Jerry-chine #" + s.getEntityId() + " from " + Utils.round(l.getX(), 2) + " " + Utils.round(l.getY(), 2) + " " + Utils.round(l.getZ(), 2));
 	}
 
 	private static void handleHit(ProjectileHitEvent e) {
@@ -189,6 +189,6 @@ public final class JerrychineGun implements Weapon, AbilityItem, ProjectileItem 
 		p.setVelocity(direction);
 		MovementAudit.startAirborneAudit(p, "jerrychine"); // SUPER-verbose per-tick trace of the knockback arc
 		double horizSpeed = Math.hypot(direction.getX(), direction.getZ());
-		Utils.debug(Utils.DebugType.SERVER, "Jerry-chine moved " + p.getName() + " " + Utils.round(direction.getX(), 3) + " " + Utils.round(direction.getY(), 5) + " " + Utils.round(direction.getZ(), 3));
+		Utils.debug(Utils.DebugType.SERVER, p, "Jerry-chine moved " + p.getName() + " " + Utils.round(direction.getX(), 3) + " " + Utils.round(direction.getY(), 5) + " " + Utils.round(direction.getZ(), 3));
 	}
 }

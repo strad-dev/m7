@@ -270,7 +270,7 @@ public class MiscListener implements Listener {
 					Integer fireTick = items.combat.BonzoStaff.bonzoFireTick.remove(windCharge.getEntityId());
 					int travelTicks = fireTick != null ? MinecraftServer.currentTick - fireTick : -1;
 					Location loc = p.getLocation();
-					Utils.debug(Utils.DebugType.SERVER, p.getName() + " bonzostaff launched from " + Utils.round(loc.getX(), 2) + " " + Utils.round(loc.getY(), 2) + " " + Utils.round(loc.getZ(), 2) + " with velocity " + Utils.round(direction.getX(), 4) + " " + Utils.round(direction.getY(), 4) + " " + Utils.round(direction.getZ(), 4) + " after " + travelTicks + " ticks");
+					Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " bonzostaff launched from " + Utils.round(loc.getX(), 2) + " " + Utils.round(loc.getY(), 2) + " " + Utils.round(loc.getZ(), 2) + " with velocity " + Utils.round(direction.getX(), 4) + " " + Utils.round(direction.getY(), 4) + " " + Utils.round(direction.getZ(), 4) + " after " + travelTicks + " ticks");
 					MovementAudit.startAirborneAudit(p, "bonzostaff");
 				}
 			}

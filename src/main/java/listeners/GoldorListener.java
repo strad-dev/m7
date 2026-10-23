@@ -339,7 +339,7 @@ public class GoldorListener implements Listener {
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
 		if(s1 == null || s1.device.isActivated()) return;
 		simonClicks++;
-		Utils.debug(Utils.DebugType.BOSS, "Button clicked by " + p.getName() + " " + simonClicks + "/" + SIMON_STANDIN_CLICKS);
+		Utils.debug(Utils.DebugType.BOSS, p, "Button clicked by " + p.getName() + " " + simonClicks + "/" + SIMON_STANDIN_CLICKS);
 		if(simonClicks >= SIMON_STANDIN_CLICKS) {
 			s1.device.markActivated();
 			Goldor.INSTANCE.onActivation(p, s1, "device", wasDeferred);

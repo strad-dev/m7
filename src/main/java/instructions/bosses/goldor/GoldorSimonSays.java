@@ -170,7 +170,7 @@ public final class GoldorSimonSays {
 		if(s1 == null || s1.device.isActivated()) return;
 		if(state == State.SPAM && Utils.serverTick() - windowStartTick < SPAM_WINDOW_TICKS) {
 			spamClicks.merge(p.getUniqueId(), 1, Integer::sum);
-			Utils.debug(Utils.DebugType.BOSS, "Simon spam click by " + p.getName()
+			Utils.debug(Utils.DebugType.BOSS, p, "Simon spam click by " + p.getName()
 					+ " (" + spamClicks.get(p.getUniqueId()) + ")");
 			return;
 		}
@@ -222,7 +222,7 @@ public final class GoldorSimonSays {
 		spamClicks.put(p.getUniqueId(), 1);
 		final int token = runToken;
 		Utils.scheduleTask(() -> { if(token == runToken) closeSpamWindow(); }, SPAM_WINDOW_TICKS);
-		Utils.debug(Utils.DebugType.BOSS, "Simon Says started by " + p.getName());
+		Utils.debug(Utils.DebugType.BOSS, p, "Simon Says started by " + p.getName());
 	}
 
 	/** Clicks into skips, then short-circuit or deal the opening sequence. */
