@@ -114,7 +114,7 @@ public final class PuzzleIceFill {
 		below.setType(Material.PACKED_ICE, false);
 		previous = here;
 		frozenCount++;
-		Utils.playGlobalSound(Sound.BLOCK_SNOW_BREAK, 2.0f, 1.0f);
+		world.playSound(below.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_SNOW_BREAK, 2.0f, 1.0f);
 		if(frozenCount >= levels[currentLevel].size()) levelComplete(p);
 	}
 
