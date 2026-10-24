@@ -133,7 +133,10 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 				Block headBlock = feetBlock.getRelative(BlockFace.UP);
 
 				// If either block is solid, we need to adjust
-				if(!feetBlock.isPassable() || !headBlock.isPassable()) {
+				double floor = ItemUtils.teleportFloor(feetBlock);
+				if(floor >= 0 && headBlock.isPassable()) {
+					l.add(0, floor, 0);
+				} else {
 					// Try to move up until we find a safe spot or reach original height
 					double originalY = p.getLocation().getY();
 					Location checkLoc = l.clone();
@@ -146,7 +149,8 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 						Block checkHead = checkFeet.getRelative(BlockFace.UP);
 
 						// Check if this position is safe (2 blocks of air)
-						if(checkFeet.isPassable() && checkHead.isPassable()) {
+						double checkFloor = ItemUtils.teleportFloor(checkFeet);
+						if(checkFloor >= 0 && checkHead.isPassable()) {
 							// Also check we're not in a 1-block gap if above original height
 							if(checkLoc.getY() >= originalY) {
 								Block aboveHead = checkHead.getRelative(BlockFace.UP);
@@ -156,7 +160,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 								}
 							}
 
-							l = checkLoc.clone();
+							l = checkLoc.clone().add(0, checkFloor, 0);
 							foundSafe = true;
 							break;
 						}
@@ -220,6 +224,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 						// Backtrack from the exact hit point
 						Location checkLoc = hitLocation.clone();
 						Location lastSafe = null;
+						double lastFloor = 0;
 						double totalBacktracked = 0;
 
 						// Backtrack in smaller increments for more precision
@@ -237,14 +242,16 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 							Block feetBlock = checkLoc.getBlock();
 							Block headBlock = feetBlock.getRelative(BlockFace.UP);
 
-							if(feetBlock.isPassable() && headBlock.isPassable()) {
+							double floor = ItemUtils.teleportFloor(feetBlock);
+							if(floor >= 0 && headBlock.isPassable()) {
 								// This spot is safe, but keep checking for the optimal position
 								lastSafe = checkLoc.clone();
+								lastFloor = floor;
 
 								// Check if we've backtracked enough (at least 0.5 blocks from wall)
 								if(checkLoc.distance(hitLocation) >= 0.5) {
 									// Center on the block we're in
-									Location l = new Location(checkLoc.getWorld(), Math.floor(checkLoc.getX()) + 0.5, Math.floor(checkLoc.getY()), Math.floor(checkLoc.getZ()) + 0.5);
+									Location l = new Location(checkLoc.getWorld(), Math.floor(checkLoc.getX()) + 0.5, Math.floor(checkLoc.getY()) + floor, Math.floor(checkLoc.getZ()) + 0.5);
 									ItemUtils.noRotateTeleport(p, l);
 									Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 									p.setFallDistance(0);
@@ -256,7 +263,7 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 
 						// If we found a safe spot but didn't teleport yet
 						if(lastSafe != null) {
-							Location l = new Location(lastSafe.getWorld(), Math.floor(lastSafe.getX()) + 0.5, Math.floor(lastSafe.getY()), Math.floor(lastSafe.getZ()) + 0.5);
+							Location l = new Location(lastSafe.getWorld(), Math.floor(lastSafe.getX()) + 0.5, Math.floor(lastSafe.getY()) + lastFloor, Math.floor(lastSafe.getZ()) + 0.5);
 							ItemUtils.noRotateTeleport(p, l);
 							Utils.debug(Utils.DebugType.SERVER, p, "Teleporting " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));
 						}

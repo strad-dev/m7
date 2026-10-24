@@ -200,6 +200,14 @@ public final class ItemUtils {
 		return l.getWorld().hasCollisionsIn(new BoundingBox(l.getX() - w, l.getY() - 1.0E-3, l.getZ() - w, l.getX() + w, l.getY(), l.getZ() + w));
 	}
 
+	/** Feet offset for a teleport landing in {@code b}: 0 if passable, the top of a low block (carpet) to stand on, else -1. */
+	public static double teleportFloor(Block b) {
+		if(b.isPassable()) return 0;
+		double top = 0;
+		for(BoundingBox box : b.getCollisionShape().getBoundingBoxes()) top = Math.max(top, box.getMaxY());
+		return top <= 0.2 ? top : -1;
+	}
+
 	/** Clear the per-run crypt-farm guard (called at run start). */
 	public static void resetCrypts() {
 		activatedCrypts.clear();
