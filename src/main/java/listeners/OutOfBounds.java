@@ -27,8 +27,8 @@ import plugin.Utils;
  * Everything else is out, mainly the 1-block crevices between rooms: they run the length of the grid and let a
  * player walk past a closed door. A door is the only legal way through one.
  * <p>
- * Gated on {@link Server#isRunStarted()}, same as {@code CustomItems.onBlockBreak}'s door/ceiling lock, so getting
- * into position before the countdown ends is allowed. Before that, live modes only send strays back to spawn every
+ * Gated on {@code Deaths.inRun()}: {@link Server#isRunStarted()}, same as {@code CustomItems.onBlockBreak}'s
+ * door/ceiling lock, so getting into position before the countdown ends is allowed, and off once the practice ends or a clear-only run enters the portal. Before that, live modes only send strays back to spawn every
  * 40 ticks ({@link #schedulePreRunReturns}).
  * <p>
  * Only SURVIVAL and ADVENTURE die. Creative is exempt (map editing, same bypass as {@code CustomItems.onBlockBreak};
@@ -85,8 +85,13 @@ public final class OutOfBounds {
 		return (section.equals("clear") || section.equals("all")) && WitherActions.getSplitEnd("Clear") == null;
 	}
 
+	/** A clear-only run whose portal has been entered: the run is over, though practice mode stays on. */
+	private static boolean clearOnlyDone() {
+		return WitherActions.runSection().equals("clear") && WitherActions.getSplitEnd("Clear") != null;
+	}
+
 	private static void tick() {
-		if(!Server.isRunStarted()) return;
+		if(!death.Deaths.inRun() || clearOnlyDone()) return;
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(outOfBounds(p)) kill(p);
 		}
