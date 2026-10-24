@@ -40,14 +40,21 @@ public class MiscListener implements Listener {
 		}
 	}
 
-	// Anvils never open their menu. Only the block use is denied; item use in hand still works.
+	// Chests stay out: secret chests take their own clicks.
+	private static final java.util.Set<Material> MENU_BLOCKS = java.util.EnumSet.of(
+			Material.DISPENSER, Material.DROPPER, Material.HOPPER, Material.CRAFTER, Material.BARREL, Material.ENDER_CHEST,
+			Material.FURNACE, Material.BLAST_FURNACE, Material.SMOKER, Material.BREWING_STAND, Material.BEACON,
+			Material.CRAFTING_TABLE, Material.ENCHANTING_TABLE, Material.GRINDSTONE, Material.STONECUTTER,
+			Material.SMITHING_TABLE, Material.LOOM, Material.CARTOGRAPHY_TABLE, Material.LECTERN);
+
+	// Menu blocks never open. Only the block use is denied; item use in hand still works.
 	@EventHandler
-	public void onAnvilInteract(PlayerInteractEvent e) {
+	public void onMenuBlockInteract(PlayerInteractEvent e) {
 		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		Block b = e.getClickedBlock();
 		if(b == null) return;
 		Material m = b.getType();
-		if(m == Material.ANVIL || m == Material.CHIPPED_ANVIL || m == Material.DAMAGED_ANVIL) {
+		if(MENU_BLOCKS.contains(m) || Tag.ANVIL.isTagged(m) || Tag.SHULKER_BOXES.isTagged(m)) {
 			e.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
 		}
 	}

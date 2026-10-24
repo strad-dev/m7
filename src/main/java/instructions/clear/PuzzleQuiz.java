@@ -119,7 +119,7 @@ public final class PuzzleQuiz {
 		// Only after option (c) shows (+60t).
 		Utils.scheduleTask(() -> {
 			if(g == gen) awaiting = true;
-		}, 62);
+		}, 60);
 	}
 
 	/** Unpadded, {@code animateQuestion} centers it. Q3 names {@link #opener}. */
@@ -149,12 +149,12 @@ public final class PuzzleQuiz {
 			if(question < 2) {
 				final int g = ++gen;
 				String line = question == 0 ? "2 question left... then you will have proven your worth to me!" : "One more question!";
-				Server.Quiz.oruoMessage(line);
+				Utils.scheduleTask(() -> Server.Quiz.oruoMessage(line), 40);
 				Utils.scheduleTask(() -> {
 					if(g != gen) return;
 					question++;
 					ask();
-				}, 40);
+				}, 80);
 			} else {
 				complete(p);
 			}
