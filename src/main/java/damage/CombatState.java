@@ -41,7 +41,7 @@ public final class CombatState {
 	private static final Map<UUID, Map<UUID, Integer>> meleeHits = new HashMap<>();
 	private static final Map<UUID, Deque<Hit>> history = new HashMap<>();
 	/**
-	 * Venomous ramp (2% per hit, 40-hit cap), keyed attacker then target: two players on one mob ramp separately.
+	 * Venomous ramp (1.5% per hit, 40-hit cap), keyed attacker then target: two players on one mob ramp separately.
 	 * With the per-player {@link #history} behind {@link #venomousDps}, both halves of a proc are the attacker's own.
 	 * An entry lives exactly as long as its 100t poison window ({@link #resetVenomous}), not the whole run.
 	 */
@@ -173,7 +173,7 @@ public final class CombatState {
 	}
 
 	/**
-	 * Venomous "DPS": 8x the biggest hit in the last 100 ticks. One stack is 2% of it, so 40 stacks = 80%, i.e. 640%
+	 * Venomous "DPS": 8x the biggest hit in the last 100 ticks. One stack is 1.5% of it, so 40 stacks = 60%, i.e. 480%
 	 * of that hit. Only PRIMARY hits reach the history ({@link Damage}), and that is load-bearing: a Venomous tick is
 	 * several times the hit behind it, so recording one would ratchet the figure up every tick.
 	 */
@@ -181,7 +181,7 @@ public final class CombatState {
 		return maxInLastTicks(p, VENOMOUS_WINDOW_TICKS) * VENOMOUS_DPS_FACTOR;
 	}
 
-	/** Venomous ramp on one target: +2% per hit, cap 40 (80% of the DPS figure). */
+	/** Venomous ramp on one target: +1.5% per hit, cap 40 (60% of the DPS figure). */
 	public static int venomousStacks(Player p, UUID target) {
 		if(p == null || target == null) return 0;
 		return venomousHits.getOrDefault(p.getUniqueId(), Map.of()).getOrDefault(target, 0);

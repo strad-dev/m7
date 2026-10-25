@@ -22,8 +22,8 @@ import java.util.UUID;
  *       {@link #onHit}: {@code Arrows.hit} calls {@link #flame}.</td></tr>
  *   <tr><td>Thunderlord VII</td><td>Every third hit ON THE SAME MOB, 60% of that hit. Not a DoT: fires once on the
  *       hit, state is only the per-target counter.</td></tr>
- *   <tr><td>Venomous VII</td><td>Each hit adds a stack worth 2% of DPS, cap 40 (80% of DPS), every 20t for 100t.
- *       DPS = 8x the highest hit in the last 100 ticks, so a capped proc is 640% of it. Stop hitting and the stacks
+ *   <tr><td>Venomous VII</td><td>Each hit adds a stack worth 1.5% of DPS, cap 40 (60% of DPS), every 20t for 100t.
+ *       DPS = 8x the highest hit in the last 100 ticks, so a capped proc is 480% of it. Stop hitting and the stacks
  *       are gone.</td></tr>
  * </table>
  *
@@ -69,7 +69,7 @@ public final class Procs {
 	private static final double THUNDERLORD_SHARE = 0.60;
 	private static final int THUNDERLORD_EVERY = 3;
 
-	private static final double VENOMOUS_PER_STACK = 0.02;
+	private static final double VENOMOUS_PER_STACK = 0.015;
 	private static final int VENOMOUS_INTERVAL = 20;
 	/** "Every 20t for 100t": procs at 0, 20, 40, 60, 80, 100. */
 	private static final int VENOMOUS_DURATION = 100;
@@ -157,7 +157,7 @@ public final class Procs {
 	}
 
 	private static void venomous(Player attacker, LivingEntity target) {
-		// Venomous VII: a stack per hit, 2% of DPS (8x highest hit in 100t), cap 40 = 640% of that hit, every 20t
+		// Venomous VII: a stack per hit, 1.5% of DPS (8x highest hit in 100t), cap 40 = 480% of that hit, every 20t
 		// for 100t. §7's "(80% of the hit)" is 8x smaller than its own DPS definition; owner ruled DPS operative, so
 		// this is the largest proc by design, which is why it must run on its own 20t cadence, never per swing.
 		// Ramp is bounded by the window too: cleared when this player's poison lapses (see tick).
