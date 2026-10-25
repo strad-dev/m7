@@ -68,6 +68,11 @@ public final class BonzoStaff implements Weapon, AbilityItem {
 	}
 
 	@Override
+	public boolean usableWhileWatching() {
+		return true;
+	}
+
+	@Override
 	public boolean onRightClick(Cast cast) {
 		bonzo(cast.player());
 		return true;

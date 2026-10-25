@@ -341,7 +341,7 @@ public class Watcher {
 
 		// Teleport THIS tick; the boss starts NEXT tick.
 		for(Player pl : world.getPlayers()) {
-			if(Utils.isSpectator(pl)) continue;
+			if(pl.getGameMode() == org.bukkit.GameMode.SPECTATOR) continue;
 			pl.teleport(boss);
 		}
 		// doContinue is true for "all", so Maxor → Storm → ….

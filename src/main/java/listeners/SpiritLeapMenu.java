@@ -117,7 +117,7 @@ public class SpiritLeapMenu implements InventoryHolder {
 			if(Utils.isSpectator(p)) continue;
 			list.add(p);
 		}
-		list.sort(Comparator.comparingInt((Player p) -> CLASS_ORDER.indexOf(resolveClass(p))).thenComparing(Player::getName));
+		list.sort(Comparator.comparingInt((Player p) -> CLASS_ORDER.indexOf(resolveClass(p))).thenComparing(Player::getName, String.CASE_INSENSITIVE_ORDER));
 		return list.size() > 4 ? new ArrayList<>(list.subList(0, 4)) : list;
 	}
 
