@@ -157,9 +157,10 @@ public final class Damage {
 	 * ENCHANTS go, ATTRIBUTES stay: Sharpness, Smite, Giant/Titan Killer, Execute, Prosecute, First/Triple Strike and
 	 * the mob-type enchants are skipped in {@link #additivePercent}. Rulers, Warrior, Elite, Dominance, combo, Combat
 	 * 60, Ring of Love, pet, Draconic Artifact, class bonuses and all non-held stats stay.
+	 * <p>
+	 * Hits only the punched mob: no Lethality, procs or Cleave ({@link #dealPunch}).
 	 */
 	public static double punch(Player p, LivingEntity target) {
-		applyOnHitDebuffs(p, target, DamagePath.MELEE, (ItemDef) null);
 		Breakdown b = Breakdown.begin();
 		return finish(p, target, DamagePath.MELEE, null, statCore(Stats.unarmed(p), true, b), null, b, false);
 	}
@@ -533,6 +534,11 @@ public final class Damage {
 	 */
 	public static double dealDerived(LivingEntity target, double sbDamage, DamageKind kind, Player attacker, DamagePath path) {
 		return deal(target, sbDamage, kind, attacker, path, true, true, false);
+	}
+
+	/** A {@link #punch}: aggros like a hit, but no procs, Cleave or history. */
+	public static double dealPunch(LivingEntity target, double sbDamage, Player attacker) {
+		return deal(target, sbDamage, DamageKind.NORMAL, attacker, DamagePath.MELEE, false, true, false);
 	}
 
 	/**

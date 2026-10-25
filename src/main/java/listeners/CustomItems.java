@@ -170,10 +170,9 @@ public class CustomItems implements Listener {
 		// held item contributes nothing. Before, a Precise Terminator punch folded in its 310 Damage, Strength and
 		// 250 Crit Damage.
 		Item item = ItemRegistry.of(held);
-		double sbDamage = item instanceof Weapon weapon && weapon.swingsMelee()
-				? damage.Damage.melee(p, target, held)
-				: damage.Damage.punch(p, target);
-		damage.Damage.deal(target, sbDamage, DamageKind.NORMAL, p, DamagePath.MELEE);
+		if(item instanceof Weapon weapon && weapon.swingsMelee()) {
+			damage.Damage.deal(target, damage.Damage.melee(p, target, held), DamageKind.NORMAL, p, DamagePath.MELEE);
+		} else damage.Damage.dealPunch(target, damage.Damage.punch(p, target), p);
 	}
 
 	// ===================================== listeners =====================================

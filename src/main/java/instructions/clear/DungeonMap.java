@@ -96,6 +96,11 @@ public final class DungeonMap {
 				&& item.getItemMeta() instanceof MapMeta mm && mm.getMapView() == view();
 	}
 
+	public static boolean isAnyDungeonMap(ItemStack item) {
+		return item != null && item.getType() == Material.FILLED_MAP && item.hasItemMeta()
+				&& "Magical Map".equals(plugin.Utils.plain(item.getItemMeta().displayName()));
+	}
+
 	private static int tileX(int gx) { return BORDER + gx * (TILE + GAP); }
 	private static int tileY(int gz) { return BORDER + gz * (TILE + GAP); }
 

@@ -366,25 +366,25 @@ public final class ClearManager {
 	private static void manageMapAndMenu(Player p) {
 		ItemStack slot8 = p.getInventory().getItem(8);
 		if(!FakePlayerInventory.isSkyblockMenu(slot8)) {
-			if(slot8 == null || slot8.getType() == Material.AIR || DungeonMap.isDungeonMap(slot8)) {
+			if(slot8 == null || slot8.getType() == Material.AIR || DungeonMap.isAnyDungeonMap(slot8)) {
 				p.getInventory().setItem(8, skyblockMenu());
 			}
 		}
 		ItemStack off = p.getInventory().getItemInOffHand();
 		if(Rooms.inGrid(p.getLocation())) {
 			if(!DungeonMap.isDungeonMap(off)) p.getInventory().setItemInOffHand(DungeonMap.mapItem());
-		} else if(DungeonMap.isDungeonMap(off)) {
+		} else if(DungeonMap.isAnyDungeonMap(off)) {
 			p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
 		}
 	}
 
 	private static void restoreMenus() {
 		for(Player p : mapHolders()) {
-			if(DungeonMap.isDungeonMap(p.getInventory().getItemInOffHand())) {
+			if(DungeonMap.isAnyDungeonMap(p.getInventory().getItemInOffHand())) {
 				p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
 			}
 			ItemStack slot8 = p.getInventory().getItem(8);
-			if(DungeonMap.isDungeonMap(slot8)) p.getInventory().setItem(8, skyblockMenu());
+			if(DungeonMap.isAnyDungeonMap(slot8)) p.getInventory().setItem(8, skyblockMenu());
 		}
 	}
 

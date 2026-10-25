@@ -260,15 +260,14 @@ public final class PetMenu implements CommandExecutor, Listener {
 	 * click the way out). Redraw still runs so the glint is right for the tick left. Close deferred a tick, as
 	 * everywhere here.
 	 * <p>
-	 * A click that changes nothing (empty slot, pet already out) leaves the window alone.
+	 * An empty slot leaves the window alone. The pet already out just closes it (Hypixel despawns it; assumed never
+	 * clicked).
 	 */
 	private void summonClick(Player p, Holder holder, int slot) {
 		PetType pet = Pets.layout(p).get(slot);
 		if(pet == null) return;
-		if(Pets.equip(p, pet, "<green>You summoned your ")) { // pet name ends the line
-			draw(p, holder);
-			Bukkit.getScheduler().runTask(M7.getInstance(), () -> p.closeInventory());
-		}
+		if(Pets.equip(p, pet, "<green>You summoned your ")) draw(p, holder); // pet name ends the line
+		Bukkit.getScheduler().runTask(M7.getInstance(), () -> p.closeInventory());
 	}
 
 	/**
