@@ -126,14 +126,17 @@ public class JoinListener implements Listener {
 		return w == null ? null : new Location(w, -120.5, 71, -183.5, 0.0f, 0.0f);
 	}
 
-	// Real players spawn at the entrance on join. LOWEST so a /m7practice on the same join (network plugin sending a
-	// practicer in) teleports afterwards and wins.
+	// Real players spawn at the entrance on join, or at the current boss phase's spawn (the entrance is out of bounds
+	// there). LOWEST so a /m7practice on the same join (network plugin sending a practicer in) teleports afterwards
+	// and wins.
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onJoinSpawn(PlayerJoinEvent ev) {
 		Player jp = ev.getPlayer();
 		if (plugin.Utils.isSpectator(jp)) return;              // don't yank spectators
 		Location entrance = dungeonEntrance();
-		if (entrance != null) jp.teleport(entrance);
+		if (entrance == null) return;
+		String boss = commands.Practice.currentBossSection();
+		jp.teleport(boss == null ? entrance : commands.Practice.spawn(entrance.getWorld(), boss));
 	}
 
 	// Respawn at the entrance too: vanilla's world spawn drops them into the boss arena mid-clear. Run deaths are

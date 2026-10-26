@@ -54,14 +54,18 @@ public enum Pet {
 		return maxSpeedBonus;
 	}
 
+	/** Alpha GDrag Damage ({@code plugin/AlphaGDrag}) swaps Golden Dragon's +300 Strength for this. */
+	private static final StatBlock ALPHA_GOLDEN_DRAGON = StatBlock.of(Stat.STRENGTH, 370);
+
 	/** Profile level, so NOT cata-scaled. */
 	public StatBlock ownStats() {
+		if(this == GOLDEN_DRAGON && plugin.AlphaGDrag.enabled()) return ALPHA_GOLDEN_DRAGON;
 		return ownStats;
 	}
 
 	/** Chimera V: base stats at 100%, landing on the weapon (§1.13, §2). */
 	public StatBlock chimeraCopy() {
-		return ownStats;
+		return ownStats();
 	}
 
 	/** Additive % on one STAT (§1.13), 5 = +5%. Crow, Phoenix, Black Cat have none on a modelled stat. */

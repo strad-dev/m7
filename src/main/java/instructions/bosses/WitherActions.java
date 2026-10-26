@@ -68,6 +68,9 @@ public class WitherActions {
 	/** THIS run has reported. Cleared by {@link #startRunTracking}. */
 	private static volatile boolean signalled = false;
 
+	/** This run has reported its ending: won, failed or abandoned. */
+	public static boolean runReported() { return signalled; }
+
 	/**
 	 * A run torn down with no ending of its own ({@code /m7practice end}, network time-out/force-end, last player
 	 * leaving). Same event, {@code success=false}, so the splits and milestones reached are still banked; the

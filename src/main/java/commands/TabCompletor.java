@@ -94,7 +94,7 @@ public class TabCompletor implements TabCompleter {
 
 			case "dungeonsettings" -> {
 				if(args.length == 1) {
-					for(String setting : new String[]{"difficulty", "mayor", "watcherfix", "badbonzo", "batbug"}) {
+					for(String setting : new String[]{"difficulty", "mayor", "watcherfix", "badbonzo", "batbug", "alphagdrag"}) {
 						if(setting.startsWith(args[0].toLowerCase())) completions.add(setting);
 					}
 				} else if(args.length == 2 && args[0].equalsIgnoreCase("difficulty")) {
@@ -118,6 +118,10 @@ public class TabCompletor implements TabCompleter {
 				} else if(args.length == 2 && args[0].equalsIgnoreCase("batbug")) {
 					for(plugin.BatBug b : plugin.BatBug.values()) {
 						if(b.id().startsWith(args[1].toLowerCase())) completions.add(b.id());
+					}
+				} else if(args.length == 2 && args[0].equalsIgnoreCase("alphagdrag")) {
+					for(plugin.AlphaGDrag a : plugin.AlphaGDrag.values()) {
+						if(a.id().startsWith(args[1].toLowerCase())) completions.add(a.id());
 					}
 				}
 			}

@@ -28,7 +28,8 @@ import plugin.Utils;
  * player walk past a closed door. A door is the only legal way through one.
  * <p>
  * Gated on {@code Deaths.inRun()}: {@link Server#isRunStarted()}, same as {@code CustomItems.onBlockBreak}'s
- * door/ceiling lock, so getting into position before the countdown ends is allowed, and off once the practice ends or a clear-only run enters the portal. Before that, live modes only send strays back to spawn every
+ * door/ceiling lock, so getting into position before the countdown ends is allowed, and off once the practice ends,
+ * a clear-only run enters the portal or the run reports its ending (a single-boss practice's last phase). Before that, live modes only send strays back to spawn every
  * 40 ticks ({@link #schedulePreRunReturns}).
  * <p>
  * Only SURVIVAL and ADVENTURE die. Creative is exempt (map editing, same bypass as {@code CustomItems.onBlockBreak};
@@ -91,7 +92,7 @@ public final class OutOfBounds {
 	}
 
 	private static void tick() {
-		if(!death.Deaths.inRun() || clearOnlyDone()) return;
+		if(!death.Deaths.inRun() || clearOnlyDone() || WitherActions.runReported()) return;
 		for(Player p : Bukkit.getOnlinePlayers()) {
 			if(outOfBounds(p)) kill(p);
 		}

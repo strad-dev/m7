@@ -2,6 +2,7 @@ package commands;
 
 import damage.Difficulty;
 import damage.Mayor;
+import plugin.AlphaGDrag;
 import plugin.BadBonzo;
 import plugin.BatBug;
 import plugin.WatcherFix;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * One-row <b>M7 Settings</b> menu behind bare {@code /dungeonsettings}: difficulty, mayor, Fix Watcher Bug, Bad Bonzo and Bat Bug, one
+ * One-row <b>M7 Settings</b> menu behind bare {@code /dungeonsettings}: difficulty, mayor, Fix Watcher Bug, Bad Bonzo, Bat Bug and Alpha GDrag Damage, one
  * button each; lore lists every value with the active one bold, each click steps to the next.
  *
  * <p><b>Standalone only.</b> On the network these are party settings (they ride the practice request so a
@@ -38,7 +39,7 @@ import java.util.UUID;
  * text form works either way; the network gates it to admins (see {@code M7Bridge}).
  */
 public final class SettingsMenu implements Listener {
-	private static final int DIFFICULTY_SLOT = 0, MAYOR_SLOT = 1, WATCHER_FIX_SLOT = 2, BAD_BONZO_SLOT = 3, BAT_BUG_SLOT = 4;
+	private static final int DIFFICULTY_SLOT = 0, MAYOR_SLOT = 1, WATCHER_FIX_SLOT = 2, BAD_BONZO_SLOT = 3, BAT_BUG_SLOT = 4, ALPHA_GDRAG_SLOT = 5;
 
 	/** On every button so right-click isn't a secret. */
 	private static final String CYCLE_HINT = "<yellow>Click to change <dark_gray>(right-click to go back)";
@@ -104,6 +105,15 @@ public final class SettingsMenu implements Listener {
 		batLore.add(CYCLE_HINT);
 		inv.setItem(BAT_BUG_SLOT, button(Material.BAT_SPAWN_EGG, "<gold>Bat Bug", batLore));
 
+		List<String> gdragLore = new ArrayList<>();
+		for(AlphaGDrag a : AlphaGDrag.values()) gdragLore.add(option(a == AlphaGDrag.current(), colour(a), label(a)));
+		gdragLore.add("");
+		gdragLore.add(AlphaGDrag.enabled() ? "<gray>Golden Dragon gives +370 Strength" : "<gray>Golden Dragon gives +300 Strength");
+		gdragLore.add("<light_purple>Experimental");
+		gdragLore.add("");
+		gdragLore.add(CYCLE_HINT);
+		inv.setItem(ALPHA_GDRAG_SLOT, button(Material.GOLD_INGOT, "<gold>Alpha GDrag Damage", gdragLore));
+
 		p.openInventory(inv);
 	}
 
@@ -128,6 +138,8 @@ public final class SettingsMenu implements Listener {
 			DungeonSettings.applyBadBonzo(back ? BadBonzo.toggleBack() : BadBonzo.toggle());
 		} else if(e.getRawSlot() == BAT_BUG_SLOT) {
 			DungeonSettings.applyBatBug(back ? BatBug.toggleBack() : BatBug.toggle());
+		} else if(e.getRawSlot() == ALPHA_GDRAG_SLOT) {
+			DungeonSettings.applyAlphaGDrag(back ? AlphaGDrag.toggleBack() : AlphaGDrag.toggle());
 		} else {
 			return;
 		}
@@ -182,6 +194,20 @@ public final class SettingsMenu implements Listener {
 		return switch(b) {
 			case OFF -> "<gray>";
 			case ON -> "<gold>";
+		};
+	}
+
+	private static String colour(AlphaGDrag a) {
+		return switch(a) {
+			case OFF -> "<gray>";
+			case ON -> "<gold>";
+		};
+	}
+
+	private static String label(AlphaGDrag a) {
+		return switch(a) {
+			case OFF -> "Off";
+			case ON -> "On";
 		};
 	}
 

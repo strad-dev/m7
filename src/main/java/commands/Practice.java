@@ -33,8 +33,9 @@ import java.util.Map;
  * 2. Equips each with their saved /m7loadout kit, refreshed to current item definitions, teleports them to the
  *    phase's default location, then starts it.
  * 3. "--no-teleport" skips the teleport. Bare "classic"/"perfect_rng"/"rta" sets the damage mode (MAP.md §0),
- *    a damage.Mayor id the mayor, "on"/"off" Fix Watcher Bug, "badbonzo=on"/"badbonzo=off" Bad Bonzo, "batbug=on"/"batbug=off" Bat Bug; omitted,
- *    current settings stand, so standalone keeps whatever /dungeonsettings set. The network always sends all five.
+ *    a damage.Mayor id the mayor, "on"/"off" Fix Watcher Bug, "badbonzo=on"/"badbonzo=off" Bad Bonzo, "batbug=on"/"batbug=off" Bat Bug,
+ *    "alphagdrag=on"/"alphagdrag=off" Alpha GDrag Damage; omitted,
+ *    current settings stand, so standalone keeps whatever /dungeonsettings set. The network always sends all six.
  * 4. Runs the boss and server instructions. Pre-run delay is 60 ticks (3s); a bare integer overrides it: the network sends
  *    "m7:m7practice <section> 400" for a 20s window. See Server.serverInstructions.
  *
@@ -91,7 +92,13 @@ public class Practice implements CommandExecutor {
 		// Optional Bad Bonzo ("badbonzo=on" / "badbonzo=off"), prefixed because a bare on/off is Fix Watcher Bug's.
 		plugin.BadBonzo badBonzoArg = null;
 		plugin.BatBug batBugArg = null;
+		plugin.AlphaGDrag alphaGDragArg = null;
 		for(String arg : args) {
+			if(arg.toLowerCase().startsWith("alphagdrag=")) {
+				plugin.AlphaGDrag gdrag = plugin.AlphaGDrag.parse(arg.substring("alphagdrag=".length()));
+				if(gdrag != null) alphaGDragArg = gdrag;
+				continue;
+			}
 			if(arg.toLowerCase().startsWith("batbug=")) {
 				plugin.BatBug bat = plugin.BatBug.parse(arg.substring("batbug=".length()));
 				if(bat != null) batBugArg = bat;
@@ -171,6 +178,10 @@ public class Practice implements CommandExecutor {
 		if(watcherFixArg != null) plugin.WatcherFix.set(watcherFixArg);
 		if(badBonzoArg != null) plugin.BadBonzo.set(badBonzoArg);
 		if(batBugArg != null) plugin.BatBug.set(batBugArg);
+		if(alphaGDragArg != null) plugin.AlphaGDrag.set(alphaGDragArg);
+		if(plugin.AlphaGDrag.enabled()) {
+			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>ALPHA GDRAG DAMAGE<reset><gray> is on.  <light_purple>Experimental."));
+		}
 		if(plugin.BatBug.enabled()) {
 			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAT BUG<reset><gray> is on.  <light_purple>Experimental."));
 		}
@@ -188,6 +199,21 @@ public class Practice implements CommandExecutor {
 	/** A practice run is set up or running (from {@link #runPractice} until {@link #endPractice}). */
 	public static boolean isActive() {
 		return WitherActions.isPracticeMode();
+	}
+
+	/** Split stamped when each boss phase starts, latest first, and that phase's section. */
+	private static final String[][] PHASE_SPLITS = {
+			{"Necron", "witherking"}, {"Goldor", "necron"}, {"Storm", "goldor"}, {"Maxor", "storm"}, {"Clear", "maxor"}};
+
+	/** Section of the boss phase the practice is in, or null outside practice or while the clear is on. */
+	public static String currentBossSection() {
+		String section = WitherActions.runSection();
+		if(!isActive() || section.equals("clear")) return null;
+		for(String[] split : PHASE_SPLITS) {
+			if(WitherActions.getSplitEnd(split[0]) != null) return split[1];
+		}
+		if(section.equals("all")) return null;
+		return DEFAULT_LOCATIONS.containsKey(section) ? section : "maxor";
 	}
 
 	/**
