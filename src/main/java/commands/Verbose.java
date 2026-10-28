@@ -17,20 +17,21 @@ public class Verbose implements CommandExecutor {
 			return true;
 		}
 
-		if(args.length < 1 || args.length > 2) {
-			p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super> [player]"));
+		if(args.length > 2) {
+			p.sendMessage(Utils.msg("<red>Usage: /verbose [off|timer|on|super] [player]"));
 			return true;
 		}
 
 		VerboseLevel level;
-		switch(args[0].toLowerCase()) {
+		// No level given: toggle on/off.
+		if(args.length == 0) level = Utils.isVerbose() ? VerboseLevel.OFF : VerboseLevel.ON;
+		else switch(args[0].toLowerCase()) {
 			case "off", "false" -> level = VerboseLevel.OFF;
 			case "timer" -> level = VerboseLevel.TIMER;
 			case "on", "true" -> level = VerboseLevel.ON; // from SUPER this drops back to normal, not a no-op
-			// `super` toggles: on, or back to normal if already on.
-			case "super" -> level = (Utils.getVerboseLevel() == VerboseLevel.SUPER) ? VerboseLevel.ON : VerboseLevel.SUPER;
+			case "super" -> level = VerboseLevel.SUPER;
 			default -> {
-				p.sendMessage(Utils.msg("<red>Usage: /verbose \\<off|timer|on|super> [player]"));
+				p.sendMessage(Utils.msg("<red>Usage: /verbose [off|timer|on|super] [player]"));
 				return true;
 			}
 		}

@@ -29,10 +29,11 @@ public class WitherActions {
 	// Server tick each wither's armour last DROPPED, for wasMadeVulnerableThisTick.
 	private static final Map<UUID, Integer> lastVulnerableTick = new HashMap<>();
 
-	// --- Aggro target: last damager; same-tick ties go to the alphabetically-first name. ---
+	// --- Aggro target: last damager; same-tick ties go to the bigger hit, then the player nearer the boss. ---
 	private static volatile boolean practiceMode = false;
 	private static volatile Player lastDamager = null;
 	private static volatile int lastDamageTick = Integer.MIN_VALUE;
+	private static volatile double lastDamageAmount = 0;
 
 	/** Set by {@code Practice.runPractice}. Resets the aggro damager. */
 	public static void setPracticeMode(boolean on) {
@@ -44,6 +45,7 @@ public class WitherActions {
 	public static void resetDamager() {
 		lastDamager = null;
 		lastDamageTick = Integer.MIN_VALUE;
+		lastDamageAmount = 0;
 	}
 
 	public static boolean isPracticeMode() { return practiceMode; }
@@ -199,17 +201,31 @@ public class WitherActions {
 		return p.getGameMode() == GameMode.ADVENTURE && !gameModeChanged.contains(p.getUniqueId());
 	}
 
-	/** Makes {@code p} the aggro target. Same-tick ties go to the alphabetically-first name; a later tick always wins. */
-	public static void noteDamager(Player p) {
+	/**
+	 * Makes {@code p} the aggro target; a later tick always wins. Same tick: the bigger {@code damage} (a DIRECT hit's
+	 * pre-clamp damage, 0 for a shield-piercing note that dealt nothing), then whoever is nearer {@code boss}.
+	 */
+	public static void noteDamager(Player p, Wither boss, double damage) {
 		if(p == null) return;
 		if(isAggroEligible(p)) return;
 		int now = MinecraftServer.currentTick;
-		if(now > lastDamageTick) {
+		if(now > lastDamageTick || lastDamager == null) {
 			lastDamager = p;
 			lastDamageTick = now;
-		} else if(now == lastDamageTick && (lastDamager == null || p.getName().compareTo(lastDamager.getName()) < 0)) {
+			lastDamageAmount = damage;
+		} else if(now == lastDamageTick && (damage > lastDamageAmount
+				|| (damage == lastDamageAmount && nearer(p, lastDamager, boss)))) {
 			lastDamager = p;
+			lastDamageAmount = damage;
 		}
+	}
+
+	/** {@code a} strictly nearer {@code boss} than {@code b}; a {@code b} in another world loses. */
+	private static boolean nearer(Player a, Player b, Wither boss) {
+		org.bukkit.Location at = boss.getLocation();
+		if(b.getWorld() != boss.getWorld()) return a.getWorld() == boss.getWorld();
+		if(a.getWorld() != boss.getWorld()) return false;
+		return a.getLocation().distanceSquared(at) < b.getLocation().distanceSquared(at);
 	}
 
 	/** Caps a tick's upward step; {@code box} is the hitbox after that tick's horizontal step. */
@@ -220,6 +236,21 @@ public class WitherActions {
 
 	/** Per-tick vertical cap so a big goalY-wy gap doesn't snap-teleport. */
 	private static final double AGGRO_SPEED_VERTICAL_MAX = 0.2;
+
+	/** No jump for this long and the aggro goal drops back to the target's real height. */
+	private static final int JUMP_HOLD_TICKS = 15;
+
+	/** Rise of a jump from the ground: jump power (strength attribute + Jump Boost), then gravity and 0.98 drag per tick. */
+	private static double jumpHeight(net.minecraft.world.entity.LivingEntity e) {
+		double v = e.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.JUMP_STRENGTH) + e.getJumpBoostPower();
+		double gravity = e.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.GRAVITY);
+		double rise = 0;
+		while(v > 0) {
+			rise += v;
+			v = (v - gravity) * 0.98;
+		}
+		return rise;
+	}
 
 	/**
 	 * Chases {@link #noteDamager}'s target (closest player until someone hits it) with a vanilla-shape PD controller:
@@ -243,9 +274,12 @@ public class WitherActions {
 		Runnable task = new Runnable() {
 			// The PD's "v"; zeroed on every snap.
 			double vxState = 0, vzState = 0;
-			// Goal Y, held while the target is mid-jump. trackedId re-seeds it on a target switch.
+			// Jump tracking for the goal Y; trackedId re-seeds it on a target switch.
 			int trackedId = -1;
-			double trackedY = 0;
+			double lastY = 0;
+			boolean lastOnGround = true;
+			double jumpPeakY = Double.NaN;
+			int lastJumpTick = Integer.MIN_VALUE;
 
 			@Override
 			public void run() {
@@ -283,16 +317,22 @@ public class WitherActions {
 					goalX = tx + dx * scale;
 					goalZ = tz + dz * scale;
 				}
-				// A jump must not drag the wither up: while the target's hitbox top stays under the wither's, keep the
-				// pre-jump Y. Falling and on-ground changes (stairs, landing higher) track at once.
-				double targetY = active.getY();
+				// A jumping target counts at its jump's PEAK, from the tick it leaves the ground, so a bunny-hop reads as
+				// one steady height instead of bobbing the wither. Held JUMP_HOLD_TICKS after the last jump; anything
+				// higher (a launch) tracks at once.
+				double actualY = active.getY();
+				int now = MinecraftServer.currentTick;
 				if(active.getId() != trackedId) {
 					trackedId = active.getId();
-				} else if(targetY > trackedY && !active.onGround()
-						&& targetY + active.getBbHeight() <= wy + w.getBbHeight()) {
-					targetY = trackedY;
+					jumpPeakY = Double.NaN;
+				} else if(lastOnGround && !active.onGround() && actualY > lastY) {
+					jumpPeakY = lastY + jumpHeight(active);
+					lastJumpTick = now;
 				}
-				trackedY = targetY;
+				if(now - lastJumpTick > JUMP_HOLD_TICKS) jumpPeakY = Double.NaN;
+				lastY = actualY;
+				lastOnGround = active.onGround();
+				double targetY = Double.isNaN(jumpPeakY) ? actualY : Math.max(jumpPeakY, actualY);
 				double goalY = targetY + yOffset;
 
 				// PD step, snap on overshoot. State persists so it accelerates from rest like vanilla.

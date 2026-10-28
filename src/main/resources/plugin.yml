@@ -21,7 +21,7 @@ commands:
     usage: /reset
   verbose:
     description: Toggle verbose debug messages
-    usage: /verbose <off|timer|on|super> [player]
+    usage: /verbose [off|timer|on|super] [player]
   setspeed:
     description: Set movement speed (100 = default); target self or a named player
     usage: /setspeed [player] [speed]

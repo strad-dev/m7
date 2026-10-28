@@ -195,8 +195,8 @@ public class MiscListener implements Listener {
 				Entity boss = rawHit instanceof Wither || rawHit instanceof EnderDragon ? rawHit
 						: rawHit instanceof EnderDragonPart part ? part.getParent() : null;
 				if(boss != null) {
-					String shooter = arrow.getShooter() instanceof Player sp ? sp.getName() : "?";
-					Utils.debug(Utils.DebugType.SERVER, "Last Breath arrow (" + shooter + ") hit " + boss.getName());
+					Player sp = arrow.getShooter() instanceof Player shooter ? shooter : null;
+					Utils.debug(Utils.DebugType.SERVER, sp, "Last Breath arrow (" + (sp == null ? "?" : sp.getName()) + ") hit " + boss.getName());
 				}
 			}
 			if(e.getHitBlock() != null) {

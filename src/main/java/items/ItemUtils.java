@@ -442,7 +442,7 @@ public final class ItemUtils {
 	 * scans). Not {@code isInvulnerable()}: Goldor is invulnerable all phase but takes ability damage through his
 	 * clamp, so that test would make him immune.
 	 */
-	private static final String GUIDED_TAG = "TASGuidedCarrier";
+	public static final String GUIDED_TAG = "TASGuidedCarrier";
 
 	/**
 	 * Fly a spawned animal at {@link #GUIDED_SPEED} toward where its caster is looking NOW, re-read every tick (the
@@ -670,7 +670,7 @@ public final class ItemUtils {
 				boolean stop = false;
 				for(Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, 1.0, 2.0, 1.0)) {
 					if(!notedAggro && e instanceof Wither w && w.getScoreboardTags().contains("TASWither")) {
-						instructions.bosses.WitherActions.noteDamager(p);
+						instructions.bosses.WitherActions.noteDamager(p, w, 0);
 						notedAggro = true;
 					}
 					if(!(e instanceof LivingEntity mob) || e instanceof Player) continue;
@@ -831,7 +831,7 @@ public final class ItemUtils {
 		if(targetEntity instanceof Wither wither && wither.getInvulnerableTicks() != 0) {
 			// Armoured (e.g. mid-intro): no damage, but note the damager so the boss aggros them once aggro turns on.
 			// Only the beam, thrown axe and Flaming Flay arc may do this (see damage/Damage.deal).
-			if(wither.getScoreboardTags().contains("TASWither")) instructions.bosses.WitherActions.noteDamager(p);
+			if(wither.getScoreboardTags().contains("TASWither")) instructions.bosses.WitherActions.noteDamager(p, wither, 0);
 			// Debuffs land even without damage (MAP.md §7), so Lethality is stacked by the time it opens up. Covers
 			// Maxor and Storm, which can't be arrow-debuffed before they're vulnerable.
 			// beam() applies them; its figure goes in the history too, or Venomous ticks for 0 until the first real hit.

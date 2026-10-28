@@ -125,7 +125,7 @@ public final class FlamingFlay implements Weapon, AbilityItem {
 					// One of three things that aggro a boss through a FULL shield (with the mage beam and thrown axe).
 					// Noted here because damage/Damage only sees a zero hit.
 					if(entity instanceof Wither w && w.getScoreboardTags().contains("TASWither")) {
-						instructions.bosses.WitherActions.noteDamager(p);
+						instructions.bosses.WitherActions.noteDamager(p, w, 0);
 					}
 					if(entity instanceof Wither armoured && armoured.getInvulnerableTicks() != 0) {
 						// Stacks still build through the shield, like the beam; no damage.

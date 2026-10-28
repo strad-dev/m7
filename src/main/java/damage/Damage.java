@@ -562,6 +562,8 @@ public final class Damage {
 		// The Watcher can't be damaged; you win by killing its Undeads.
 		if(target.getScoreboardTags().contains("TASWatcher")) return 0;
 		if(target.getScoreboardTags().contains(instructions.bosses.necron.NecronDrag.PIG_TAG)) return 0;
+		// A guided carrier in flight (Guided Sheep, Guided Bat): its own blast removes it.
+		if(target.getScoreboardTags().contains(items.ItemUtils.GUIDED_TAG)) return 0;
 		// A dying WK dragon is a corpse. Vanilla ticks dragonDeathTime toward 200 at health 0, but Bukkit
 		// setHealth(0) calls die() and EnderDragon.handleKillingBlow sets health back to 1, pausing it. So each hit
 		// rewound the animation a tick (swinging every tick froze the dragon in the air), drew a full number, fired
@@ -625,7 +627,7 @@ public final class Damage {
 			Utils.broadcastPacket(new ClientboundHurtAnimationPacket(((CraftLivingEntity) target).getHandle()));
 			Utils.changeName(target);
 			// Aggro only here, where health moved. That IS the rule, every path.
-			if(aggro) noteAggro(target, attacker, kind);
+			if(aggro) noteAggro(target, attacker, kind, preClamp);
 		}
 
 		// Kill chokepoints: no event fires on this path, so deaths are detected here. Gated on ALIVE before this hit
@@ -670,10 +672,11 @@ public final class Damage {
 	 * Only reached when health moved. Per-KIND gate here too: only direct hits aggro, never procs or Cleave, whatever
 	 * the caller passed. Only the four boss withers (TASWither) have an aggro target.
 	 */
-	private static void noteAggro(LivingEntity target, Player attacker, DamageKind kind) {
+	private static void noteAggro(LivingEntity target, Player attacker, DamageKind kind, double preClamp) {
 		if(attacker == null || !kind.pullsAggro()) return;
-		if(!(target instanceof Wither) || !target.getScoreboardTags().contains("TASWither")) return;
-		WitherActions.noteDamager(attacker);
+		if(!(target instanceof Wither wither) || !target.getScoreboardTags().contains("TASWither")) return;
+		// Pre-clamp, so two hits a stun cap squashes to the same health still rank by size.
+		WitherActions.noteDamager(attacker, wither, preClamp);
 	}
 
 	/**
