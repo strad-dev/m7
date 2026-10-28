@@ -15,7 +15,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import plugin.FakePlayerInventory;
+import plugin.ClassKits;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +47,7 @@ public class LinkedSlots implements Listener {
 		PlayerInventory inv = p.getInventory();
 
 		// SkyBlock-menu lock
-		if(FakePlayerInventory.isSkyblockMenu(inv.getItem(MENU_SLOT))) {
+		if(ClassKits.isSkyblockMenu(inv.getItem(MENU_SLOT))) {
 			boolean clicksMenuSlot = e.getClickedInventory() != null && e.getClickedInventory().equals(inv) && e.getSlot() == MENU_SLOT;
 			boolean numberKeyToMenu = e.getClick() == ClickType.NUMBER_KEY && e.getHotbarButton() == MENU_SLOT;
 			boolean swapOffhandMenu = e.getClick() == ClickType.SWAP_OFFHAND && e.getClickedInventory() != null
@@ -116,7 +116,7 @@ public class LinkedSlots implements Listener {
 	@EventHandler
 	public void onInventoryDrag(InventoryDragEvent e) {
 		if(!(e.getWhoClicked() instanceof Player p)) return;
-		if(!FakePlayerInventory.isSkyblockMenu(p.getInventory().getItem(MENU_SLOT))) return;
+		if(!ClassKits.isSkyblockMenu(p.getInventory().getItem(MENU_SLOT))) return;
 		for(int raw : e.getRawSlots()) {
 			Inventory at = e.getView().getInventory(raw);
 			if(at != null && at.equals(p.getInventory()) && e.getView().convertSlot(raw) == MENU_SLOT) {
@@ -130,7 +130,7 @@ public class LinkedSlots implements Listener {
 	public void onDrop(PlayerDropItemEvent e) {
 		ItemStack dropped = e.getItemDrop().getItemStack();
 		// Menu and offhand dungeon map are undroppable.
-		if(FakePlayerInventory.isSkyblockMenu(dropped) || DungeonMap.isDungeonMap(dropped)) {
+		if(ClassKits.isSkyblockMenu(dropped) || DungeonMap.isDungeonMap(dropped)) {
 			e.setCancelled(true);
 		}
 	}
@@ -138,7 +138,7 @@ public class LinkedSlots implements Listener {
 	// F with no inventory open fires this, not InventoryClickEvent: keep the menu and offhand dungeon map in place.
 	@EventHandler
 	public void onSwapHands(PlayerSwapHandItemsEvent e) {
-		if(FakePlayerInventory.isSkyblockMenu(e.getMainHandItem()) || FakePlayerInventory.isSkyblockMenu(e.getOffHandItem())
+		if(ClassKits.isSkyblockMenu(e.getMainHandItem()) || ClassKits.isSkyblockMenu(e.getOffHandItem())
 				|| DungeonMap.isDungeonMap(e.getMainHandItem()) || DungeonMap.isDungeonMap(e.getOffHandItem())) {
 			e.setCancelled(true);
 		}

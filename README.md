@@ -160,8 +160,7 @@ Two ways to *get* those items:
 **In code** (requires compiling against the plugin, route B below):
 
 ```java
-ItemStack[] kit = plugin.FakePlayerInventory.classLoadoutContents("Mage"); // 41 slots, see layout below
-plugin.FakePlayerInventory.applyClassLoadout(player, "Archer");            // the class's DEFAULT kit, ignoring saved edits
+ItemStack[] kit = plugin.ClassKits.classLoadoutContents("Mage"); // 41 slots, see layout below
 loadout.Loadouts.applyFor(player);                                        // the player's SAVED kit + class tag (what /m7practice does)
 ```
 
@@ -314,7 +313,7 @@ scope and `depend: [m7]` in your `plugin.yml`; at runtime Paper hands you M7's c
 plugin classloader.  You get real types and IDE completion, at the cost of a hard dependency.
 
 The API classes (`RunCompleteEvent`, `RunResult`, `BlessingChangeEvent`, `BlessingState`, `ItemSerial`,
-`Catalog`, `FakePlayerInventory`) are pure
+`Catalog`, `ClassKits`) are pure
 Bukkit, so `paper-nms` is *not* needed to compile against them, only to build M7 itself.
 
 > **Don't copy `RunCompleteEvent` into your own plugin.**  Bukkit matches listeners by class identity; your

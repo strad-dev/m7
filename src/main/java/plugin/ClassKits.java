@@ -33,7 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class FakePlayerInventory {
+public class ClassKits {
 
 	/**
 	 * The ONE definition of a class's kit, as a 41-slot array: [0..35] main inventory, [36] helmet, [37] chestplate,

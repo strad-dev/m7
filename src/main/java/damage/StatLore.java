@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * The pet reaches one term, {@code ItemDef.breakdown}'s {@code chimera (<pet>)}, so only Chimera items have
  * pet-dependent lore and only they get re-rendered.
  * <ul>
- *   <li>{@link #apply(ItemStack)} - TEMPLATE: factories, {@code plugin/FakePlayerInventory} and {@code plugin/Utils}
+ *   <li>{@link #apply(ItemStack)} - TEMPLATE: factories, {@code plugin/ClassKits} and {@code plugin/Utils}
  *       have no player, so it renders the assumed Golden Dragon (§1.13).</li>
  *   <li>{@link #refreshChimeraLore(Player)} - LIVE: re-renders the Chimera items a player carries for their actual
  *       pet, in every mode.</li>
@@ -66,7 +66,7 @@ public final class StatLore {
 
 	/**
 	 * Append stat rows if it's a registered stat item; returns the same stack for chaining. TEMPLATE rendering at the
-	 * Golden Dragon, for no-player callers (the ~40 {@code Item.freshStack}s, {@code plugin/FakePlayerInventory},
+	 * Golden Dragon, for no-player callers (the ~40 {@code Item.freshStack}s, {@code plugin/ClassKits},
 	 * {@code plugin/Utils}); {@link #refreshChimeraLore(Player)} corrects it once a player holds it.
 	 * <p>
 	 * Factories build fresh stacks, so no double rows; calling it twice on one stack would duplicate them (see

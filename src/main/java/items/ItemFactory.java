@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import plugin.FakePlayerInventory;
+import plugin.ClassKits;
 import plugin.Utils;
 
 import java.util.function.Consumer;
@@ -24,12 +24,12 @@ public final class ItemFactory {
 
 	/** {@code loreId} on lore line 0, SkyBlock {@code id} in NBT. */
 	public static ItemStack item(Material material, String name, String loreId, String skyblockId) {
-		return FakePlayerInventory.getSkyBlockItem(material, name, loreId, skyblockId);
+		return ClassKits.getSkyBlockItem(material, name, loreId, skyblockId);
 	}
 
 	/** For items needing more NBT than a bare {@code id} (AOTV). */
 	public static ItemStack item(Material material, String name, String loreId, Consumer<CompoundTag> nbt) {
-		return FakePlayerInventory.getSkyBlockItem(material, name, loreId, nbt);
+		return ClassKits.getSkyBlockItem(material, name, loreId, nbt);
 	}
 
 	/**
@@ -37,7 +37,7 @@ public final class ItemFactory {
 	 * which listed shared heads once per class in the palette.
 	 */
 	public static ItemStack head(String name, String identifier, String texture, String signature) {
-		return FakePlayerInventory.getCustomHead(name, identifier, texture, signature);
+		return ClassKits.getCustomHead(name, identifier, texture, signature);
 	}
 
 	/** No lore ID, so {@code StatLore} leaves lore line 0 blank. */

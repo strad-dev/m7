@@ -65,7 +65,7 @@ public final class ItemRefresh {
 	 * {@code MATERIAL||}; listing {@code ""} would clear every unnamed item).
 	 * <p>
 	 * Matched on material alone, so only list a material NO current item uses: check the palette and every default
-	 * kit in {@code FakePlayerInventory} first. Permanent and mirrored in the network copy, like the tables above.
+	 * kit in {@code ClassKits} first. Permanent and mirrored in the network copy, like the tables above.
 	 * <ul>
 	 *   <li>SOUL_SAND: old lava-jump block, bare stack with a {@code can_place_on} stamp, no name or ID. Dropped
 	 *       when slot 34 became the Heroic Jerry-chine Gun.</li>

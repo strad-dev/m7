@@ -594,6 +594,9 @@ public final class Damage {
 		// Hurt sound on PRE-clamp damage, or hits past Maxor's 75% / Storm's 55% stun cap go silent.
 		witherHurtSound(target, attacker, mcDamage, kind);
 
+		// Read before the clamp: a killing blow's clamp enters the dying state and tags TASDying mid-hit.
+		boolean dyingBefore = target.getScoreboardTags().contains("TASDying");
+
 		// Boss clamps (Maxor 75% stun cap, Storm 55% crush cap, Necron thresholds, Goldor patrol immunity, dying
 		// states), called explicitly since no EntityDamageEvent fires.
 		//
@@ -649,10 +652,10 @@ public final class Damage {
 		// What SkyBlock shows: after resistance and defense, BEFORE clamp, unquantised. Three figures: `preClamp`
 		// (displayed), `mcDamage` (clamp allowed), `applied` (quantised, the only one health sees).
 		double reported = preClamp * Scale.SB_PER_MC_HP;
-		// Draw only for a target ALIVE to take it. Uses `healthBefore` + dying tag since this runs after setHealth,
-		// and live health would hide the killing blow's number. Suppresses hits on corpses (late Cleave/procs, stray
+		// Draw only for a target ALIVE to take it. Uses `healthBefore` + `dyingBefore` since this runs after setHealth
+		// and the clamp, and live state would hide the killing blow's number. Suppresses hits on corpses (late Cleave/procs, stray
 		// arrows) and on a boss at DYING_SLIVER, where TASDying is the only tell (HP frozen non-zero).
-		boolean showsNumber = healthBefore > 0 && !target.getScoreboardTags().contains("TASDying");
+		boolean showsNumber = healthBefore > 0 && !dyingBefore;
 		if(showsNumber) DamageNumbers.show(target, reported, kind, attacker);
 		// /verbose uses the SAME gate; corpse procs and Cleave were the bulk of the log.
 		verbose(attacker, target, sbDamage, mcDamage, preClamp, defense, resistance, kind, showsNumber);

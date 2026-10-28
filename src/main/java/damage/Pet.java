@@ -101,7 +101,7 @@ public enum Pet {
 	public static Pet forPlayer(Player p, DamagePath path) {
 		if(Difficulty.manualPets()) return pets.Pets.equippedDamagePet(p);
 		PlayerInventory inv = p.getInventory();
-		if(plugin.FakePlayerInventory.isRacingHelmet(inv.getHelmet()) || plugin.FakePlayerInventory.isCowHat(inv.getHelmet())) {
+		if(plugin.ClassKits.isRacingHelmet(inv.getHelmet()) || plugin.ClassKits.isCowHat(inv.getHelmet())) {
 			return BLACK_CAT;
 		}
 		if(path == DamagePath.ABILITY) return CROW;

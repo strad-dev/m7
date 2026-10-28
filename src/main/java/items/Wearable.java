@@ -5,7 +5,7 @@ import org.bukkit.inventory.EquipmentSlot;
 
 /**
  * Armour sets, wearable heads, Spring Boots. Replaced display-name comparisons in four places
- * ({@code FakePlayerInventory.isCowHat} etc, {@code MaxSpeedSync}, {@code isThermoSet}, {@code CheatDeath.pick}).
+ * ({@code ClassKits.isCowHat} etc, {@code MaxSpeedSync}, {@code isThermoSet}, {@code CheatDeath.pick}).
  * <p>
  * A wearable affects DAMAGE only through its stats (§1.10, §8). The old x0.70 / x0.80 penalties on Spring Boots,
  * Racing Helmet, Cow Hat and masks are deleted: the helmet slot is exclusive, so a Cow Hat already costs the Storm

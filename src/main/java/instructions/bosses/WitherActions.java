@@ -37,6 +37,11 @@ public class WitherActions {
 	/** Set by {@code Practice.runPractice}. Resets the aggro damager. */
 	public static void setPracticeMode(boolean on) {
 		practiceMode = on;
+		resetDamager();
+	}
+
+	/** Aggro is per boss: a new boss starts with no damager, never the last boss's. */
+	public static void resetDamager() {
 		lastDamager = null;
 		lastDamageTick = Integer.MIN_VALUE;
 	}

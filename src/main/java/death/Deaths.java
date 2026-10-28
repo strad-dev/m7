@@ -320,6 +320,7 @@ public final class Deaths {
 					? Utils.msg("<red> ☠ <gray>You were killed by <mob> <gray>and became a ghost.", mob)
 					: Utils.msg("<red> ☠ <who> <gray>was killed by <mob> <gray>and became a ghost.", who, mob));
 		}
+		Bukkit.getConsoleSender().sendMessage(Utils.msg("<red> ☠ <who> <gray>was killed by <mob> <gray>and became a ghost.", who, mob));
 	}
 
 	/** A non-player killer (mob, "The World Border"): red, unparsed. */

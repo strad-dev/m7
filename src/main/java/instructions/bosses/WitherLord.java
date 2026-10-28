@@ -51,6 +51,7 @@ public abstract class WitherLord {
 			tickerTask = null;
 		}
 		resetState();
+		WitherActions.resetDamager();
 
 		this.tick = 0;
 		Utils.markPhaseStart();

@@ -14,7 +14,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import plugin.BossScheduler;
-import plugin.FakePlayerInventory;
+import plugin.ClassKits;
 import plugin.Utils;
 
 import java.time.Duration;
@@ -162,7 +162,7 @@ public final class Maxor extends WitherLord {
 	}
 
 	public static ItemStack getEnergyCrystalItem() {
-		return FakePlayerInventory.getSkyBlockItem(Material.NETHER_STAR, "<red>Energy Crystal", ENERGY_CRYSTAL_ID, "MAXOR_ENERGY_CRYSTAL");
+		return ClassKits.getSkyBlockItem(Material.NETHER_STAR, "<red>Energy Crystal", ENERGY_CRYSTAL_ID, "MAXOR_ENERGY_CRYSTAL");
 	}
 
 	public boolean notEnergyCrystal(Entity e) {

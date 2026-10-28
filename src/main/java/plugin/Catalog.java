@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  *                    "cycle": false }, ... ] }
  *
  * 41-slot layout: [0..35] main inventory, [36] helmet, [37] chestplate, [38] leggings, [39] boots, [40] off-hand
- * (FakePlayerInventory#classLoadoutContents).
+ * (ClassKits#classLoadoutContents).
  */
 public final class Catalog {
 	private static final String[] ROLES = {"Archer", "Berserk", "Healer", "Mage", "Tank"};
@@ -56,7 +56,7 @@ public final class Catalog {
 	 * reads them directly, so the two can't disagree and the editor works with an unwritable shared folder.
 	 */
 	public static ItemStack[] defaultFor(String role) {
-		ItemStack[] arr = FakePlayerInventory.classLoadoutContents(role);
+		ItemStack[] arr = ClassKits.classLoadoutContents(role);
 		int power = terminatorPower(role);
 		if (power > 0 && arr[4] != null && arr[4].getType() == Material.BOW) {
 			arr[4].addUnsafeEnchantment(Enchantment.POWER, power);
@@ -201,7 +201,7 @@ public final class Catalog {
 			// Row 2: situational weapons and the pearls.
 			"Heroic Ice Spray Wand",
 			"Precise Last Breath",
-			"Withered Ragnarοck Axe",   // Greek omicron, matching FakePlayerInventory - see the note above
+			"Withered Ragnarοck Axe",   // Greek omicron, matching ClassKits - see the note above
 			"Suspicious Axe of the Shredded",
 			"Withered Flaming Flay",
 			"Heroic Jerry-chine Gun",

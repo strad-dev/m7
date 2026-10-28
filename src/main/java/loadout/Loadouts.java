@@ -30,7 +30,7 @@ import java.util.*;
  * Two writers is safe because the file is per player and a player is on one server at a time; writes are
  * temp+rename anyway. Don't widen this into a multi-player file without revisiting that.
  * <p>
- * 41-slot layout (used by the editor, {@code M7Bridge} and {@code FakePlayerInventory}):
+ * 41-slot layout (used by the editor, {@code M7Bridge} and {@code ClassKits}):
  * [0..35] main inventory, [36] helmet, [37] chestplate, [38] leggings, [39] boots, [40] off-hand.
  * <p>
  * NOTE: near-identical copy in the network plugin ({@code loadout/Loadouts.java}) - keep in sync.

@@ -11,7 +11,7 @@ import org.bukkit.block.data.Rotatable;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
-import plugin.FakePlayerInventory;
+import plugin.ClassKits;
 import plugin.M7;
 import plugin.Utils;
 
@@ -365,7 +365,7 @@ public final class ClearManager {
 	 *  map or the menu star, never e.g. a Maxor crystal. */
 	private static void manageMapAndMenu(Player p) {
 		ItemStack slot8 = p.getInventory().getItem(8);
-		if(!FakePlayerInventory.isSkyblockMenu(slot8)) {
+		if(!ClassKits.isSkyblockMenu(slot8)) {
 			if(slot8 == null || slot8.getType() == Material.AIR || DungeonMap.isAnyDungeonMap(slot8)) {
 				p.getInventory().setItem(8, skyblockMenu());
 			}

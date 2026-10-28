@@ -42,8 +42,8 @@ public final class CheatDeath {
 		/** Spirit Mask, worn: 30s cooldown, 3s immune. */
 		SPIRIT("Spirit", 600, 60, "<dark_purple>",
 				"<gold>Second Wind Activated<green>!  Your Spirit Mask saved your life!"),
-		/** Phoenix pet, assumed out: 60s cooldown, 4s immune, no item so no durability bar. */
-		PHOENIX("Phoenix", 1200, 80, "<gold>",
+		/** Phoenix pet, assumed out: 60s cooldown, immune for the death tick only, no item so no durability bar. */
+		PHOENIX("Phoenix", 1200, 1, "<gold>",
 				"<yellow>Your <red>Phoenix Pet</red> saved you from certain death!");
 
 		/** Short, to sit next to a boss HUD's segments. */
