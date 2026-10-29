@@ -21,9 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * <b>Shortbow</b>: never drawn, every shot a full-damage crit (§1.2).
  * <p>
- * POLLER-driven: a click only records its tick; {@link #pollAll()} fires on the first tick with a new packet AND
- * the cooldown elapsed (5, or 4 with full Thermodynamic). One volley per cooldown however hard it's spammed, and a
- * left + right click on one tick make one shot.
+ * A click fires at once if the cooldown is up (5, or 4 with full Thermodynamic); one on cooldown is armed and
+ * {@link #pollAll()} fires it the first tick it's up. Either way from the eye at the click. One volley per cooldown
+ * however hard it's spammed, and a left + right click on one tick make one shot.
  * <p>
  * Salvation has its own 5-tick clock, held here and not via {@link #cooldownTicks()}, so a RIGHT-click can't spend
  * it. Neither takes the Mage reduction: weapons, not abilities.
@@ -113,10 +113,10 @@ public final class Terminator implements Bow, AbilityItem {
 		return true;
 	}
 
-	/** Only ARMS a volley; {@link #pollAll()} decides when it fires. */
+	/** Arms a volley: fires now if off cooldown, else {@link #pollAll()} fires it when ready. */
 	@Override
 	public boolean onRightClick(Cast cast) {
-		lastPacketTick.put(cast.player().getUniqueId(), cast.tick());
+		arm(cast.player(), cast.tick());
 		return true;
 	}
 
@@ -124,7 +124,7 @@ public final class Terminator implements Bow, AbilityItem {
 	@Override
 	public boolean onLeftClick(Cast cast) {
 		Player p = cast.player();
-		lastPacketTick.put(p.getUniqueId(), cast.tick());
+		arm(p, cast.tick());
 		if(!Cooldowns.ready(p, SALVATION_KEY)) return false;
 		Cooldowns.start(p, SALVATION_KEY, SALVATION_COOLDOWN_TICKS);
 		salvation(p);
@@ -140,6 +140,17 @@ public final class Terminator implements Bow, AbilityItem {
 	/** Tick a volley was last armed, and last fired, per player. */
 	private static final Map<UUID, Integer> lastPacketTick = new ConcurrentHashMap<>();
 	private static final Map<UUID, Integer> lastFireTick = new ConcurrentHashMap<>();
+	/**
+	 * Eye at the last click. The volley flies where the player looked when they clicked, like Hypixel: firing from
+	 * the poll's live eye aimed a click wherever the head had turned since (the TAS turns for Rapid Fire on the same tick).
+	 */
+	private static final Map<UUID, Location> armedAim = new ConcurrentHashMap<>();
+
+	private static void arm(Player p, int tick) {
+		lastPacketTick.put(p.getUniqueId(), tick);
+		armedAim.put(p.getUniqueId(), p.getEyeLocation());
+		tryFire(p, MinecraftServer.currentTick);
+	}
 
 	/**
 	 * Per tick: anyone with a click since their last shot fires at the first tick at or after
@@ -147,29 +158,34 @@ public final class Terminator implements Bow, AbilityItem {
 	 */
 	public static void pollAll() {
 		int now = MinecraftServer.currentTick;
-		for(Map.Entry<UUID, Integer> entry : lastPacketTick.entrySet()) {
-			UUID id = entry.getKey();
-			int lastPacket = entry.getValue();
-			int lastFire = lastFireTick.getOrDefault(id, Integer.MIN_VALUE / 2);
-			if(lastPacket <= lastFire) continue;                 // no new right-click since the last shot
+		for(UUID id : lastPacketTick.keySet()) {
 			Player p = Bukkit.getPlayer(id);
-			if(p == null || !p.isOnline()) continue;
-			if(!"skyblock/combat/terminator".equals(ItemUtils.getID(p.getInventory().getItemInMainHand()))) continue; // must hold it
-			int cooldown = ItemUtils.isThermoSet(p) ? 4 : 5;
-			if(now >= lastFire + cooldown) {
-				fire(p);
-				lastFireTick.put(id, now);
-			}
+			if(p != null && p.isOnline()) tryFire(p, now);
 		}
+	}
+
+	/** Fires the armed volley if there's a click since the last shot, the Terminator is held and the cooldown is up. */
+	private static void tryFire(Player p, int now) {
+		UUID id = p.getUniqueId();
+		int lastPacket = lastPacketTick.getOrDefault(id, Integer.MIN_VALUE / 2);
+		int lastFire = lastFireTick.getOrDefault(id, Integer.MIN_VALUE / 2);
+		if(lastPacket <= lastFire) return;                 // no new right-click since the last shot
+		if(!"skyblock/combat/terminator".equals(ItemUtils.getID(p.getInventory().getItemInMainHand()))) return; // must hold it
+		int cooldown = ItemUtils.isThermoSet(p) ? 4 : 5;
+		if(now < lastFire + cooldown) return;
+		Location aim = armedAim.get(id);
+		fire(p, aim != null && aim.getWorld() == p.getWorld() ? aim.clone() : p.getEyeLocation());
+		lastFireTick.put(id, now);
 	}
 
 	/** Part of the run reset. */
 	public static void reset() {
 		lastPacketTick.clear();
 		lastFireTick.clear();
+		armedAim.clear();
 	}
 
-	private static void fire(Player p) {
+	private static void fire(Player p, Location eye) {
 		// you don't need arrows
 		p.getInventory().remove(Material.ARROW);
 		p.getInventory().remove(Material.TIPPED_ARROW);
@@ -184,12 +200,12 @@ public final class Terminator implements Bow, AbilityItem {
 			if(nmsPlayer.isUsingItem()) nmsPlayer.stopUsingItem();
 		}, 1);
 
-		Vector baseDirection = p.getEyeLocation().getDirection().normalize();
+		Vector baseDirection = eye.getDirection().normalize();
 		Vector leftDirection = baseDirection.clone().rotateAroundY(Math.toRadians(-5));
 		Vector rightDirection = baseDirection.clone().rotateAroundY(Math.toRadians(5));
 
 		// vanilla: eyeY - 0.1
-		Location l = p.getEyeLocation().add(0, -0.1, 0);
+		Location l = eye.add(0, -0.1, 0);
 
 		net.minecraft.world.entity.projectile.arrow.Arrow nmsLeft = new net.minecraft.world.entity.projectile.arrow.Arrow(nmsWorld, 0, 0, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW), null);
 		net.minecraft.world.entity.projectile.arrow.Arrow nmsMiddle = new net.minecraft.world.entity.projectile.arrow.Arrow(nmsWorld, 0, 0, 0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ARROW), null);

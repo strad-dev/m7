@@ -81,7 +81,8 @@ Lightning will not actually kill you, *unless* the run is in **Perfect RNG** or 
 
 Everything real about the damage, plus death: live debuffs, the blessings you actually collected, and the
 instakills below.  What it does *not* do is make the dungeon fight back - the RNG always rolls your way, so a
-terminal opens one click from solved, Sharp Shooter always walks its targets in the same order, the Wither King's
+terminal opens one click from solved and is always the same type (1 Starts With, 2 Same Color, 3 Rubix, 4 On/Off,
+S2's 5 Melody), Sharp Shooter always walks its targets in the same order, the Wither King's
 dragons take their set colours, Simon Says and Arrow Align are the short stand-ins, and the pet you need is the
 pet you have.
 

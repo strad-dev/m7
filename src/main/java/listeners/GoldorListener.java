@@ -517,8 +517,11 @@ public class GoldorListener implements Listener {
 		renderSharpTargets(sharpWorld);
 	}
 
-	/** Perfect RNG's fixed walk: -X across a row, then -Y, (68, 130) to (64, 126).  Written out because it is mode content, the wall a player learns. */
-	private static final int[] SEQUENTIAL_SHARP_ORDER = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+	/**
+	 * Perfect RNG's fixed walk: +X across a row (right to left from the plate, which faces +Z), then -Y, (64, 130) to
+	 * (68, 126).  Written out because it is mode content, the wall a player learns.
+	 */
+	private static final int[] SEQUENTIAL_SHARP_ORDER = {2, 1, 0, 5, 4, 3, 8, 7, 6};
 
 	/** Fresh permutation of the nine {@code seq} encodings (Fisher-Yates). */
 	private static int[] randomSharpOrder() {
@@ -590,13 +593,21 @@ public class GoldorListener implements Listener {
 		int xIdx = -1, yIdx = -1;
 		for(int i = 0; i < TARGET_XS.length; i++) if(hit.getX() == TARGET_XS[i]) { xIdx = i; break; }
 		for(int i = 0; i < TARGET_YS.length; i++) if(hit.getY() == TARGET_YS[i]) { yIdx = i; break; }
+		Player shooter = (e.getEntity().getShooter() instanceof Player pl) ? pl : null;
+		boolean nearWall = hit.getX() >= 63 && hit.getX() <= 69 && hit.getY() >= 125 && hit.getY() <= 131;
+		if(Utils.isSuperVerbose() && nearWall) {
+			org.bukkit.Location at = e.getEntity().getLocation();
+			sharpLog(shooter, e.getEntity().getType().name().toLowerCase() + " (" + (shooter == null ? "?" : shooter.getName()) + ") hit "
+					+ hit.getX() + " " + hit.getY() + " " + hit.getZ() + " " + e.getHitBlockFace() + " at " + Utils.round(at.getX(), 3)
+					+ " " + Utils.round(at.getY(), 3) + " " + Utils.round(at.getZ(), 3) + (xIdx < 0 || yIdx < 0 ? ", not a target" : ""));
+		}
 		if(xIdx < 0 || yIdx < 0) return;
 
 		World world = hit.getWorld();
-		Player shooter = (e.getEntity().getShooter() instanceof Player pl) ? pl : null;
 
 		// A pre-fired arrow can land before the phase is up; the hit (and the arrow MiscListener removes) would be lost, so defer it.
 		if(Goldor.INSTANCE.isPhaseInactive()) {
+			sharpLog(shooter, "  phase not up, retrying next tick");
 			deferSharpHit(world, xIdx, yIdx, shooter);
 			return;
 		}
@@ -607,7 +618,14 @@ public class GoldorListener implements Listener {
 	private void deferSharpHit(World world, int xIdx, int yIdx, Player shooter) {
 		Utils.scheduleTask(() -> {
 			if(!Goldor.INSTANCE.isPhaseInactive()) registerSharpHit(world, xIdx, yIdx, shooter, true);
+			else sharpLog(shooter, "  deferred hit on " + TARGET_XS[xIdx] + " " + TARGET_YS[yIdx] + " dropped: phase still not up");
 		}, 1L);
+	}
+
+	/** Sharp Shooter trace, {@code /verbose super} only. Filtered by shooter; one with none never matches a filter. */
+	private static void sharpLog(Player shooter, String message) {
+		if(!Utils.isSuperVerbose() || (shooter == null && Utils.getVerboseFilter() != null)) return;
+		Utils.debug(Utils.DebugType.SERVER, shooter, "[i4] " + message);
 	}
 
 	/**
@@ -622,19 +640,28 @@ public class GoldorListener implements Listener {
 	private void registerSharpHit(World world, int xIdx, int yIdx, Player shooter, boolean wasDeferred) {
 		if(Goldor.INSTANCE.isPhaseInactive()) return;
 		GoldorSection s4 = Goldor.INSTANCE.getSection(3);
-		if(s4 == null || s4.device.isActivated()) return;
+		String target = TARGET_XS[xIdx] + " " + TARGET_YS[yIdx];
+		if(s4 == null || s4.device.isActivated()) { sharpLog(shooter, "  " + target + " ignored: device already done"); return; }
 		boolean sequential = damage.Difficulty.deathsEnabled();
 		// Plate: per-hit requirement in classic, one-off start in sequential.
-		if(sequential ? sharpCursor < 0 : !isPlayerOnPlate()) return;
-		if(sharpHits[xIdx][yIdx]) return;
+		if(sequential ? sharpCursor < 0 : !isPlayerOnPlate()) {
+			sharpLog(shooter, "  " + target + " ignored: " + (sequential ? "plate not stepped on yet" : "nobody on the plate"));
+			return;
+		}
+		if(sharpHits[xIdx][yIdx]) { sharpLog(shooter, "  " + target + " ignored: already hit"); return; }
 
 		if(sequential) {
-			if(!registerSequentialHit(world, xIdx, yIdx)) return; // not the active target: nothing completed
+			String active = activeSharpTarget();
+			if(!registerSequentialHit(world, xIdx, yIdx)) { // not the active target: nothing completed
+				sharpLog(shooter, "  " + target + " stamped, not counted: active target is " + active);
+				return;
+			}
 		} else {
 			sharpHits[xIdx][yIdx] = true;
 			sharpHitCount++;
 			setTargetBlock(world, xIdx, yIdx, TARGET_HIT);
 		}
+		sharpLog(shooter, "  " + target + " counted" + (wasDeferred ? " (deferred)" : "") + ", " + sharpHitCount + "/9");
 		if(sharpHitCount >= 9) {
 			if(shooter == null || cannotSolve(shooter)) {
 				shooter = null;
@@ -671,6 +698,13 @@ public class GoldorListener implements Listener {
 		}
 		renderSharpTargets(world);
 		return true;
+	}
+
+	/** "x y" of the emerald's current target, for the trace. */
+	private String activeSharpTarget() {
+		if(sharpOrder == null || sharpCursor < 0 || sharpCursor >= sharpOrder.length) return "none";
+		int seq = sharpOrder[sharpCursor];
+		return TARGET_XS[seq % 3] + " " + TARGET_YS[seq / 3];
 	}
 
 	/** True if (xIdx, yIdx) is the emerald's current target.  False while unarmed, so the wall reads all blue. */

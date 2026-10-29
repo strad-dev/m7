@@ -79,18 +79,14 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		}
 	}
 
-	/** Stand-in Melody pin, S2's fifth terminal, kept from ultra-realistic. */
-	private static final int STANDIN_MELODY_X = 40, STANDIN_MELODY_Y = 124, STANDIN_MELODY_Z = 123;
-
-	/** No Click In Order ({@link #assignTypes}). */
-	private static final List<Type> STANDIN_POOL =
-			List.of(Type.ON_OFF, Type.SAME_COLOR, Type.SELECT_ALL, Type.STARTS_WITH);
+	/** Perfect RNG, by terminal number in every section; only S2 has a fifth. No Click In Order (no stand-in board). */
+	private static final List<Type> STANDIN_ORDER =
+			List.of(Type.STARTS_WITH, Type.SELECT_ALL, Type.SAME_COLOR, Type.ON_OFF, Type.MELODY);
 
 	/**
 	 * From {@link GoldorSection}'s constructor. At most one of each type per section, dealt WITHOUT replacement from
-	 * six types (S2 has five terminals, the rest four). The old Melody pin only existed because five terminals and
-	 * five types forced it. The stand-in set deals differently ({@link #assignStandInTypes}): no board exists for
-	 * Click In Order there. More terminals than types is a build mistake: logged, pool reused.
+	 * six types (S2 has five terminals, the rest four). The stand-in set is fixed instead ({@link #assignStandInTypes}).
+	 * More terminals than types is a build mistake: logged, pool reused.
 	 */
 	static void assignTypes(List<GoldorTerminal> terminals) {
 		if(!damage.Difficulty.realPuzzles()) {
@@ -100,14 +96,17 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		deal(terminals, new ArrayList<>(List.of(Type.values())));
 	}
 
-	/** Perfect RNG: Melody on the pin only, four others from {@link #STANDIN_POOL}; every section has four non-pin terminals. */
+	/** Perfect RNG: {@link #STANDIN_ORDER} by {@code terminalIdx}, same every run. */
 	private static void assignStandInTypes(List<GoldorTerminal> terminals) {
-		List<GoldorTerminal> rest = new ArrayList<>(terminals.size());
 		for(GoldorTerminal t : terminals) {
-			if(t.x == STANDIN_MELODY_X && t.y == STANDIN_MELODY_Y && t.z == STANDIN_MELODY_Z) t.setType(Type.MELODY);
-			else rest.add(t);
+			if(t.terminalIdx < STANDIN_ORDER.size()) {
+				t.setType(STANDIN_ORDER.get(t.terminalIdx));
+			} else {
+				M7.getInstance().getLogger().warning("Goldor S" + (t.sectionIdx + 1) + " terminal " + (t.terminalIdx + 1)
+						+ " has no fixed Perfect RNG type; using " + STANDIN_ORDER.getFirst());
+				t.setType(STANDIN_ORDER.getFirst());
+			}
 		}
-		deal(rest, new ArrayList<>(STANDIN_POOL));
 	}
 
 	/** Warns and reuses the pool if a section outruns it. */
