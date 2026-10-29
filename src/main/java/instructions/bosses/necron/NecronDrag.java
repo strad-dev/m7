@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Goldor -> Necron drag: 20t after Necron spawns from Goldor every live player is sat on an invisible, invulnerable pig that
+ * Goldor -> Necron drag: 20t after Necron spawns every live player is sat on an invisible, invulnerable pig that
  * carries them toward the goal, jittered per pig by up to {@value #JITTER_XZ} on X/Z and {@value #JITTER_Y} on Y;
  * 60t after, they are dropped. Outside realistic the jitter is fixed: {@link #FIXED_SPOTS} in (class, name) order. They can't dismount in between.
  * Horizontal: at most {@value #MAX_HORIZONTAL_STEP} block per tick. Vertical: a fixed step per pig, set at mount so
@@ -52,7 +52,7 @@ public final class NecronDrag implements Listener {
 	// Our own dismount, not the player's: the listener lets it through.
 	private static boolean releasing;
 
-	/** From {@code Goldor.chainNext}, the tick Necron spawns. Never on a direct Necron practice. */
+	/** The tick Necron spawns: from {@code Goldor.chainNext} and a direct Necron practice ({@code Server.startSection}). */
 	public static void start(World world) {
 		Utils.scheduleTask(() -> mount(world), MOUNT_TICK);
 		Utils.scheduleTask(NecronDrag::release, RELEASE_TICK);

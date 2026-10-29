@@ -17,6 +17,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.WindCharge;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
+import plugin.Cooldowns;
 import plugin.MovementAudit;
 import plugin.Utils;
 import org.bukkit.entity.Player;
@@ -64,8 +65,18 @@ public final class Infinileap implements MenuItem {
 		return ItemFactory.item(material(), colouredName(reforge), loreId(), "INFINITE_SPIRIT_LEAP");
 	}
 
+	public static final int COOLDOWN_TICKS = 40;
+	private static final String COOLDOWN_KEY = "skyblock/utility/infinileap";
+
+	// Opening spends it, leap or not.
 	@Override
 	public void open(Player p) {
+		int remaining = Cooldowns.remaining(p, COOLDOWN_KEY);
+		if(remaining > 0) {
+			items.ItemUtils.sendCooldownMessage(p, remaining);
+			return;
+		}
+		Cooldowns.start(p, COOLDOWN_KEY, items.ItemUtils.effectiveCooldown(p, COOLDOWN_TICKS));
 		SpiritLeapMenu.open(p);
 	}
 

@@ -189,6 +189,7 @@ public class Server {
 			case "necron" -> {
 				Utils.scheduleTask(() -> Utils.runCommand("fill 53 63 113 55 63 115 minecraft:air"), 1);
 				Necron.necronInstructions(world, false);
+				instructions.bosses.necron.NecronDrag.start(world);
 			}
 			case "witherking" -> WitherKing.witherKingInstructions(world, true);
 		}
