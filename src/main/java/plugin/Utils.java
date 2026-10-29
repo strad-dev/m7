@@ -754,16 +754,29 @@ public class Utils {
 
 	private static final java.util.Map<Material, Boolean> USES_BLOCK = new java.util.EnumMap<>(Material.class);
 
+	// Chests stay out: secret chests take their own clicks.
+	private static final java.util.Set<Material> MENU_BLOCKS = java.util.EnumSet.of(
+			Material.DISPENSER, Material.DROPPER, Material.HOPPER, Material.CRAFTER, Material.BARREL, Material.ENDER_CHEST,
+			Material.FURNACE, Material.BLAST_FURNACE, Material.SMOKER, Material.BREWING_STAND, Material.BEACON,
+			Material.CRAFTING_TABLE, Material.ENCHANTING_TABLE, Material.GRINDSTONE, Material.STONECUTTER,
+			Material.SMITHING_TABLE, Material.LOOM, Material.CARTOGRAPHY_TABLE, Material.LECTERN);
+
+	/** A block whose GUI never opens here ({@code MiscListener.onMenuBlockInteract}). */
+	public static boolean isMenuBlock(Material m) {
+		return MENU_BLOCKS.contains(m) || Tag.ANVIL.isTagged(m) || Tag.SHULKER_BOXES.isTagged(m)
+				|| m.name().contains("COPPER_CHEST");
+	}
+
 	/**
 	 * Whether right-clicking {@code b} uses the block (chest, door, lever...) rather than the held item, so an item
 	 * ability stands down. Vanilla's rule: the block's class overrides {@code useWithoutItem} and the player isn't
 	 * sneaking. Fences (leads only), redstone dust and iron doors/trapdoors override it but almost never act on a
-	 * click, so they don't count; nor do anvils, which never open here ({@code MiscListener.onAnvilInteract}).
+	 * click, so they don't count; nor do menu blocks, which never open here ({@link #isMenuBlock}).
 	 */
 	public static boolean usesBlock(Player p, org.bukkit.block.Block b) {
 		if(b == null || p.isSneaking()) return false;
 		Material m = b.getType();
-		if(m == Material.IRON_DOOR || m == Material.IRON_TRAPDOOR || Tag.ANVIL.isTagged(m)) return false;
+		if(m == Material.IRON_DOOR || m == Material.IRON_TRAPDOOR || isMenuBlock(m)) return false;
 		return USES_BLOCK.computeIfAbsent(m, k ->
 				overridesUseWithoutItem(org.bukkit.craftbukkit.block.CraftBlockType.bukkitToMinecraft(k).getClass()));
 	}
