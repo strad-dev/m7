@@ -2,6 +2,8 @@ package instructions.bosses.witherking;
 
 import instructions.bosses.CustomBossBar;
 import instructions.bosses.WitherActions;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.title.Title;
 import net.minecraft.world.entity.boss.enderdragon.phases.DragonDeathPhase;
 import net.minecraft.world.entity.boss.enderdragon.phases.DragonPhaseInstance;
@@ -626,20 +628,22 @@ public class WitherKing {
 			prev = end;
 		}
 
-		Bukkit.broadcast(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-		Bukkit.broadcast(Utils.msg("                <red>Master Mode The Catacombs <dark_gray>- <yellow>Floor VII"));
-		Bukkit.broadcast(Utils.msg(""));
+		// One message, not one per line: client mods drop a line identical to an earlier one (the bottom bar, blank lines).
+		List<Component> out = new ArrayList<>();
+		out.add(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+		out.add(Utils.msg("                <red>Master Mode The Catacombs <dark_gray>- <yellow>Floor VII"));
+		out.add(Utils.msg(""));
 		if(clearRan) {
-			Bukkit.broadcast(Utils.msg("                           <white>Team Score: <green>" + instructions.clear.ClearManager.teamScore()
+			out.add(Utils.msg("                           <white>Team Score: <green>" + instructions.clear.ClearManager.teamScore()
 					+ " <white>(<aqua><bold>" + instructions.clear.ClearManager.grade() + "</bold><white>)"));
 		} else {
-			Bukkit.broadcast(Utils.msg("                           <white>Team Score: <red>Skipped"));
+			out.add(Utils.msg("                           <white>Team Score: <red>Skipped"));
 		}
-		Bukkit.broadcast(Utils.msg(" <red>☠ <yellow>Defeated <red>Maxor, Storm, Goldor, and Necron <yellow>in <green>" + overall + " ticks"));
-		Bukkit.broadcast(Utils.msg("                         <green>" + formatTime(overall)));
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.msg("                              <gold>> <yellow><bold>EXTRA INFO </bold><gold>\\<"));
-		Bukkit.broadcast(Utils.msg("                                   <green><bold>SPLITS"));
+		out.add(Utils.msg(" <red>☠ <yellow>Defeated <red>Maxor, Storm, Goldor, and Necron <yellow>in <green>" + overall + " ticks"));
+		out.add(Utils.msg("                         <green>" + formatTime(overall)));
+		out.add(Utils.msg(""));
+		out.add(Utils.msg("                              <gold>> <yellow><bold>EXTRA INFO </bold><gold>\\<"));
+		out.add(Utils.msg("                                   <green><bold>SPLITS"));
 		List<String> segs = new ArrayList<>();
 		if(clearRan) {
 			segs.add(seg("<blue>", "Clear", sp.get("Clear")));
@@ -659,18 +663,19 @@ public class WitherKing {
 			segs.add(Utils.mmLegacy("<blue><bold>Clear</bold><white>: Skipped"));
 		}
 		for(String line : packLines(segs)) {
-			Bukkit.broadcast(Utils.nameComponent(ChatFont.centerPad(line)));
+			out.add(Utils.nameComponent(ChatFont.centerPad(line)));
 		}
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.nameComponent(ChatFont.centerPad(Utils.mmLegacy("<green><bold>PLAYERS"))));
+		out.add(Utils.msg(""));
+		out.add(Utils.nameComponent(ChatFont.centerPad(Utils.mmLegacy("<green><bold>PLAYERS"))));
 		for(String line : packPlayerLines()) {
-			Bukkit.broadcast(Utils.nameComponent(ChatFont.centerPad(line)));
+			out.add(Utils.nameComponent(ChatFont.centerPad(line)));
 		}
-		Bukkit.broadcast(Utils.msg(""));
-		Bukkit.broadcast(Utils.msg("   <green><bold>Plugin by </bold><aqua>Stradivarius Violin<green>, also known as <aqua>Beethoven_"));
-		Bukkit.broadcast(Utils.msg("    <red><bold>YOUTUBE</bold><aqua>: https://www.youtube.com/@Stradivarius_Violin"));
-		Bukkit.broadcast(Utils.msg("               <blue><bold>DISCORD</bold><aqua>: https://discord.gg/gNfPwa8"));
-		Bukkit.broadcast(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+		out.add(Utils.msg(""));
+		out.add(Utils.msg("   <green><bold>Plugin by </bold><aqua>Stradivarius Violin<green>, also known as <aqua>Beethoven_"));
+		out.add(Utils.msg("    <red><bold>YOUTUBE</bold><aqua>: https://www.youtube.com/@Stradivarius_Violin"));
+		out.add(Utils.msg("               <blue><bold>DISCORD</bold><aqua>: https://discord.gg/gNfPwa8"));
+		out.add(Utils.msg("<green><bold>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+		Bukkit.broadcast(Component.join(JoinConfiguration.newlines(), out));
 
 		Utils.playGlobalSound(Sound.ENTITY_PLAYER_LEVELUP);
 		Utils.scheduleTask(() -> Utils.playGlobalSound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 1f), 1);
@@ -683,7 +688,7 @@ public class WitherKing {
 	/** Legacy §-string, for {@link ChatFont} width. */
 	private static final String SEG_SEP = Utils.mmLegacy("<white> | ");
 
-	/** Greedy: as many per line as fit {@link ChatFont#WRAP_WIDTH}. */
+	/** Greedy: as many per line as {@link ChatFont#fits}. */
 	private static List<String> packLines(List<String> segments) {
 		List<String> lines = new ArrayList<>();
 		StringBuilder line = new StringBuilder();
@@ -693,7 +698,7 @@ public class WitherKing {
 				continue;
 			}
 			String candidate = line + SEG_SEP + s;
-			if(ChatFont.width(candidate) > ChatFont.WRAP_WIDTH) {
+			if(!ChatFont.fits(candidate)) {
 				lines.add(line.toString());
 				line = new StringBuilder(s);
 			} else {

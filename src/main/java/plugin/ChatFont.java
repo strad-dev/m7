@@ -13,7 +13,7 @@ public final class ChatFont {
 	/** Width of an unscaled chat line. */
 	public static final int MAX_WIDTH = 320;
 
-	/** Wrap threshold, 10px under {@link #MAX_WIDTH} so the client never wraps a line itself. */
+	/** Wrap threshold for a CENTRED line, padding included, 10px under {@link #MAX_WIDTH}: some clients wrap at ~312px. */
 	public static final int WRAP_WIDTH = 310;
 
 	private static final char SECTION_CHAR = '§';
@@ -55,7 +55,7 @@ public final class ChatFont {
 		for(String word : text.trim().split("\\s+")) {
 			if(line.isEmpty()) {
 				line.append(word);
-			} else if(width(line + " " + word) <= WRAP_WIDTH) {
+			} else if(fits(line + " " + word)) {
 				line.append(' ').append(word);
 			} else {
 				lines.add(centerPad(line.toString()));
@@ -65,6 +65,11 @@ public final class ChatFont {
 		}
 		if(!line.isEmpty()) lines.add(centerPad(line.toString()));
 		return lines;
+	}
+
+	/** {@code text} still fits {@link #WRAP_WIDTH} once {@link #centerPad}ed. */
+	public static boolean fits(String text) {
+		return width(centerPad(text)) <= WRAP_WIDTH;
 	}
 
 	/** {@code text} with leading spaces that centre it in {@link #MAX_WIDTH}. */
