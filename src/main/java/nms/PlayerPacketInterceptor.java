@@ -48,7 +48,8 @@ public class PlayerPacketInterceptor extends ChannelDuplexHandler {
 				// Bow drew and fired nothing, silently.
 				if(items.ItemRegistry.of(player.getInventory().getItemInMainHand()) instanceof items.Bow bow
 						&& bow.holdToDraw()) {
-					Bukkit.getScheduler().runTask(M7.getInstance(), () -> {
+					// Server executor, not runTask: a same-tick slot change (vanilla stopUsingItem) ran first and ate the shot.
+					MinecraftServer.getServer().execute(() -> {
 						ServerPlayer sp = ((CraftPlayer) player).getHandle();
 						boolean was = sp.getAbilities().instabuild;
 						sp.getAbilities().instabuild = true;

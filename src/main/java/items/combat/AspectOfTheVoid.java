@@ -107,6 +107,8 @@ public final class AspectOfTheVoid implements Weapon, AbilityItem {
 			RayTraceResult result = p.rayTraceBlocks(61);
 			if(result != null) {
 				Block b = result.getHitBlock();
+				Utils.debug(Utils.DebugType.SERVER, p, "Etherwarp ray hit " + b.getType().getKey() + " at " + b.getX() + " " + b.getY() + " " + b.getZ()
+						+ " " + result.getHitBlockFace() + " from eye " + Utils.round(p.getEyeLocation().getY(), 5));
 				Location l = b.getLocation().add(0.5, 1, 0.5);
 				if(l.getBlock().getType().isSolid() || l.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
 					Utils.debug(Utils.DebugType.SERVER, p, "Could not Etherwarp " + p.getName() + " to " + Utils.round(l.getX(), 3) + " " + Utils.round(l.getY(), 5) + " " + Utils.round(l.getZ(), 3));

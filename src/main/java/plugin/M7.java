@@ -88,7 +88,7 @@ public final class M7 extends JavaPlugin {
 		petMenu = new pets.PetMenu();
 		commands.SettingsMenu settingsMenu = new commands.SettingsMenu();
 		for(String cmd : List.of("setup", "m7practice", "eq", "reset", "verbose", "setspeed",
-				"class", "m7loadout", "dungeonsettings", "pets", "petloadout")) {
+				"class", "m7loadout", "dungeonsettings", "pets", "petloadout", "blessings")) {
 			PluginCommand command = getCommand(cmd);
 			switch(cmd) {
 				case "setup" -> command.setExecutor(new Setup());
@@ -100,6 +100,7 @@ public final class M7 extends JavaPlugin {
 				case "class" -> command.setExecutor(new ClassCommand());
 				case "m7loadout" -> command.setExecutor(loadoutEditor);
 				case "dungeonsettings" -> command.setExecutor(new DungeonSettings(settingsMenu));
+				case "blessings" -> command.setExecutor(new BlessingsCommand());
 				// One menu in two modes; shares the instance the shutdown holds.
 				case "pets", "petloadout" -> command.setExecutor(petMenu);
 			}

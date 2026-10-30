@@ -190,6 +190,11 @@ public enum Difficulty {
 	 */
 	public static int blessingLevel(Utils.BlessingType type) {
 		if(liveInputs() && clearPhaseInThisSession()) return ClearManager.collectedLevel(type);
+		return maxBlessingLevel(type);
+	}
+
+	/** The maxed table: every blessing of {@code type} on the map. 0 for Life, which has no row. */
+	public static int maxBlessingLevel(Utils.BlessingType type) {
 		return switch(type) {
 			case POWER -> MAX_POWER;
 			case TIME -> MAX_TIME;

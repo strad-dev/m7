@@ -349,11 +349,12 @@ public class WitherKing {
 	 * timer ({@link #lastTimerDragon}).
 	 */
 	private static void startWitherKingIntro() {
-		int golemStep = 10;
+		int breakStep = 10;
 		int firstLine = 60;
 		int secondLine = 120;
 		int lastLine = 180;
-		for(int i = 20; i <= 20 + golemStep * 4; i += golemStep) {
+		Utils.scheduleTask(() -> Utils.playGlobalSound(Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.5f), 20);
+		for(int i = 20; i <= 20 + breakStep * 4; i += breakStep) {
 			Utils.scheduleTask(() -> Utils.playGlobalSound(Sound.ENTITY_ITEM_BREAK, 1.0f, 0.5f), i);
 		}
 		for(int i = 20; i <= 181; i += 20) {

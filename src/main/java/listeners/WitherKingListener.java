@@ -1,13 +1,18 @@
 package listeners;
 
 import instructions.bosses.witherking.WitherKing;
+import io.papermc.paper.event.entity.EntityPushedByEntityAttackEvent;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.EnderDragonPart;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -22,6 +27,26 @@ import org.bukkit.inventory.ItemStack;
  * altar (Y 6/7) holding it. A held relic is locked in the hotbar until placed on its altar.
  */
 public class WitherKingListener implements Listener {
+
+	/**
+	 * Dragons never attack. A summoned dragon stays in vanilla's HOVERING phase, but {@code EnderDragon.aiStep} still
+	 * runs {@code knockBack} (wings: push + 5) and {@code hurt} (head/neck: 10) on whoever touches it in any
+	 * non-sitting phase.
+	 */
+	@EventHandler(ignoreCancelled = true)
+	public void onDragonHit(EntityDamageByEntityEvent e) {
+		if(e.getEntity() instanceof Player && isWitherKingDragon(e.getDamager())) e.setCancelled(true);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onDragonPush(EntityPushedByEntityAttackEvent e) {
+		if(e.getEntity() instanceof Player && isWitherKingDragon(e.getPushedBy())) e.setCancelled(true);
+	}
+
+	private static boolean isWitherKingDragon(Entity entity) {
+		if(entity instanceof EnderDragonPart part) entity = part.getParent();
+		return entity instanceof EnderDragon && entity.getScoreboardTags().contains("WitherKingDragon");
+	}
 
 	/** Right-click a relic's Interaction entity to pick it up, unless already carrying one. */
 	@EventHandler

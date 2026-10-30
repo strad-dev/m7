@@ -359,6 +359,9 @@ public class Watcher {
 			return;
 		}
 		Utils.debug(Utils.DebugType.BOSS, p, "Portal entered by " + p.getName() + " → teleporting all players");
+		// Class-ability cooldowns reset entering the boss, never between its phases. A boss-section run gets this
+		// from Practice.runPractice's full reset.
+		listeners.CustomItems.resetClassAbilityCooldowns();
 
 		// Teleport THIS tick; the boss starts NEXT tick.
 		for(Player pl : world.getPlayers()) {
