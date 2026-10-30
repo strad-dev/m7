@@ -137,6 +137,7 @@ public class JoinListener implements Listener {
 		if (entrance == null) return;
 		String boss = commands.Practice.currentBossSection();
 		jp.teleport(boss == null ? entrance : commands.Practice.spawn(entrance.getWorld(), boss));
+		items.ItemUtils.landStanding(jp);
 	}
 
 	// Respawn at the entrance too: vanilla's world spawn drops them into the boss arena mid-clear. Run deaths are

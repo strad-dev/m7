@@ -200,6 +200,17 @@ public final class ItemUtils {
 		return l.getWorld().hasCollisionsIn(new BoundingBox(l.getX() - w, l.getY() - 1.0E-3, l.getZ() - w, l.getX() + w, l.getY(), l.getZ() + w));
 	}
 
+	/**
+	 * After a teleport onto a floor, land {@code p} as if standing. A teleport zeroes velocity, and a zero move on the
+	 * next physics step reads as airborne, so a fake's first tick after it used air acceleration.
+	 */
+	public static void landStanding(Player p) {
+		if(!(p instanceof CraftPlayer cp) || !standsOn(p, p.getLocation())) return;
+		ServerPlayer sp = cp.getHandle();
+		sp.setDeltaMovement(0, STANDING_DELTA_Y, 0);
+		sp.setOnGround(true);
+	}
+
 	/** Feet offset for a teleport landing in {@code b}: 0 if passable, the top of a low block (carpet) to stand on, else -1. */
 	public static double teleportFloor(Block b) {
 		if(b.isPassable()) return 0;

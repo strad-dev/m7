@@ -125,6 +125,7 @@ public final class OutOfBounds {
 					if(!outOfBounds(p)) continue;
 					Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " out of bounds before the run, back to spawn");
 					p.teleport(spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+					items.ItemUtils.landStanding(p);
 				}
 			}, t);
 		}

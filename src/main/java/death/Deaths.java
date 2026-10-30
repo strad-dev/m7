@@ -302,6 +302,7 @@ public final class Deaths {
 		if(g.reviveAt() != null) p.teleport(g.reviveAt(), PlayerTeleportEvent.TeleportCause.PLUGIN);
 		expectGameModeChange(p);
 		p.setGameMode(g.gameMode());
+		if(g.reviveAt() != null) items.ItemUtils.landStanding(p);
 		g.inventory().restore(p);
 		p.clearTitle();
 

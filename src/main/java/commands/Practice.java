@@ -166,6 +166,7 @@ public class Practice implements CommandExecutor {
 			Location target = spawn(world, section);
 			for(Player participant : participants) {
 				participant.teleport(target, PlayerTeleportEvent.TeleportCause.PLUGIN);
+				items.ItemUtils.landStanding(participant);
 			}
 		}
 

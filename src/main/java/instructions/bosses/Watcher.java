@@ -292,6 +292,14 @@ public class Watcher {
 		if(portalDetectTask != null && !portalDetectTask.isCancelled()) {
 			portalDetectTask.cancel();
 		}
+		portalDetectTask = null;
+		// Someone standing in it when it lights enters now, not on the poll's first run.
+		for(Player p : world.getPlayers()) {
+			if(!Utils.isSpectator(p) && inPortal(p)) {
+				enterPortal(p);
+				return;
+			}
+		}
 		portalDetectTask = new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -335,7 +343,7 @@ public class Watcher {
 	}
 
 	private void enterPortal(Player p) {
-		portalDetectTask.cancel();
+		if(portalDetectTask != null) portalDetectTask.cancel();
 		Location boss = BOSS_SPAWN.clone();
 		boss.setWorld(world);
 		// Clear split ends on portal entry (Wither-King practice scoreboard).
@@ -356,6 +364,7 @@ public class Watcher {
 		for(Player pl : world.getPlayers()) {
 			if(pl.getGameMode() == org.bukkit.GameMode.SPECTATOR) continue;
 			pl.teleport(boss);
+			items.ItemUtils.landStanding(pl);
 		}
 		// doContinue is true for "all", so Maxor → Storm → ….
 		Utils.scheduleTask(() -> Maxor.maxorInstructions(world, doContinue), 1);
