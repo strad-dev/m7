@@ -453,6 +453,9 @@ public class WitherKing {
 			dragon.getAttribute(Attribute.ARMOR).setBaseValue(0);
 			dragon.setHealth(damage.MobStats.WITHERED_DRAGON.internalHealth());
 			dragon.addScoreboardTag("WitherKingDragon");
+			// Parts sit at the origin until the first aiStep places them, and older arrows tick before the dragon, so
+			// without this no arrow can hit on the spawn tick.
+			((org.bukkit.craftbukkit.entity.CraftEnderDragon) dragon).getHandle().aiStep();
 			aliveCount++;
 			if(color.equals(lastTimerDragon)) lastTimerSpawned = true;
 			Utils.playGlobalSound(Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 1.0f);
