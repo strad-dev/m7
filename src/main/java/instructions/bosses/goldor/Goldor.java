@@ -41,8 +41,8 @@ public final class Goldor extends WitherLord {
 	private static final double CORE_APPROACH_SPEED = 0.8;
 	private static final double Y_DESCENT_SPEED = 0.1;
 	// Live modes: patrol, not the core approach, and no core damage until every live player is inside blocks 38..70,
-	// 109..157, 53..119.
-	private static final BoundingBox CORE_ROOM = new BoundingBox(38, 109, 53, 71, 158, 120);
+	// 109..157, 54..119.
+	private static final BoundingBox CORE_ROOM = new BoundingBox(38, 109, 54, 71, 158, 120);
 
 	// S3 frame wall (-2,119,74 to -2,125,80), expanded 1 each way for the frame entity's offset from its block.
 	private static final BoundingBox S3_FRAME_BOUNDS = new BoundingBox(-3, 118, 73, 0, 126, 81);
@@ -311,6 +311,7 @@ public final class Goldor extends WitherLord {
 		protectAllItemFrames();
 		startPatrolTask();
 		startInvalidLocationTicker();
+		if(listeners.GoldorListener.INSTANCE != null) listeners.GoldorListener.INSTANCE.armSharpShooterIfOccupied(world);
 	}
 
 	private GoldorSection buildS1() {

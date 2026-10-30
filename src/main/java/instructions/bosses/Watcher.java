@@ -300,7 +300,6 @@ public class Watcher {
 					if(Utils.isSpectator(p)) continue;
 					if(inPortal(p)) {
 						enterPortal(p);
-						cancel();
 						return;
 					}
 				}
@@ -322,7 +321,21 @@ public class Watcher {
 		return p.getBoundingBox().overlaps(PORTAL);
 	}
 
+	/**
+	 * "all" only: the move that reaches the portal teleports in its own handling, same tick. The poll would see it at
+	 * the next tick's start; it stays for anyone already standing in the portal when it opens, and for clear-only.
+	 */
+	public void onMove(Player p, Location to) {
+		if(!doContinue || portalDetectTask == null || portalDetectTask.isCancelled() || Utils.isSpectator(p)) return;
+		if(to.getWorld() != world) return;
+		Location from = p.getLocation();
+		if(p.getBoundingBox().shift(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ()).overlaps(PORTAL)) {
+			enterPortal(p);
+		}
+	}
+
 	private void enterPortal(Player p) {
+		portalDetectTask.cancel();
 		Location boss = BOSS_SPAWN.clone();
 		boss.setWorld(world);
 		// Clear split ends on portal entry (Wither-King practice scoreboard).

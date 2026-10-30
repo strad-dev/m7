@@ -26,7 +26,6 @@ public final class ItemDef {
 	private final List<Gemstones.Slot> gemSlots;
 	private final boolean chimera;
 	private final boolean swarm;
-	private final boolean flame;
 	private final double selfMultiplier;
 	private final boolean shortbow;
 	private final Ability ability;
@@ -44,7 +43,6 @@ public final class ItemDef {
 		this.gemSlots = List.copyOf(b.gemSlots);
 		this.chimera = b.chimera;
 		this.swarm = b.swarm;
-		this.flame = b.flame;
 		this.selfMultiplier = b.selfMultiplier;
 		this.shortbow = b.shortbow;
 		this.ability = b.ability;
@@ -134,9 +132,9 @@ public final class ItemDef {
 		return swarm;
 	}
 
-	/** Flame I: each arrow hit burns for 6% of it, {@code Procs.flame}. */
+	/** Flame I, on every bow: each arrow hit burns for 6% of it, {@code Procs.flame}. */
 	public boolean flame() {
-		return flame;
+		return category == ItemCategory.RANGED;
 	}
 
 	/** Item-wide multiplier and dungeon stage, applied once to the summed terms. */
@@ -162,7 +160,6 @@ public final class ItemDef {
 		private final List<Gemstones.Slot> gemSlots = new ArrayList<>();
 		private boolean chimera = false;
 		private boolean swarm = false;
-		private boolean flame = false;
 		private double selfMultiplier = 1.0;
 		private boolean shortbow = false;
 		private ItemDef.Ability ability = null;
@@ -240,11 +237,6 @@ public final class ItemDef {
 		/** Swarm V: +10% additive per enemy within 10 blocks, 10 max. Replaces Duplex on a bow. */
 		public Builder swarm() {
 			this.swarm = true;
-			return this;
-		}
-
-		public Builder flame() {
-			this.flame = true;
 			return this;
 		}
 

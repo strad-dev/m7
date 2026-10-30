@@ -500,6 +500,18 @@ public class GoldorListener implements Listener {
 		Block b = e.getClickedBlock();
 		if(b == null || b.getX() != PLATE_X || b.getY() != PLATE_Y || b.getZ() != PLATE_Z) return;
 		if(cannotSolve(e.getPlayer())) return;
+		armSharpShooter(b.getWorld());
+	}
+
+	/**
+	 * Goldor tick 0: someone already standing on the plate starts it now. They never step on again, and a plate
+	 * pressed before the phase fires no new {@code Action.PHYSICAL}.
+	 */
+	public void armSharpShooterIfOccupied(World world) {
+		if(isPlayerOnPlate()) armSharpShooter(world);
+	}
+
+	private void armSharpShooter(World world) {
 		if(!damage.Difficulty.deathsEnabled()) return;
 		if(Goldor.INSTANCE.isPhaseInactive()) return;
 		if(sharpCursor >= 0) return; // already running; a second step is not a restart
@@ -513,7 +525,7 @@ public class GoldorListener implements Listener {
 				? randomSharpOrder()
 				: SEQUENTIAL_SHARP_ORDER.clone();
 		sharpCursor = 0;
-		sharpWorld = b.getWorld();
+		sharpWorld = world;
 		renderSharpTargets(sharpWorld);
 	}
 

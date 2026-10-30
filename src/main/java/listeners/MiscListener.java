@@ -339,6 +339,11 @@ public class MiscListener implements Listener {
 		}
 	}
 
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onWatcherPortalMove(PlayerMoveEvent e) {
+		Watcher.INSTANCE.onMove(e.getPlayer(), e.getTo());
+	}
+
 	// Runners stack on each other, so no player-vs-player hits. Projectiles are unwrapped too, or Archer arrows land.
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onPlayerVsPlayer(EntityDamageByEntityEvent e) {

@@ -67,7 +67,6 @@ public final class Items {
 				.with(Upgrade.POTATO_BOOKS, Upgrade.ART_OF_WAR, Upgrade.OVERLOAD)
 				.reforge(ReforgeId.PRECISE)
 				.shortbow()
-				.flame()
 				.build());
 
 		// ============================== §1.3 Dark Claymore - Fabled ==============================

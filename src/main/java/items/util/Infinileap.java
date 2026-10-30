@@ -65,19 +65,32 @@ public final class Infinileap implements MenuItem {
 		return ItemFactory.item(material(), colouredName(reforge), loreId(), "INFINITE_SPIRIT_LEAP");
 	}
 
-	public static final int COOLDOWN_TICKS = 40;
-	private static final String COOLDOWN_KEY = "skyblock/utility/infinileap";
+	public static final int SHORT_COOLDOWN_TICKS = 40;
+	public static final int LONG_COOLDOWN_TICKS = 100;
+	private static final String SHORT_COOLDOWN_KEY = "skyblock/utility/infinileap";
+	private static final String LONG_COOLDOWN_KEY = "skyblock/utility/infinileap/long";
 
-	// Opening spends it, leap or not.
 	@Override
 	public void open(Player p) {
-		int remaining = Cooldowns.remaining(p, COOLDOWN_KEY);
-		if(remaining > 0) {
-			items.ItemUtils.sendCooldownMessage(p, remaining);
-			return;
-		}
-		Cooldowns.start(p, COOLDOWN_KEY, items.ItemUtils.effectiveCooldown(p, COOLDOWN_TICKS));
+		if(onCooldown(p)) return;
 		SpiritLeapMenu.open(p);
+	}
+
+	private static boolean onCooldown(Player p) {
+		int shortLeft = Cooldowns.remaining(p, SHORT_COOLDOWN_KEY);
+		int longLeft = Cooldowns.remaining(p, LONG_COOLDOWN_KEY);
+		if(shortLeft <= 0 || longLeft <= 0) return false;
+		items.ItemUtils.sendCooldownMessage(p, Math.min(shortLeft, longLeft));
+		return true;
+	}
+
+	// The leap spends it, not opening. Counts as both leap types: the 2s one if ready, else the 5s one.
+	private static void startCooldown(Player p) {
+		if(Cooldowns.ready(p, SHORT_COOLDOWN_KEY)) {
+			Cooldowns.start(p, SHORT_COOLDOWN_KEY, items.ItemUtils.effectiveCooldown(p, SHORT_COOLDOWN_TICKS));
+		} else {
+			Cooldowns.start(p, LONG_COOLDOWN_KEY, items.ItemUtils.effectiveCooldown(p, LONG_COOLDOWN_TICKS));
+		}
 	}
 
 	public static void leap(Player p, Player target) {
@@ -95,6 +108,8 @@ public final class Infinileap implements MenuItem {
 			Utils.debug(Utils.DebugType.ERROR, p.getName() + " tried to leap while holding " + heldDesc + " instead of an Infinileap");
 			return;
 		}
+		if(onCooldown(p)) return;
+		startCooldown(p);
 
 		// Leap voids bonzo motion: cancel the airborne audit (would log a giant delta and bogus "landed") and remove
 		// their in-flight wind charges so a late hit can't push them.

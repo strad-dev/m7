@@ -18,7 +18,7 @@ import java.util.UUID;
  *   <caption>The procs</caption>
  *   <tr><th>Source</th><th>Behaviour</th></tr>
  *   <tr><td>Fire Aspect III</td><td>9% of the hit at ticks 0, 20, 40, 60, 80: five procs over 80t.</td></tr>
- *   <tr><td>Flame I (Terminator)</td><td>6% of the arrow at ticks 0, 20, 40, 60, 80. Bow, so not from
+ *   <tr><td>Flame I (every bow)</td><td>6% of the arrow at ticks 0, 20, 40, 60, 80. Bow, so not from
  *       {@link #onHit}: {@code Arrows.hit} calls {@link #flame}.</td></tr>
  *   <tr><td>Thunderlord VII</td><td>Every third hit ON THE SAME MOB, 60% of that hit. Not a DoT: fires once on the
  *       hit, state is only the per-target counter.</td></tr>
