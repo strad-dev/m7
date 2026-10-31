@@ -8,6 +8,8 @@ import instructions.bosses.necron.Necron;
 import instructions.bosses.storm.Storm;
 import instructions.bosses.witherking.WitherKing;
 import listeners.GoldorListener;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,6 +21,8 @@ import plugin.ChatFont;
 import plugin.M7;
 import plugin.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Server {
@@ -457,17 +461,20 @@ public class Server {
 		public static void animateQuestion(World world, Player player, int questionNum, String questionText, String[] answers, TextDisplay[] options) {
 			Location particleStart = PARTICLE_START.clone();
 			particleStart.setWorld(world);
-			Bukkit.broadcast(Utils.msg(""));
-			Bukkit.broadcast(Utils.msg("<gold>                                <bold>Question #" + questionNum));
+			// One message: client mods drop a blank line identical to an earlier one (WitherKing.printPracticeScoreboard).
+			List<Component> out = new ArrayList<>();
+			out.add(Utils.msg(""));
+			out.add(Utils.msg("<gold>                                <bold>Question #" + questionNum));
 			// Wrapped + centred at render time: a line naming a player can't know its width (PuzzleQuiz Q3).
 			for(String line : ChatFont.centerLines(questionText)) {
-				Bukkit.broadcast(Utils.msg("<gold>" + line));
+				out.add(Utils.msg("<gold>" + line));
 			}
-			Bukkit.broadcast(Utils.msg(""));
+			out.add(Utils.msg(""));
 			for(int i = 0; i < 3; i++) {
-				Bukkit.broadcast(Utils.msg("<gold>     " + OPTION_LABELS[i] + " <green>" + answers[i]));
+				out.add(Utils.msg("<gold>     " + OPTION_LABELS[i] + " <green>" + answers[i]));
 			}
-			Bukkit.broadcast(Utils.msg(""));
+			out.add(Utils.msg(""));
+			Bukkit.broadcast(Component.join(JoinConfiguration.newlines(), out));
 			Utils.playGlobalSound(Sound.ENTITY_GUARDIAN_HURT, 2.0f, 0.5f);
 			for(int i = 0; i < 3; i++) {
 				final int idx = i;

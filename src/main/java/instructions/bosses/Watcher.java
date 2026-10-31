@@ -370,7 +370,11 @@ public class Watcher {
 			items.ItemUtils.landStanding(pl);
 		}
 		// doContinue is true for "all", so Maxor → Storm → ….
-		Utils.scheduleTask(() -> Maxor.maxorInstructions(world, doContinue), 1);
+		// The teleport tick counts for neither the clear nor Maxor.
+		Utils.scheduleTask(() -> {
+			Utils.excludeFromRun(1);
+			Maxor.maxorInstructions(world, doContinue);
+		}, 1);
 
 		closePortal();
 		active = false;

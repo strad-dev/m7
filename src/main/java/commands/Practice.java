@@ -206,10 +206,11 @@ public class Practice implements CommandExecutor {
 	private static final String[][] PHASE_SPLITS = {
 			{"Necron", "witherking"}, {"Goldor", "necron"}, {"Storm", "goldor"}, {"Maxor", "storm"}, {"Clear", "maxor"}};
 
-	/** Section of the boss phase the practice is in, or null outside practice or while the clear is on. */
+	/** Section of the boss phase the practice is in, or null outside practice, while the clear is on, or once the run has ended. */
 	public static String currentBossSection() {
 		String section = WitherActions.runSection();
-		if(!isActive() || section.equals("clear")) return null;
+		// A won run stays in practice mode until something ends it (the network's teardown), but it's over.
+		if(!isActive() || WitherActions.runReported() || section.equals("clear")) return null;
 		for(String[] split : PHASE_SPLITS) {
 			if(WitherActions.getSplitEnd(split[0]) != null) return split[1];
 		}

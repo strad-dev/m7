@@ -202,10 +202,10 @@ public final class GoldorTerminalGui implements InventoryHolder {
 
 	// ==================== item pools ====================
 
-	/** Families in all sixteen dye colours; colour-prefixed, these are Materials. */
+	/** Families in all sixteen dye colours; colour-prefixed, these are Materials. No panes: they read as GUI filler. */
 	private static final String[] DYED_SUFFIXES = {
 			"WOOL", "CARPET", "TERRACOTTA", "GLAZED_TERRACOTTA", "CONCRETE", "CONCRETE_POWDER",
-			"STAINED_GLASS", "STAINED_GLASS_PANE", "SHULKER_BOX", "BED", "CANDLE", "BANNER", "DYE"};
+			"STAINED_GLASS", "SHULKER_BOX", "BED", "CANDLE", "BANNER", "DYE"};
 
 	private static List<Material> dyedPool;
 	private static List<Material> itemPool;
@@ -230,12 +230,12 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		return dyedPool;
 	}
 
-	/** Real items only, never a barrier: that marks "not an answer". */
+	/** Real items only, never a glass pane: those read as GUI filler. */
 	private static List<Material> itemPool() {
 		if(itemPool == null) {
 			List<Material> out = new ArrayList<>();
 			for(Material m : Material.values()) {
-				if(m.isLegacy() || !m.isItem() || m.isAir() || m == Material.BARRIER) continue;
+				if(m.isLegacy() || !m.isItem() || m.isAir() || m.name().endsWith("GLASS_PANE")) continue;
 				out.add(m);
 			}
 			itemPool = List.copyOf(out);
@@ -398,13 +398,13 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		for(int i = 0; i < inv.getSize(); i++) inv.setItem(i, item(with));
 	}
 
-	/** Black glass edge, {@code body} inside. */
+	/** Black glass edge, {@code body} inside; null leaves it empty. */
 	private void frameAndFill(Material body) {
 		int rows = inv.getSize() / 9;
 		for(int row = 0; row < rows; row++) {
 			for(int col = 0; col < 9; col++) {
 				boolean edge = row == 0 || row == rows - 1 || col == 0 || col == 8;
-				inv.setItem(slot(row, col), item(edge ? FILLER : body));
+				inv.setItem(slot(row, col), edge ? item(FILLER) : body == null ? null : item(body));
 			}
 		}
 	}
@@ -499,16 +499,16 @@ public final class GoldorTerminalGui implements InventoryHolder {
 	// --- Select All / Starts With ---
 
 	/**
-	 * Answers scattered in a wall of barriers (barriers painted first; non-answers are never seen).
+	 * Answers scattered over empty slots (non-answers are never placed).
 	 * <p>
 	 * Each slot rolls answer-or-not FIRST at {@code answerChance}, then draws from that side. Drawing from the
-	 * whole pool made density a property of the QUESTION: a colour is 13 of 208 dyed items, a letter anything from a
+	 * whole pool made density a property of the QUESTION: a colour is 12 of 192 dyed items, a letter anything from a
 	 * handful to hundreds. No answer at all (under 1 board in 400) forces one in.
 	 * <p>
 	 * Duplicates allowed, like Hypixel; de-duplicating would cap answers at the matching pool size (two, for some letters).
 	 */
 	private void buildPick(List<Material> pool, Predicate<Material> matches, double answerChance) {
-		frameAndFill(Material.BARRIER);
+		frameAndFill(null);
 		int[] slots = innerSlots();
 		List<Material> answers = new ArrayList<>();
 		List<Material> others = new ArrayList<>();
@@ -685,11 +685,11 @@ public final class GoldorTerminalGui implements InventoryHolder {
 				inv.setItem(standInAnswer, withTooltip(Material.GREEN_STAINED_GLASS_PANE, 1));
 			}
 			case SELECT_ALL -> {
-				frameAndFill(Material.BARRIER);
+				frameAndFill(null);
 				inv.setItem(standInAnswer, item(Material.valueOf(pickColour.name() + "_CONCRETE")));
 			}
 			case STARTS_WITH -> {
-				frameAndFill(Material.BARRIER);
+				frameAndFill(null);
 				inv.setItem(standInAnswer, item(standInLetterItem()));
 			}
 			case MELODY -> buildStandInMelody();

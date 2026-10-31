@@ -688,7 +688,7 @@ public class WitherKing {
 	/** Legacy §-string, for {@link ChatFont} width. */
 	private static final String SEG_SEP = Utils.mmLegacy("<white> | ");
 
-	/** Greedy: as many per line as {@link ChatFont#fits}. */
+	/** Greedy: as many per line as fit {@link ChatFont#WRAP_WIDTH}. */
 	private static List<String> packLines(List<String> segments) {
 		List<String> lines = new ArrayList<>();
 		StringBuilder line = new StringBuilder();
@@ -698,7 +698,7 @@ public class WitherKing {
 				continue;
 			}
 			String candidate = line + SEG_SEP + s;
-			if(!ChatFont.fits(candidate)) {
+			if(ChatFont.width(candidate) > ChatFont.WRAP_WIDTH) {
 				lines.add(line.toString());
 				line = new StringBuilder(s);
 			} else {

@@ -13,7 +13,7 @@ public final class ChatFont {
 	/** Width of an unscaled chat line. */
 	public static final int MAX_WIDTH = 320;
 
-	/** Wrap threshold for a CENTRED line, padding included, 10px under {@link #MAX_WIDTH}: some clients wrap at ~312px. */
+	/** Wrap threshold, 10px under {@link #MAX_WIDTH} (some clients wrap at ~312px). {@link #centerPad} never pads past it. */
 	public static final int WRAP_WIDTH = 310;
 
 	private static final char SECTION_CHAR = '§';
@@ -55,7 +55,7 @@ public final class ChatFont {
 		for(String word : text.trim().split("\\s+")) {
 			if(line.isEmpty()) {
 				line.append(word);
-			} else if(fits(line + " " + word)) {
+			} else if(width(line + " " + word) <= WRAP_WIDTH) {
 				line.append(' ').append(word);
 			} else {
 				lines.add(centerPad(line.toString()));
@@ -67,20 +67,16 @@ public final class ChatFont {
 		return lines;
 	}
 
-	/** {@code text} still fits {@link #WRAP_WIDTH} once {@link #centerPad}ed. */
-	public static boolean fits(String text) {
-		return width(centerPad(text)) <= WRAP_WIDTH;
-	}
-
-	/** {@code text} with leading spaces that centre it in {@link #MAX_WIDTH}. */
+	/**
+	 * {@code text} with leading spaces that centre it in {@link #MAX_WIDTH}, capped so the line stays within
+	 * {@link #WRAP_WIDTH}: a near-full line sits a little off-centre instead of being wrapped by the client.
+	 */
 	public static String centerPad(String text) {
-		int toCompensate = (MAX_WIDTH / 2) - (width(text) / 2);
+		int w = width(text);
 		int spaceAdvance = glyphWidth(' ') + 1; // 4px
-		StringBuilder pad = new StringBuilder();
-		for(int compensated = 0; compensated < toCompensate; compensated += spaceAdvance) {
-			pad.append(' ');
-		}
-		return pad + text;
+		int spaces = Math.ceilDiv(Math.max(0, (MAX_WIDTH / 2) - (w / 2)), spaceAdvance);
+		spaces = Math.min(spaces, Math.max(0, (WRAP_WIDTH - w) / spaceAdvance));
+		return " ".repeat(spaces) + text;
 	}
 
 	/** Glyph width without the spacing pixel. */

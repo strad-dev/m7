@@ -602,6 +602,11 @@ public class Utils {
 		runStarted = false;
 	}
 
+	/** Takes {@code ticks} off the run timer: time the players don't control, like the portal's teleport tick. */
+	public static void excludeFromRun(int ticks) {
+		runStartTick += ticks;
+	}
+
 	public static int runTick() {
 		return nmsServer().getTickCount() - runStartTick;
 	}
