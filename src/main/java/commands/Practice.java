@@ -79,46 +79,12 @@ public class Practice implements CommandExecutor {
 		// Optional pre-run delay in ticks (bare integer). Default 60 (3s); network passes 400 (20s) when it warps
 		// a party in.
 		int delayTicks = 60;
-		// Optional difficulty ("classic" / "perfect_rng" / "rta"). Null leaves it alone, so standalone keeps its
-		// /dungeonsettings choice. The network always passes one: damage.Difficulty is server-wide and a run must
-		// not inherit the last party's mode, which decides whether anyone can die (both live modes kill).
-		damage.Difficulty difficulty = null;
-		// Optional mayor (a damage.Mayor id). Null leaves it alone, same reason: damage.Mayor is
-		// server-wide, and it decides whether every mob has double health.
-		damage.Mayor mayorArg = null;
-		// Optional Fix Watcher Bug ("on" / "off"). Null leaves it alone, same reason: plugin.WatcherFix is
-		// server-wide, and an inherited flag costs a clear record nobody chose to give up.
-		plugin.WatcherFix watcherFixArg = null;
-		// Optional Bad Bonzo ("badbonzo=on" / "badbonzo=off"), prefixed because a bare on/off is Fix Watcher Bug's.
-		plugin.BadBonzo badBonzoArg = null;
-		plugin.BatBug batBugArg = null;
-		plugin.AlphaGDrag alphaGDragArg = null;
+		RunSettings settings = new RunSettings();
 		for(String arg : args) {
-			if(arg.toLowerCase().startsWith("alphagdrag=")) {
-				plugin.AlphaGDrag gdrag = plugin.AlphaGDrag.parse(arg.substring("alphagdrag=".length()));
-				if(gdrag != null) alphaGDragArg = gdrag;
-				continue;
-			}
-			if(arg.toLowerCase().startsWith("batbug=")) {
-				plugin.BatBug bat = plugin.BatBug.parse(arg.substring("batbug=".length()));
-				if(bat != null) batBugArg = bat;
-				continue;
-			}
-			if(arg.toLowerCase().startsWith("badbonzo=")) {
-				plugin.BadBonzo bonzo = plugin.BadBonzo.parse(arg.substring("badbonzo=".length()));
-				if(bonzo != null) badBonzoArg = bonzo;
-				continue;
-			}
-			// Parsed up front, before the section fallback, which swallows any unknown word and would read
-			// "classic" as a section name.
-			damage.Difficulty mode = damage.Difficulty.parse(arg);
-			damage.Mayor mayor = damage.Mayor.parse(arg);
-			plugin.WatcherFix watcherFix = plugin.WatcherFix.parse(arg);
+			// Settings first: the section fallback below swallows any unknown word and would read "classic" as a section.
+			if(settings.accept(arg)) continue;
 			if(arg.equalsIgnoreCase("--no-teleport") || arg.equalsIgnoreCase("--noteleport")) noTeleport = true;
 			else if(arg.matches("\\d+")) delayTicks = Integer.parseInt(arg);
-			else if(mode != null) difficulty = mode;
-			else if(mayor != null) mayorArg = mayor;
-			else if(watcherFix != null) watcherFixArg = watcherFix;
 			else section = arg.toLowerCase();
 		}
 		if(!DEFAULT_LOCATIONS.containsKey(section)) {
@@ -130,17 +96,7 @@ public class Practice implements CommandExecutor {
 
 		if(!prepareParticipants(p, noTeleport ? null : spawn(world, section))) return true;
 
-		// Set BEFORE the run arms: debuff, defense reducer and blessing lookups read damage.Difficulty live, and
-		// RunResult.capture stamps it at completion, so this picks the leaderboard. Also decides whether death is
-		// on, which runPractice reads when clearing death state.
-		if(difficulty != null) damage.Difficulty.set(difficulty);
-		// Mayor too, and it matters more: mob HP is written once at spawn, so it must be right before anything spawns.
-		if(mayorArg != null) damage.Mayor.set(mayorArg);
-		if(watcherFixArg != null) plugin.WatcherFix.set(watcherFixArg);
-		if(badBonzoArg != null) plugin.BadBonzo.set(badBonzoArg);
-		if(batBugArg != null) plugin.BatBug.set(batBugArg);
-		if(alphaGDragArg != null) plugin.AlphaGDrag.set(alphaGDragArg);
-		broadcastExperimentalSettings();
+		settings.apply();
 
 		runPractice(world, section, delayTicks);
 		return true;

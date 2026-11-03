@@ -158,6 +158,13 @@ public class Server {
 	 * {@code what} names it in the "... started" line.
 	 */
 	public static void countdownThenRun(int ticks, String what, Runnable start) {
+		if(ticks <= 0) {
+			// No countdown: no "Starting in" lines, started this tick.
+			Bukkit.broadcast(Utils.msg("<green>" + what + " started"));
+			runStarted = true;
+			start.run();
+			return;
+		}
 		int seconds = (ticks + 19) / 20;
 		for(int i = seconds; i >= 1; i--) {
 			int secs = i;
@@ -200,7 +207,6 @@ public class Server {
 				Goldor.goldorInstructions(world, false);
 			}
 			case "necron" -> {
-				Utils.scheduleTask(() -> Utils.runCommand("fill 53 63 113 55 63 115 minecraft:air"), 1);
 				Necron.necronInstructions(world, false);
 				instructions.bosses.necron.NecronDrag.start(world);
 			}

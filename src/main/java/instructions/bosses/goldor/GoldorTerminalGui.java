@@ -137,11 +137,6 @@ public final class GoldorTerminalGui implements InventoryHolder {
 		return noTooltip(new ItemStack(m, amount));
 	}
 
-	/** Same Color keeps its tooltip: the pane name spells out the clicks. */
-	private static ItemStack withTooltip(Material m, int amount) {
-		return new ItemStack(m, amount);
-	}
-
 	private static ItemStack noTooltip(ItemStack stack) {
 		stack.setData(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplay.tooltipDisplay().hideTooltip(true));
 		return stack;
@@ -458,10 +453,9 @@ public final class GoldorTerminalGui implements InventoryHolder {
 	private void drawSameColor() {
 		for(int i = 0; i < SAME_COLOR_SLOTS.length; i++) {
 			int signed = RubixSolver.signed(rubix[i], rubixTarget);
-			ItemStack pane = withTooltip(CYCLE[rubix[i]], rubixAmount(signed));
+			ItemStack pane = item(CYCLE[rubix[i]], rubixAmount(signed));
 			ItemMeta meta = pane.getItemMeta();
 			if(meta != null) {
-				meta.displayName(Utils.mm(rubixHint(signed)));
 				// A finished pane GLINTS, unmistakable at a glance where an amount of 1 was invisible.
 				meta.setEnchantmentGlintOverride(signed == 0);
 				pane.setItemMeta(meta);
@@ -481,14 +475,6 @@ public final class GoldorTerminalGui implements InventoryHolder {
 	private static int rubixAmount(int signed) {
 		if(signed == 0) return RUBIX_DONE_AMOUNT;
 		return signed > 0 ? signed : RUBIX_DONE_AMOUNT + signed;
-	}
-
-	/** The count spelled out as the pane's name, for a player meeting a 62 the first time. */
-	private static String rubixHint(int signed) {
-		if(signed == 0) return "<dark_gray>Correct";
-		return signed > 0
-				? "<green>" + signed + " left-click" + (signed == 1 ? "" : "s")
-				: "<red>" + -signed + " right-click" + (signed == -1 ? "" : "s");
 	}
 
 	private boolean allSameColour() {
@@ -681,8 +667,8 @@ public final class GoldorTerminalGui implements InventoryHolder {
 			}
 			case SAME_COLOR -> {
 				fill(FILLER);
-				for(int s : SAME_COLOR_SLOTS) inv.setItem(s, withTooltip(Material.BLUE_STAINED_GLASS_PANE, 1));
-				inv.setItem(standInAnswer, withTooltip(Material.GREEN_STAINED_GLASS_PANE, 1));
+				for(int s : SAME_COLOR_SLOTS) inv.setItem(s, item(Material.BLUE_STAINED_GLASS_PANE));
+				inv.setItem(standInAnswer, item(Material.GREEN_STAINED_GLASS_PANE));
 			}
 			case SELECT_ALL -> {
 				frameAndFill(null);

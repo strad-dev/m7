@@ -14,8 +14,9 @@ import java.util.List;
 
 /**
  * /m7scenario <type> [ticks] [requirements...] [--ticks <n>]: countdown in ticks (default 60), either a bare number
- * above 5 straight after the type or flagged anywhere, so it can't be read as a terminal number; requirements per type ({@link Scenarios.Type#args()}). Uses the current dungeon settings; ended
- * by {@code /m7practice end}.
+ * above 5 straight after the type or flagged anywhere, so it can't be read as a terminal number; requirements per
+ * type ({@link Scenarios.Type#args()}). Takes /m7practice's dungeon-setting args ({@link RunSettings}), else the
+ * current settings stand. Ended by {@code /m7practice end}.
  */
 public class ScenarioCommand implements CommandExecutor {
 	public static final int DEFAULT_COUNTDOWN = 60;
@@ -47,7 +48,9 @@ public class ScenarioCommand implements CommandExecutor {
 			countdown = Integer.parseInt(args[1]);
 			first = 2;
 		}
+		RunSettings settings = new RunSettings();
 		for(int i = first; i < args.length; i++) {
+			if(settings.accept(args[i])) continue;
 			if(!args[i].equalsIgnoreCase(TICKS_FLAG)) {
 				reqs.add(args[i].toLowerCase());
 				continue;
@@ -64,14 +67,14 @@ public class ScenarioCommand implements CommandExecutor {
 			p.sendMessage(Utils.msg("<red><e>", Placeholder.unparsed("e", error)));
 			return true;
 		}
-		if(type.realisticOnly() && damage.Difficulty.current() != damage.Difficulty.REALISTIC) {
+		if(type.realisticOnly() && settings.effectiveDifficulty() != damage.Difficulty.REALISTIC) {
 			p.sendMessage(Utils.msg("<red><id> is Realistic mode only.  <gray>(/dungeonsettings difficulty realistic)",
 					Placeholder.unparsed("id", type.id())));
 			return true;
 		}
 
 		if(!Practice.prepareParticipants(p, type.spawn(p.getWorld()))) return true;
-		Practice.broadcastExperimentalSettings();
+		settings.apply();
 		Scenarios.start(p.getWorld(), type, type.args() == Scenarios.Args.NONE ? type.fixed() : reqs, countdown);
 		return true;
 	}

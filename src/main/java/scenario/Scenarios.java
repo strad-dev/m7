@@ -61,18 +61,18 @@ public final class Scenarios {
 			new Type("predev-new", "storm", new double[]{73.5, 165, 53.5, 0, 0}, true, Args.ONE, List.of("lights", "arrows"), List.of(), -1),
 			new Type("i4", "goldor", new double[]{63.5, 127, 35.5, 0, 0}, false, Args.NONE, List.of(), List.of("i4"), -1),
 			new Type("s1-ss", "goldor", new double[]{108.3, 120, 94.0, -90, 0}, false, Args.ANY, S1, List.of(), 0),
-			new Type("s1-llc", "goldor", new double[]{106.5, 123.0625, 111.7, 0, 0}, false, Args.ANY, S1, List.of(), 0),
+			new Type("s1-llc", "goldor", new double[]{106.5, 123.0625, 111.701, 0, 0}, false, Args.ANY, S1, List.of(), 0),
 			new Type("s2-lee2", "goldor", new double[]{58.0, 109, 131.0, 90, 0}, false, Args.ANY, S2, List.of(), 1),
 			new Type("s2-hee2", "goldor", new double[]{60.5, 132, 139.5, 90, 0}, false, Args.ANY, S2, List.of(), 1),
-			new Type("s3-lee3", "goldor", new double[]{2.0, 109, 103.5, 180, 0}, false, Args.ANY, S3, List.of(), 2),
-			new Type("s3-hee3", "goldor", new double[]{18.5, 121.5, 92.5, 180, 0}, false, Args.ANY, S3, List.of(), 2),
+			new Type("s3-lee3", "goldor", new double[]{2.0, 109, 99.0, 180, 0}, false, Args.ANY, S3, List.of(), 2),
+			new Type("s3-hee3", "goldor", new double[]{18.5, 121.5, 92.5, 0, 0}, false, Args.ANY, S3, List.of(), 2),
 			new Type("s4-core", "goldor", new double[]{54.5, 115.0625, 50.5, 180, 0}, false, Args.ANY, S4, List.of(), 3));
 
 	/** Early enter spots: {x, y, z}. "core" depends on the section. */
 	private static final Map<String, double[]> EARLY_ENTERS = Map.of(
 			"lee2", new double[]{58.0, 109, 131.0},
 			"hee2", new double[]{60.5, 132, 139.5},
-			"lee3", new double[]{2.0, 109, 103.5},
+			"lee3", new double[]{2.0, 109, 99.0},
 			"hee3", new double[]{18.5, 121.5, 92.5});
 	private static final double[] S2_CORE = {54.5, 115.0625, 50.5};
 	private static final double[] S4_CORE = {54.5, 115, 55.5};
@@ -119,7 +119,8 @@ public final class Scenarios {
 		stage();
 		Goldor.INSTANCE.forceEndPhase();
 		pets.Pets.applyStartingPets();
-		int ticks = Math.max(1, countdown);
+		// 0 = no countdown at all (countdownThenRun starts it now, silently).
+		int ticks = Math.max(0, countdown);
 		listeners.OutOfBounds.schedulePreRunReturns(t.spawn(w), ticks);
 		Bukkit.broadcast(Utils.msg("<gold>Scenario <white><id></white><gray>: <reqs>",
 				Placeholder.unparsed("id", t.id()), Placeholder.unparsed("reqs", String.join(" ", requirements))));

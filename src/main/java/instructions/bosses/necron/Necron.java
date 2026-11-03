@@ -29,7 +29,7 @@ import java.util.Random;
  * short immune interlude:
  * <ul>
  *   <li><b>80% HP</b> → frenzy: teleport to the middle, blind players, hold still for {@value #FRENZY_DURATION_TICKS}t.</li>
- *   <li><b>25% HP</b> → fireball attack ({@link #destroyPlatform}) in place for {@value #FIREBALL_DURATION_TICKS}t.</li>
+ *   <li><b>25% HP</b> → fireball attack ({@link #fireballSalvo}) in place for {@value #FIREBALL_DURATION_TICKS}t.</li>
  *   <li><b>5% HP</b>  → frenzy again ({@value #FRENZY_DURATION_TICKS}t).</li>
  *   <li><b>0% HP</b>  → death, then chain to the Wither King after {@value #DEATH_TO_WK_TICKS}t.</li>
  * </ul>
@@ -61,11 +61,6 @@ public final class Necron extends WitherLord {
 	private static final double MIDDLE_X = 54.5, MIDDLE_Y = 66, MIDDLE_Z = 76.5;
 	private static final float MIDDLE_YAW = 0f;
 	private static final float MIDDLE_PITCH = 0f;
-
-	// Platform top-center blocks. All AIR = already destroyed; guards the intro destroy.
-	private static final int PLATFORM_Y = 63;
-	private static final int PLATFORM_X1 = 53, PLATFORM_X2 = 55;
-	private static final int PLATFORM_Z1 = 113, PLATFORM_Z2 = 115;
 
 	private int eventsDone;          // 0 → 80% pending, 1 → 25%, 2 → 5%, 3 → death only
 	private boolean inInterlude;     // frenzy or fireball; damage rejected
@@ -114,12 +109,11 @@ public final class Necron extends WitherLord {
 
 		// Goldor's split ends as Necron spawns (Wither-King practice scoreboard).
 		instructions.bosses.WitherActions.recordSplit("Goldor", Utils.runTick());
-		// Intro: not damageable. Salvo 20, platform 60, Goodbye + chase 80, damageable 100. The salvo leads the platform
-		// by its own 40t.
+		// Intro: not damageable. Salvo 20, Goodbye + chase 80, damageable 100. The platform is never destroyed.
 		int salvoTick = 20;
 		sendChatMessage("You went further than any human before, congratulations.");
 		Utils.scheduleTask(() -> sendChatMessage("I'm afraid your journey ends now."), 40);
-		Utils.scheduleTask(() -> destroyPlatform(true), salvoTick); // guarded by platformIntact
+		Utils.scheduleTask(this::fireballSalvo, salvoTick);
 		Utils.scheduleTask(() -> sendChatMessage("Goodbye."), 80);
 
 		// Chase from Goodbye; armour off and damageable at the end of the intro.
@@ -195,7 +189,7 @@ public final class Necron extends WitherLord {
 			// 25%: in place, no teleport, no blindness.
 			duration = FIREBALL_DURATION_TICKS;
 			Utils.timer("<green>Necron fireball attack at " + formatTick(displayTick()));
-			destroyPlatform(false); // fireballs only
+			fireballSalvo();
 		} else {
 			// 80% and 5%: frenzy.
 			duration = FRENZY_DURATION_TICKS;
@@ -329,35 +323,20 @@ public final class Necron extends WitherLord {
 		}
 	}
 
-	// ---------- Platform destroy / fireball attack ----------
+	// ---------- Fireball attack ----------
 
-	/** Fireball salvo. Only the intro one ({@code allowDestroy}) swaps in the destroyed platform, and only if it's
-	*  still intact on the destroy tick; one the players already broke open is left alone. */
-	private void destroyPlatform(boolean allowDestroy) {
+	/** Eight fireballs, 10t apart. Intro and 25%; the platform is left alone. */
+	private void fireballSalvo() {
 		// He's stationary for both: the intro fires from spawn, the 25% one from the middle where the first frenzy
 		// planted him, so no chase momentum to cancel.
 		shootFireball();
 		Utils.scheduleTask(this::shootFireball, 10);
 		Utils.scheduleTask(this::shootFireball, 20);
 		Utils.scheduleTask(this::shootFireball, 30);
-		Utils.scheduleTask(() -> {
-			shootFireball();
-			// Checked on the destroy tick so earlier breaks are honoured. Destroyed variant at y -10..-6, intact at -5..-1.
-			if(allowDestroy && platformIntact()) Utils.runCommand("clone 70 -10 120 38 -6 99 38 59 99");
-		}, 40);
+		Utils.scheduleTask(this::shootFireball, 40);
 		Utils.scheduleTask(this::shootFireball, 50);
 		Utils.scheduleTask(this::shootFireball, 60);
 		Utils.scheduleTask(this::shootFireball, 70);
-	}
-
-	/** False once every top-center block (53..55, 63, 113..115) is AIR. */
-	private boolean platformIntact() {
-		for(int x = PLATFORM_X1; x <= PLATFORM_X2; x++) {
-			for(int z = PLATFORM_Z1; z <= PLATFORM_Z2; z++) {
-				if(world.getBlockAt(x, PLATFORM_Y, z).getType() != Material.AIR) return true;
-			}
-		}
-		return false;
 	}
 
 	private void shootFireball() {
