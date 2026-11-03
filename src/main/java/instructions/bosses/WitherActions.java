@@ -89,8 +89,8 @@ public class WitherActions {
 	 * leaving). Same event, {@code success=false}, so the splits and milestones reached are still banked; the
 	 * consumer decides what they count for (the network drops only the two whole-run boards). No-op once signalled.
 	 * <br>
-	 * Call it BEFORE any teardown: {@code ClearManager.stop} drops the score and the spectator flip empties the
-	 * roster, so the top of {@code Practice.endPractice} is the last instant the result is readable.
+	 * Call it BEFORE any teardown: {@code ClearManager.stop} drops the score and the network's spectator reset
+	 * empties the roster, so the top of {@code Practice.endPractice} is the last instant the result is readable.
 	 */
 	public static void signalRunAbandoned() {
 		if (!practiceMode || signalled) return;

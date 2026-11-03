@@ -14,7 +14,7 @@ commands:
     usage: /m7practice <section> [--no-teleport]
   m7scenario:
     description: Drill one part of a run from a mid-run state
-    usage: /m7scenario <type> [countdown] [requirements]
+    usage: /m7scenario <type> [ticks] [requirements] [--ticks <n>]
   eq:
     description: View your equipment and current speed
     usage: /eq

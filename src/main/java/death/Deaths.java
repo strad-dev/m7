@@ -192,7 +192,7 @@ public final class Deaths {
 	 * <p>
 	 * Order: ghosts restored before teardown so {@code ClearManager.stop}'s hotbar cleanup sees them as real;
 	 * run-complete signalled before teardown while state is intact for {@code RunResult.capture};
-	 * {@code endPractice} gets {@code toSpectator = false} since we already placed everyone.
+	 * {@code endPractice} leaves game modes alone, so the restored ones stand.
 	 * <p>
 	 * Same signal as Storm's all-pillars-gone failure, so the network frees its slot and re-asserts spectator (m7
 	 * idle state). Payload keeps phase durations and clear milestones, so leaderboards keep finished sections
@@ -216,7 +216,7 @@ public final class Deaths {
 		ghosts.clear();
 
 		WitherActions.signalRunComplete(false);
-		commands.Practice.endPractice(world, false);
+		commands.Practice.endPractice(world);
 
 		Location home = new Location(world, WIPE_RETURN[0], WIPE_RETURN[1], WIPE_RETURN[2], 0f, 0f);
 		for(Player p : party) p.teleport(home, PlayerTeleportEvent.TeleportCause.PLUGIN);

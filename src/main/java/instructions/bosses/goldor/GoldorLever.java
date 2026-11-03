@@ -36,6 +36,18 @@ public final class GoldorLever {
 		return activated;
 	}
 
+	/** Inert for a /m7scenario: label gone, flipping it does nothing. */
+	private boolean disabled = false;
+
+	public void disable() {
+		disabled = true;
+		cleanup();
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
 	public boolean isLeverBlock(int bx, int by, int bz) {
 		return bx == x && by == y && bz == z;
 	}

@@ -167,7 +167,7 @@ public final class GoldorSimonSays {
 	public void onStartClick(Player p, boolean wasDeferred) {
 		if(GoldorListener.cannotSolve(p)) return; // public entry point owns its own gate
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
-		if(s1 == null || s1.device.isActivated()) return;
+		if(s1 == null || s1.device.isClosed()) return;
 		if(state == State.SPAM && Utils.serverTick() - windowStartTick < SPAM_WINDOW_TICKS) {
 			spamClicks.merge(p.getUniqueId(), 1, Integer::sum);
 			Utils.debug(Utils.DebugType.BOSS, p, "Simon spam click by " + p.getName()
@@ -185,7 +185,7 @@ public final class GoldorSimonSays {
 	public void onCellClick(Player p, int cellIdx, boolean wasDeferred) {
 		if(GoldorListener.cannotSolve(p)) return; // public entry point owns its own gate
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
-		if(s1 == null || s1.device.isActivated()) return;
+		if(s1 == null || s1.device.isClosed()) return;
 		if(state != State.AWAITING || sequence.isEmpty()) return;
 		if(inputIdx >= sequence.size()) return;
 		if(sequence.get(inputIdx) != cellIdx) return; // wrong button: no reset, no penalty
@@ -229,7 +229,7 @@ public final class GoldorSimonSays {
 	private void closeSpamWindow() {
 		if(state != State.SPAM) return;
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
-		if(s1 == null || s1.device.isActivated()) { resetRuntime(); return; }
+		if(s1 == null || s1.device.isClosed()) { resetRuntime(); return; }
 
 		int clicks = 0, skips = 0;
 		for(int c : spamClicks.values()) {
@@ -325,7 +325,7 @@ public final class GoldorSimonSays {
 
 	private void complete(Player p, boolean wasDeferred) {
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
-		if(s1 == null || s1.device.isActivated()) return;
+		if(s1 == null || s1.device.isClosed()) return;
 		resetRuntime();
 		s1.device.markActivated();
 		if(p != null) Goldor.INSTANCE.onActivation(p, s1, "device", wasDeferred);

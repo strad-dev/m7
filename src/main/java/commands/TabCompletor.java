@@ -70,15 +70,29 @@ public class TabCompletor implements TabCompleter {
 				}
 				scenario.Scenarios.Type type = scenario.Scenarios.byId(args[0]);
 				if(type == null) break;
-				// Countdown only straight after the type.
+				// The countdown is the number after --ticks, or a bare one above 5 straight after the type.
+				if(args[args.length - 2].equalsIgnoreCase(ScenarioCommand.TICKS_FLAG)) {
+					for(String preset : new String[]{"60", "100", "200"}) {
+						if(preset.startsWith(input)) completions.add(preset);
+					}
+					break;
+				}
 				if(args.length == 2) {
 					for(String preset : new String[]{"60", "100", "200"}) {
 						if(preset.startsWith(input)) completions.add(preset);
 					}
 				}
 				List<String> typed = new ArrayList<>();
-				for(int i = 1; i < args.length - 1; i++) typed.add(args[i].toLowerCase());
-				typed.removeIf(a -> a.matches("\\d+"));
+				boolean ticksTyped = ScenarioCommand.isBareTicks(args, 1) && args.length > 2;
+				for(int i = ticksTyped ? 2 : 1; i < args.length - 1; i++) {
+					if(args[i].equalsIgnoreCase(ScenarioCommand.TICKS_FLAG)) {
+						ticksTyped = true;
+						i++;
+						continue;
+					}
+					typed.add(args[i].toLowerCase());
+				}
+				if(!ticksTyped && ScenarioCommand.TICKS_FLAG.startsWith(input)) completions.add(ScenarioCommand.TICKS_FLAG);
 				if(type.args() == scenario.Scenarios.Args.ONE && !typed.isEmpty()) break;
 				boolean earlyEnterTyped = typed.stream().anyMatch(scenario.Scenarios::isEarlyEnter);
 				for(String option : type.options()) {

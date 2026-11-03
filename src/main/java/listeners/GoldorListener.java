@@ -145,6 +145,7 @@ public class GoldorListener implements Listener {
 			if(idx[0] != Goldor.INSTANCE.getCurrentSectionIdx()) return false; // section-gated
 			if(idx[1] < 0 || idx[1] >= sec.terminals.size()) return false;
 			GoldorTerminal term = sec.terminals.get(idx[1]);
+			if(term.isDisabled()) return false;
 			if(term.isActivated() || term.isPending()) return true;
 
 			term.setPending();
@@ -252,6 +253,8 @@ public class GoldorListener implements Listener {
 				&& by >= LIGHTS_Y1 && by <= LIGHTS_Y2
 				&& bz == LIGHTS_Z) {
 			e.setCancelled(true); // don't let vanilla toggle or break the lever; I do it myself
+			GoldorSection lights = Goldor.INSTANCE.getSection(1);
+			if(lights != null && lights.device.isDisabled()) return; // inert for a scenario: no toggle either
 			int now = MinecraftServer.currentTick;
 			String leverKey = bx + "_" + by + "_" + bz;
 			LeverToggle last = lastS2LeverToggle.get(leverKey);
@@ -276,6 +279,10 @@ public class GoldorListener implements Listener {
 				if(sec == null) continue;
 				for(GoldorLever lev : sec.levers) {
 					if(lev.isLeverBlock(bx, by, bz)) {
+						if(lev.isDisabled()) {
+							e.setCancelled(true);
+							return;
+						}
 						if(sec.idx != Goldor.INSTANCE.getCurrentSectionIdx()) return; // section-gated
 						if(lev.isActivated()) return;
 						lev.markActivated();
@@ -337,7 +344,7 @@ public class GoldorListener implements Listener {
 			return;
 		}
 		GoldorSection s1 = Goldor.INSTANCE.getSection(0);
-		if(s1 == null || s1.device.isActivated()) return;
+		if(s1 == null || s1.device.isClosed()) return;
 		simonClicks++;
 		Utils.debug(Utils.DebugType.BOSS, p, "Button clicked by " + p.getName() + " " + simonClicks + "/" + SIMON_STANDIN_CLICKS);
 		if(simonClicks >= SIMON_STANDIN_CLICKS) {
@@ -359,10 +366,10 @@ public class GoldorListener implements Listener {
 	private void processLightsClick(Player p) {
 		if(cannotSolve(p)) return;
 		GoldorSection s2 = Goldor.INSTANCE.getSection(1);
-		if(s2 == null || s2.device.isActivated()) return;
+		if(s2 == null || s2.device.isClosed()) return;
 		World w = p.getWorld();
 		Utils.scheduleTask(() -> {
-			if(s2.device.isActivated() || cannotSolve(p)) return;
+			if(s2.device.isClosed() || cannotSolve(p)) return;
 			if(!allLightsLit(w)) return;
 			s2.device.markActivated();
 			Goldor.INSTANCE.onActivation(p, s2, "device", true);
@@ -413,6 +420,11 @@ public class GoldorListener implements Listener {
 		if(!(e.getRightClicked() instanceof ItemFrame frame)) return;
 		Player p = e.getPlayer();
 		if(!Goldor.INSTANCE.isInS3FrameRegion(frame)) return; // frames outside S3 behave normally
+		GoldorSection arrows = Goldor.INSTANCE.getSection(2);
+		if(arrows != null && arrows.device.isDisabled() && p.getGameMode() != GameMode.CREATIVE) {
+			e.setCancelled(true); // inert for a scenario
+			return;
+		}
 		if(Goldor.isTurnableArrowFrame(frame)) {
 			if(Goldor.INSTANCE.isPhaseInactive()) {
 				e.setCancelled(true);
@@ -444,7 +456,7 @@ public class GoldorListener implements Listener {
 		if(Goldor.INSTANCE.isPhaseInactive()) return false;
 		if(!Goldor.isTurnableArrowFrame(frame)) return false;
 		GoldorSection s3 = Goldor.INSTANCE.getSection(2);
-		if(s3 == null || s3.device.isActivated()) return false;
+		if(s3 == null || s3.device.isClosed()) return false;
 		frame.setRotation(frame.getRotation().rotateClockwise());
 		// Judged after the turn, so this click's frame counts.
 		if(damage.Difficulty.realPuzzles() && !Goldor.arrowFramesAligned(frame.getWorld())) return true;
@@ -517,7 +529,7 @@ public class GoldorListener implements Listener {
 		if(sharpCursor >= 0) return; // already running; a second step is not a restart
 
 		GoldorSection s4 = Goldor.INSTANCE.getSection(3);
-		if(s4 == null || s4.device.isActivated()) return;
+		if(s4 == null || s4.device.isClosed()) return;
 
 		// Decided per arming, so stepping back on deals a new wall.  Perfect RNG's clone is defensive: nothing
 		// mutates it today, but one shared array would be a trap.
@@ -653,7 +665,7 @@ public class GoldorListener implements Listener {
 		if(Goldor.INSTANCE.isPhaseInactive()) return;
 		GoldorSection s4 = Goldor.INSTANCE.getSection(3);
 		String target = TARGET_XS[xIdx] + " " + TARGET_YS[yIdx];
-		if(s4 == null || s4.device.isActivated()) { sharpLog(shooter, "  " + target + " ignored: device already done"); return; }
+		if(s4 == null || s4.device.isClosed()) { sharpLog(shooter, "  " + target + " ignored: device done or disabled"); return; }
 		boolean sequential = damage.Difficulty.deathsEnabled();
 		// Plate: per-hit requirement in classic, one-off start in sequential.
 		if(sequential ? sharpCursor < 0 : !isPlayerOnPlate()) {

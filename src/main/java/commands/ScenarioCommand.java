@@ -13,11 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /m7scenario <type> [countdown] [requirements...]: countdown in ticks (default 60), requirements per type
- * ({@link Scenarios.Type#args()}). Uses the current dungeon settings; ended by {@code /m7practice end}.
+ * /m7scenario <type> [ticks] [requirements...] [--ticks <n>]: countdown in ticks (default 60), either a bare number
+ * above 5 straight after the type or flagged anywhere, so it can't be read as a terminal number; requirements per type ({@link Scenarios.Type#args()}). Uses the current dungeon settings; ended
+ * by {@code /m7practice end}.
  */
 public class ScenarioCommand implements CommandExecutor {
 	public static final int DEFAULT_COUNTDOWN = 60;
+	public static final String TICKS_FLAG = "--ticks";
 
 	public boolean onCommand(@NonNull CommandSender sender, @NonNull Command cmd, @NonNull String label, String @NonNull [] args) {
 		if(!(sender instanceof Player p)) {
@@ -27,8 +29,9 @@ public class ScenarioCommand implements CommandExecutor {
 		List<String> ids = new ArrayList<>();
 		for(Scenarios.Type t : Scenarios.TYPES) ids.add(t.id());
 		if(args.length == 0) {
-			p.sendMessage(Utils.msg("<red>Usage: /m7scenario <type> [countdown] [requirements]  <gray>Types: <list>",
-					Placeholder.unparsed("type", "<type>"), Placeholder.unparsed("list", String.join(" ", ids))));
+			p.sendMessage(Utils.msg("<red>Usage: /m7scenario <type> [ticks] [requirements] [--ticks <n>]  <gray>Types: <list>",
+					Placeholder.unparsed("type", "<type>"), Placeholder.unparsed("n", "<n>"),
+					Placeholder.unparsed("list", String.join(" ", ids))));
 			return true;
 		}
 		Scenarios.Type type = Scenarios.byId(args[0]);
@@ -38,13 +41,23 @@ public class ScenarioCommand implements CommandExecutor {
 		}
 
 		int countdown = DEFAULT_COUNTDOWN;
+		List<String> reqs = new ArrayList<>();
 		int first = 1;
-		if(args.length > 1 && args[1].matches("\\d+")) {
+		if(isBareTicks(args, 1)) {
 			countdown = Integer.parseInt(args[1]);
 			first = 2;
 		}
-		List<String> reqs = new ArrayList<>();
-		for(int i = first; i < args.length; i++) reqs.add(args[i].toLowerCase());
+		for(int i = first; i < args.length; i++) {
+			if(!args[i].equalsIgnoreCase(TICKS_FLAG)) {
+				reqs.add(args[i].toLowerCase());
+				continue;
+			}
+			if(i + 1 >= args.length || !args[i + 1].matches("\\d+")) {
+				p.sendMessage(Utils.msg("<red>" + TICKS_FLAG + " needs a number of ticks after it."));
+				return true;
+			}
+			countdown = Integer.parseInt(args[++i]);
+		}
 
 		String error = validate(type, reqs);
 		if(error != null) {
@@ -61,6 +74,11 @@ public class ScenarioCommand implements CommandExecutor {
 		Practice.broadcastExperimentalSettings();
 		Scenarios.start(p.getWorld(), type, type.args() == Scenarios.Args.NONE ? type.fixed() : reqs, countdown);
 		return true;
+	}
+
+	/** {@code args[i]} is the unflagged countdown: straight after the type and above 5, the highest terminal number. */
+	public static boolean isBareTicks(String[] args, int i) {
+		return i == 1 && args.length > 1 && args[1].matches("\\d{1,9}") && Integer.parseInt(args[1]) > 5;
 	}
 
 	/** Null if {@code reqs} suit {@code type}, else what's wrong. */

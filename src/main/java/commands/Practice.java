@@ -283,29 +283,20 @@ public class Practice implements CommandExecutor {
 
 	/**
 	 * Cancel the practice session: stop choreography + movement, disarm the boss chain, practice mode off, clear
-	 * boss entities.
+	 * boss entities. Game modes are left alone: putting players back in spectator (m7's idle state) is the network's
+	 * ({@code M7Bridge.resetToSpectators}) or another plugin's.
 	 */
 	public static void endPractice(World world) {
-		endPractice(world, true);
-	}
-
-	/**
-	 * @param toSpectator drop everyone into spectator (m7's idle state) at the end. Only {@code death/Deaths}' party
-	 *   wipe passes false: it already placed the party and set their game mode, and flipping here would flicker.
-	 *   Network is unaffected: it dispatches this as a command (always flips) and
-	 *   {@code M7Bridge.resetToSpectators} re-asserts spectator right after.
-	 */
-	public static void endPractice(World world, boolean toSpectator) {
 		// FIRST: bank what the party finished. A cancelled, timed-out, force-ended or abandoned run has no ending
 		// to report, so otherwise the splits and clear milestones it reached are lost. No-op if already reported
 		// (win, wipe, Storm fail). Must precede setPracticeMode(false) (signalRunComplete won't fire outside
-		// practice mode), ClearManager.stop and the spectator flip, which destroy what the result reads.
+		// practice mode) and ClearManager.stop, which destroys what the result reads.
 		WitherActions.signalRunAbandoned();
 		WitherActions.setPracticeMode(false);
 		// After the abandon signal, which reads it to stay quiet.
 		scenario.Scenarios.stop();
-		// Before the spectator flip, so a pending revival can't fight it and mask durability bars come off
-		// instead of being saved into a loadout.
+		// Before the rest of the teardown, so a pending revival can't fire into it and mask durability bars come
+		// off instead of being saved into a loadout.
 		death.Deaths.reset();
 		instructions.clear.ClearManager.stop(world); // remove secrets/chests, restore hotbar map slot, stop HUD loop
 		Utils.cancelAllScheduled();
@@ -313,8 +304,8 @@ public class Practice implements CommandExecutor {
 		MovementAudit.cancelAll();
 		BossMotion.cancelAll();
 		Watcher.INSTANCE.arm(world, false);
-		// arm() only sets fields, so the Watcher's portal detector would keep scanning (including the spectators
-		// made below) and warp them to Maxor after the run. forceCleanup stops it and closes the portal.
+		// arm() only sets fields, so the Watcher's portal detector would keep scanning and warp players to Maxor
+		// after the run. forceCleanup stops it and closes the portal.
 		Watcher.forceCleanup();
 		// Drop the boss lane before teardown: cancelAllScheduled can't reach it, and its un-held one-shots (Maxor's
 		// crystal respawn, the Wither King's) would fire into a dead session.
@@ -343,11 +334,6 @@ public class Practice implements CommandExecutor {
 					|| e.getScoreboardTags().contains("TASWitherKingRelic")
 					|| e.getScoreboardTags().contains("TASWatcher")) {
 				e.remove();
-			}
-		}
-		if(toSpectator) {
-			for(Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
-				if(!Utils.isSpectator(p)) p.setGameMode(org.bukkit.GameMode.SPECTATOR);
 			}
 		}
 	}

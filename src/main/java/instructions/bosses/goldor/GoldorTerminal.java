@@ -76,6 +76,18 @@ public final class GoldorTerminal {
 		return activated;
 	}
 
+	/** Inert for a /m7scenario: hitbox and labels removed. */
+	private boolean disabled = false;
+
+	public void disable() {
+		disabled = true;
+		cleanup();
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
 	public boolean isPending() {
 		return pending;
 	}

@@ -80,6 +80,8 @@ public final class Goldor extends WitherLord {
 	};
 	/** Section the next fight starts in; set by {@link #goldorInstructions(World, boolean, int)} only. */
 	private int startSectionIdx = 0;
+	/** /m7scenario ({@link #isolate}): finishing a section opens nothing, neither its gate nor the core. */
+	private boolean isolated = false;
 
 	private final List<GoldorSection> sections = new ArrayList<>(4);
 	private int currentSectionIdx = 0;
@@ -269,6 +271,7 @@ public final class Goldor extends WitherLord {
 	@Override
 	protected void resetState() {
 		phaseActive = false;
+		isolated = false;
 		coreOpen = false;
 		coreEngaged = false;
 		lastDamagedTick = -1000;
@@ -446,8 +449,7 @@ public final class Goldor extends WitherLord {
 
 	/**
 	 * Every item of section {@code idx} not named in {@code keep} ("1".."5", "dev", lever names) is done already,
-	 * silently, as if a teammate did it. A done S3 device turns its wall solved. Settles the current section if that
-	 * leaves nothing: its gate opens or, for S4, the core.
+	 * silently: sections behind the start one, and i4. A done S3 device turns its wall solved.
 	 */
 	public void preComplete(int idx, Set<String> keep) {
 		GoldorSection s = getSection(idx);
@@ -473,7 +475,23 @@ public final class Goldor extends WitherLord {
 			s.completed++;
 			if(idx == 2) for(ItemFrame f : arrowFrames(world)) f.setRotation(ARROW_SOLVED_ROTATION);
 		}
-		if(idx == currentSectionIdx && s.completed >= s.totalItems) onAllItemsComplete(s, displayTick());
+	}
+
+	/**
+	 * Only the items in {@code live} ("section:key", e.g. "0:dev") can still be activated; every other one not
+	 * already done goes inert. From then on finishing a section opens nothing.
+	 */
+	public void isolate(Set<String> live) {
+		isolated = true;
+		for(GoldorSection s : sections) {
+			for(GoldorTerminal t : s.terminals) {
+				if(!t.isActivated() && !live.contains(s.idx + ":" + (t.terminalIdx + 1))) t.disable();
+			}
+			for(GoldorLever l : s.levers) {
+				if(!l.isActivated() && !live.contains(s.idx + ":" + LEVER_KEYS[s.idx][l.leverIdx])) l.disable();
+			}
+			if(!s.device.isActivated() && !live.contains(s.idx + ":dev")) s.device.disable();
+		}
 	}
 
 	/** Item {@code key} ({@link #preComplete}'s names) of section {@code idx} is activated. */
@@ -767,6 +785,7 @@ public final class Goldor extends WitherLord {
 
 	/** Not yet "complete": S1-S3 stay current until the gate goes ({@link #onGateDestroyed}). S4 has no gate. */
 	private void onAllItemsComplete(GoldorSection s, int now) {
+		if(isolated) return;
 		if(s.idx < 3) {
 			// Immediate if already blown, else the 100t auto-destruct.
 			s.gate.onSectionComplete();

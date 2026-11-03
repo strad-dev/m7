@@ -131,6 +131,7 @@ public final class Scenarios {
 		if(type.id().equals("storm-purple")) {
 			// Purple ran 400t with someone on its pad: down to 169, up to 189, then one cycle back down.
 			Storm.INSTANCE.skipIntro(400);
+			Storm.INSTANCE.withoutMobs();
 			Storm.INSTANCE.presetPillar(PadAndPillar.PURPLE, 186, true);
 			return;
 		}
@@ -150,13 +151,17 @@ public final class Scenarios {
 			case "goldor" -> {
 				int section = Math.max(0, type.section());
 				Goldor.goldorInstructions(world, false, section);
-				if(type.section() >= 0) {
+				// Only what the scenario asks for stays live; everything else is inert, not done.
+				Set<String> live = new LinkedHashSet<>();
+				if(type.section() < 0) {
+					live.add("3:dev");
+				} else {
 					// i4 is done: someone did it at the start of S1.
-					if(section < 3) Goldor.INSTANCE.preComplete(3, Set.of("1", "2", "3", "4", "bl", "tl"));
-					Set<String> keep = new LinkedHashSet<>(requirements);
-					keep.retainAll(ITEMS);
-					Goldor.INSTANCE.preComplete(section, keep);
+					Goldor.INSTANCE.preComplete(3, Set.of("1", "2", "3", "4", "bl", "tl"));
+					for(String r : requirements) if(ITEMS.contains(r)) live.add(section + ":" + r);
+					if(requirements.contains("hee2")) live.add("1:dev");
 				}
+				Goldor.INSTANCE.isolate(live);
 			}
 		}
 		poller = Bukkit.getScheduler().runTaskTimer(M7.getInstance(), Scenarios::poll, 0L, 1L);
@@ -167,7 +172,6 @@ public final class Scenarios {
 		for(String req : requirements) {
 			if(done.contains(req) || !met(req)) continue;
 			done.add(req);
-			Utils.playGlobalSound(org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
 			Bukkit.broadcast(Utils.msg("<green>✔ <white><req></white> <gray>(" + elapsed() + "t)", Placeholder.unparsed("req", req)));
 		}
 		if(done.size() == requirements.size()) finish(true, null);

@@ -33,6 +33,23 @@ public final class GoldorDevice {
 		return activated;
 	}
 
+	/** Inert for a /m7scenario: label gone, no input reaches it. */
+	private boolean disabled = false;
+
+	public void disable() {
+		disabled = true;
+		cleanup();
+	}
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	/** Done or disabled: input has nothing to progress. */
+	public boolean isClosed() {
+		return activated || disabled;
+	}
+
 	public void markActivated() {
 		activated = true;
 		display.text(Utils.msg(ACTIVE_TEXT));

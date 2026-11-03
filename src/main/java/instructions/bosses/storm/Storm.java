@@ -88,6 +88,8 @@ public final class Storm extends WitherLord {
 	// earlier choreography is dropped and the phase clock reads from here.
 	private int pendingSkipTicks;
 	private int skipTicks;
+	private boolean pendingNoMobs;
+	private boolean noMobs;
 	private record PillarPreset(PadAndPillar pillar, int bottomY, boolean descending) {}
 	private final List<PillarPreset> pendingPresets = new ArrayList<>();
 
@@ -140,12 +142,19 @@ public final class Storm extends WitherLord {
 		}
 		skipTicks = pendingSkipTicks;
 		pendingSkipTicks = 0;
+		noMobs = pendingNoMobs;
+		pendingNoMobs = false;
 		for(PillarPreset preset : pendingPresets) {
 			for(PillarOscillator osc : pillars) {
 				if(osc.getPillar() == preset.pillar()) osc.setState(preset.bottomY(), preset.descending());
 			}
 		}
 		pendingPresets.clear();
+	}
+
+	/** Next fight spawns no miners, Shadow Assassins or sentries. */
+	public void withoutMobs() {
+		pendingNoMobs = true;
 	}
 
 	/** Next fight starts {@code ticks} in, skipping the choreography before it. */
@@ -162,6 +171,7 @@ public final class Storm extends WitherLord {
 	/** Drops an unstarted scenario's skip and presets, so a later fight doesn't inherit them. Pillar blocks are serverSetup's. */
 	public void clearScenarioSetup() {
 		pendingSkipTicks = 0;
+		pendingNoMobs = false;
 		pendingPresets.clear();
 	}
 
@@ -176,7 +186,7 @@ public final class Storm extends WitherLord {
 	protected void onStart() {
 		// Maxor's split ends as Storm spawns (Wither-King practice scoreboard).
 		instructions.bosses.WitherActions.recordSplit("Maxor", plugin.Utils.runTick());
-		spawnMobGroups();
+		if(!noMobs) spawnMobGroups();
 		if(skipTicks > 0) {
 			tick = skipTicks;
 			Utils.backdatePhaseStart(skipTicks);
