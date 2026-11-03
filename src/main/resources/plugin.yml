@@ -12,6 +12,9 @@ commands:
   m7practice:
     description: Begin practice (boss instructions only, for real players)
     usage: /m7practice <section> [--no-teleport]
+  m7scenario:
+    description: Drill one part of a run from a mid-run state
+    usage: /m7scenario <type> [countdown] [requirements]
   eq:
     description: View your equipment and current speed
     usage: /eq

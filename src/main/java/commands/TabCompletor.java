@@ -60,6 +60,33 @@ public class TabCompletor implements TabCompleter {
 			}
 
 
+			case "m7scenario" -> {
+				String input = args[args.length - 1].toLowerCase();
+				if(args.length == 1) {
+					for(scenario.Scenarios.Type t : scenario.Scenarios.TYPES) {
+						if(t.id().startsWith(input)) completions.add(t.id());
+					}
+					break;
+				}
+				scenario.Scenarios.Type type = scenario.Scenarios.byId(args[0]);
+				if(type == null) break;
+				// Countdown only straight after the type.
+				if(args.length == 2) {
+					for(String preset : new String[]{"60", "100", "200"}) {
+						if(preset.startsWith(input)) completions.add(preset);
+					}
+				}
+				List<String> typed = new ArrayList<>();
+				for(int i = 1; i < args.length - 1; i++) typed.add(args[i].toLowerCase());
+				typed.removeIf(a -> a.matches("\\d+"));
+				if(type.args() == scenario.Scenarios.Args.ONE && !typed.isEmpty()) break;
+				boolean earlyEnterTyped = typed.stream().anyMatch(scenario.Scenarios::isEarlyEnter);
+				for(String option : type.options()) {
+					if(typed.contains(option) || (earlyEnterTyped && scenario.Scenarios.isEarlyEnter(option))) continue;
+					if(option.startsWith(input)) completions.add(option);
+				}
+			}
+
 			case "class" -> {
 				if(args.length == 1) {
 					for(String val : loadout.Loadouts.CLASSES) {

@@ -46,6 +46,27 @@ public final class PillarOscillator {
 		frozen = false;
 	}
 
+	/** Mid-oscillation start ({@code /m7scenario}); blocks are the caller's, see {@link #placeFromInitial}. */
+	void setState(int bottomY, boolean descending) {
+		this.bottomY = bottomY;
+		this.direction = descending ? Direction.DOWN : Direction.UP;
+	}
+
+	/** Blocks of a pillar at its setup bottom moved to {@code bottomY}, silently. */
+	static void placeFromInitial(PadAndPillar pillar, int bottomY) {
+		if(bottomY > PadAndPillar.PILLAR_BOTTOM_INITIAL) {
+			Utils.runCommand(String.format("fill %d %d %d %d %d %d minecraft:air",
+					pillar.pillarX1(), PadAndPillar.PILLAR_BOTTOM_INITIAL, pillar.pillarZ1(),
+					pillar.pillarX2(), bottomY - 1, pillar.pillarZ2()));
+		}
+		for(int y = PadAndPillar.PILLAR_BOTTOM_INITIAL; y > bottomY; y--) {
+			Utils.runCommand(String.format("clone %d %d %d %d %d %d %d %d %d",
+					pillar.pillarX1(), y, pillar.pillarZ1(),
+					pillar.pillarX2(), y, pillar.pillarZ2(),
+					pillar.pillarX1(), y - 1, pillar.pillarZ1()));
+		}
+	}
+
 	public PadAndPillar getPillar() { return pillar; }
 	public int getBottomY() { return bottomY; }
 

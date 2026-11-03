@@ -69,6 +69,17 @@ public final class Goldor extends WitherLord {
 			{{2, 122, 55},    {14, 122, 55}},   // S3
 			{{84, 121, 34},   {86, 128, 46}},   // S4
 	};
+	// /m7scenario names, index-matched to SECTION_LEVER_COORDS: left/right facing the way S1/S3 are walked, bottom/top in S2/S4.
+	private static final String[][] LEVER_KEYS = {{"ll", "rl"}, {"bl", "tl"}, {"ll", "rl"}, {"bl", "tl"}};
+	// Per start section: {x, z, yaw, patrol leg}. S1 is the normal spawn; the rest are the patrol corner he enters that section from.
+	private static final double[][] START_SPOTS = {
+			{80.5, 40.5, -90f, 0},
+			{WP_BX, WP_BZ, 90f, 2},
+			{WP_CX, WP_CZ, 180f, 3},
+			{WP_DX, WP_DZ, -90f, 0},
+	};
+	/** Section the next fight starts in; set by {@link #goldorInstructions(World, boolean, int)} only. */
+	private int startSectionIdx = 0;
 
 	private final List<GoldorSection> sections = new ArrayList<>(4);
 	private int currentSectionIdx = 0;
@@ -235,12 +246,24 @@ public final class Goldor extends WitherLord {
 	}
 
 	public static void goldorInstructions(World world, boolean doContinue) {
+		goldorInstructions(world, doContinue, 0);
+	}
+
+	/**
+	 * {@code /m7scenario}: starts in section {@code startSection} with every earlier one done and Goldor entering it.
+	 * Death ticks treat the earlier sections as overtaken.
+	 */
+	public static void goldorInstructions(World world, boolean doContinue, int startSection) {
+		INSTANCE.startSectionIdx = startSection;
 		INSTANCE.start(world, doContinue);
 	}
 
 	@Override protected String name() { return "Goldor"; }
 	@Override protected String displayName() { return "Goldor"; }
-	@Override protected Location spawnLocation() { return new Location(world, 80.5, 118, 40.5, -90f, 0f); }
+	@Override protected Location spawnLocation() {
+		double[] spot = START_SPOTS[startSectionIdx];
+		return new Location(world, spot[0], 118, spot[1], (float) spot[2], 0f);
+	}
 	@Override protected double maxHealth() { return damage.MobStats.GOLDOR.internalHealth(); }
 
 	@Override
@@ -306,9 +329,13 @@ public final class Goldor extends WitherLord {
 		sections.add(buildS2());
 		sections.add(buildS3());
 		sections.add(buildS4());
+		currentSectionIdx = startSectionIdx;
+		bossSectionIdx = startSectionIdx;
 
 		snapshotCoreOriginalBlocks();
 		protectAllItemFrames();
+		// After protectAllItemFrames, which re-deals the S3 wall outside realistic.
+		for(int i = 0; i < startSectionIdx; i++) preComplete(i, Set.of());
 		startPatrolTask();
 		startInvalidLocationTicker();
 		if(listeners.GoldorListener.INSTANCE != null) listeners.GoldorListener.INSTANCE.armSharpShooterIfOccupied(world);
@@ -415,10 +442,79 @@ public final class Goldor extends WitherLord {
 		return S3_FRAME_BOUNDS.contains(frame.getLocation().toVector());
 	}
 
+	// ---------- Scenarios (/m7scenario) ----------
+
+	/**
+	 * Every item of section {@code idx} not named in {@code keep} ("1".."5", "dev", lever names) is done already,
+	 * silently, as if a teammate did it. A done S3 device turns its wall solved. Settles the current section if that
+	 * leaves nothing: its gate opens or, for S4, the core.
+	 */
+	public void preComplete(int idx, Set<String> keep) {
+		GoldorSection s = getSection(idx);
+		if(s == null) return;
+		for(GoldorTerminal t : s.terminals) {
+			if(keep.contains(String.valueOf(t.terminalIdx + 1)) || t.isActivated()) continue;
+			t.markActivated();
+			s.completed++;
+		}
+		for(GoldorLever l : s.levers) {
+			if(keep.contains(LEVER_KEYS[idx][l.leverIdx]) || l.isActivated()) continue;
+			l.markActivated();
+			s.completed++;
+			// Resetting it is serverSetup's resetSectionLevers.
+			Block b = world.getBlockAt(l.x, l.y, l.z);
+			if(b.getBlockData() instanceof org.bukkit.block.data.Powerable pw && !pw.isPowered()) {
+				pw.setPowered(true);
+				b.setBlockData(pw, false);
+			}
+		}
+		if(!keep.contains("dev") && !s.device.isActivated()) {
+			s.device.markActivated();
+			s.completed++;
+			if(idx == 2) for(ItemFrame f : arrowFrames(world)) f.setRotation(ARROW_SOLVED_ROTATION);
+		}
+		if(idx == currentSectionIdx && s.completed >= s.totalItems) onAllItemsComplete(s, displayTick());
+	}
+
+	/** Item {@code key} ({@link #preComplete}'s names) of section {@code idx} is activated. */
+	public boolean isItemDone(int idx, String key) {
+		GoldorSection s = getSection(idx);
+		if(s == null) return false;
+		if(key.equals("dev")) return s.device.isActivated();
+		for(GoldorLever l : s.levers) {
+			if(LEVER_KEYS[idx][l.leverIdx].equals(key)) return l.isActivated();
+		}
+		for(GoldorTerminal t : s.terminals) {
+			if(String.valueOf(t.terminalIdx + 1).equals(key)) return t.isActivated();
+		}
+		return false;
+	}
+
+	/** Section {@code idx}'s gate has taken an explosion this phase. */
+	public boolean isGateBlown(int idx) {
+		GoldorSection s = getSection(idx);
+		return s != null && s.gate != null && s.gate.wasBlown();
+	}
+
+	/** Arrow Align as predev leaves it: all solved bar the stand-in's frame, one click short. Every mode. */
+	public static void dealArrowPredev(World world) {
+		List<ItemFrame> frames = arrowFrames(world);
+		ItemFrame odd = standInArrowFrame(frames);
+		for(ItemFrame f : frames) f.setRotation(f == odd ? ARROW_STANDIN_ROTATION : ARROW_SOLVED_ROTATION);
+	}
+
+	/** Arrow Align predev is done: every frame solved but one, the most realistic's pre-turns allow. */
+	public static boolean arrowPredevDone(World world) {
+		List<ItemFrame> frames = arrowFrames(world);
+		int unsolved = 0;
+		for(ItemFrame f : frames) if(f.getRotation() != ARROW_SOLVED_ROTATION) unsolved++;
+		return !frames.isEmpty() && unsolved <= 1;
+	}
+
 	// ---------- Patrol ----------
 
 	private void startPatrolTask() {
-		final int[] leg = {0};
+		final int[] leg = {(int) START_SPOTS[startSectionIdx][3]};
 		patrolTask = new BukkitRunnable() {
 			@Override
 			public void run() {

@@ -63,6 +63,12 @@ public class WitherActions {
 	/** {@code success} false for a failed run ({@code Storm.endFailedRun}): the network still frees its slot, no leaderboard. */
 	public static void signalRunComplete(boolean success) {
 		if (!practiceMode) return;
+		// A scenario reports as a scenario (plugin.ScenarioCompleteEvent), never a run, and decides its own ending.
+		if (scenario.Scenarios.isActive()) {
+			signalled = true;
+			scenario.Scenarios.onRunEnded(success);
+			return;
+		}
 		// Prefer captureRunResult()'s earlier snapshot; see that method.
 		plugin.RunResult result = (success && pendingResult != null)
 				? pendingResult
@@ -88,6 +94,11 @@ public class WitherActions {
 	 */
 	public static void signalRunAbandoned() {
 		if (!practiceMode || signalled) return;
+		if (scenario.Scenarios.isActive()) {
+			signalled = true;
+			scenario.Scenarios.onAbandoned();
+			return;
+		}
 		signalRunComplete(false);
 	}
 

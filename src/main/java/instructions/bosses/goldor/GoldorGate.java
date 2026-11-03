@@ -33,6 +33,8 @@ public final class GoldorGate {
 	private boolean blocksRemoved = false;
 	/** "Gate destroyed" broadcast has fired, at early explosion or block removal. */
 	private boolean destroyedAnnounced = false;
+	/** Has taken an explosion while up, before or after its section completed. Latched for the phase; /m7scenario reads it. */
+	private boolean blown = false;
 	private BukkitTask pendingDelayedRemoval;
 	private BukkitTask pendingRegen;
 
@@ -68,6 +70,10 @@ public final class GoldorGate {
 		return expandedBounds;
 	}
 
+	public boolean wasBlown() {
+		return blown;
+	}
+
 	/** So the "Gate destroyed" line reports ticks since THIS gate's section began, not the current section's. */
 	public void setSectionStartTick(int t) {
 		this.sectionStartTick = t;
@@ -76,6 +82,7 @@ public final class GoldorGate {
 	/** Explosion landed on/near this gate. */
 	public void onExplosion() {
 		if(blocksRemoved) return;
+		blown = true;
 		if(sectionComplete) {
 			// Section done, gate was in its 100t auto-destruct window: skip the wait.
 			removeBlocksNow();

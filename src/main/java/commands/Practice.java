@@ -128,6 +128,45 @@ public class Practice implements CommandExecutor {
 
 		World world = p.getWorld();
 
+		if(!prepareParticipants(p, noTeleport ? null : spawn(world, section))) return true;
+
+		// Set BEFORE the run arms: debuff, defense reducer and blessing lookups read damage.Difficulty live, and
+		// RunResult.capture stamps it at completion, so this picks the leaderboard. Also decides whether death is
+		// on, which runPractice reads when clearing death state.
+		if(difficulty != null) damage.Difficulty.set(difficulty);
+		// Mayor too, and it matters more: mob HP is written once at spawn, so it must be right before anything spawns.
+		if(mayorArg != null) damage.Mayor.set(mayorArg);
+		if(watcherFixArg != null) plugin.WatcherFix.set(watcherFixArg);
+		if(badBonzoArg != null) plugin.BadBonzo.set(badBonzoArg);
+		if(batBugArg != null) plugin.BatBug.set(batBugArg);
+		if(alphaGDragArg != null) plugin.AlphaGDrag.set(alphaGDragArg);
+		broadcastExperimentalSettings();
+
+		runPractice(world, section, delayTicks);
+		return true;
+	}
+
+	/** One line per experimental setting that is on, before a run starts. */
+	static void broadcastExperimentalSettings() {
+		if(plugin.AlphaGDrag.enabled()) {
+			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>ALPHA GDRAG DAMAGE<reset><gray> is on.  <light_purple>Experimental."));
+		}
+		if(plugin.BatBug.enabled()) {
+			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAT BUG<reset><gray> is on.  <light_purple>Experimental."));
+		}
+		if(plugin.BadBonzo.enabled()) {
+			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAD BONZO<reset><gray> is on.  <light_purple>Experimental."));
+		}
+		if(plugin.WatcherFix.enabled()) {
+			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>FIX WATCHER BUG<reset><gray> is on."));
+		}
+	}
+
+	/**
+	 * Class check, kit hand-out and teleport ({@code target} null skips it) for every participant. False, with
+	 * {@code p} told why, if someone has no class. Shared with {@code /m7scenario}.
+	 */
+	static boolean prepareParticipants(Player p, Location target) {
 		// Participants: online and not in spectator (the idle state on networked m7). Shared by class check, kit
 		// hand-out and teleport so all three agree.
 		List<Player> participants = new ArrayList<>();
@@ -150,7 +189,7 @@ public class Practice implements CommandExecutor {
 					: Utils.msg("<red>Some players have not picked a class yet!  <white><who></white>  <gray>(they need /class <c>)",
 							Placeholder.unparsed("who", String.join(", ", noClass)),
 							Placeholder.unparsed("c", "<archer|mage|tank|berserk|healer>")));
-			return true;
+			return false;
 		}
 
 		// Saved kit for the selected class. The only way to get items now (/getcustomitems is gone): /class,
@@ -161,39 +200,12 @@ public class Practice implements CommandExecutor {
 		}
 
 		// Skipped with --no-teleport so players start where they are.
-
-		if(!noTeleport) {
-			Location target = spawn(world, section);
+		if(target != null) {
 			for(Player participant : participants) {
 				participant.teleport(target, PlayerTeleportEvent.TeleportCause.PLUGIN);
 				items.ItemUtils.landStanding(participant);
 			}
 		}
-
-		// Set BEFORE the run arms: debuff, defense reducer and blessing lookups read damage.Difficulty live, and
-		// RunResult.capture stamps it at completion, so this picks the leaderboard. Also decides whether death is
-		// on, which runPractice reads when clearing death state.
-		if(difficulty != null) damage.Difficulty.set(difficulty);
-		// Mayor too, and it matters more: mob HP is written once at spawn, so it must be right before anything spawns.
-		if(mayorArg != null) damage.Mayor.set(mayorArg);
-		if(watcherFixArg != null) plugin.WatcherFix.set(watcherFixArg);
-		if(badBonzoArg != null) plugin.BadBonzo.set(badBonzoArg);
-		if(batBugArg != null) plugin.BatBug.set(batBugArg);
-		if(alphaGDragArg != null) plugin.AlphaGDrag.set(alphaGDragArg);
-		if(plugin.AlphaGDrag.enabled()) {
-			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>ALPHA GDRAG DAMAGE<reset><gray> is on.  <light_purple>Experimental."));
-		}
-		if(plugin.BatBug.enabled()) {
-			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAT BUG<reset><gray> is on.  <light_purple>Experimental."));
-		}
-		if(plugin.BadBonzo.enabled()) {
-			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAD BONZO<reset><gray> is on.  <light_purple>Experimental."));
-		}
-		if(plugin.WatcherFix.enabled()) {
-			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>FIX WATCHER BUG<reset><gray> is on."));
-		}
-
-		runPractice(world, section, delayTicks);
 		return true;
 	}
 
@@ -231,6 +243,13 @@ public class Practice implements CommandExecutor {
 	 *   it warps a party in). Forwarded to {@link Server#serverInstructions}.
 	 */
 	public static void runPractice(World world, String section, int delayTicks) {
+		prepareRun(world, section);
+		Server.serverInstructions(world, section, delayTicks);
+	}
+
+	/** Everything a run does before its section is staged: state resets, cleanup, {@code serverSetup}. Shared with {@code /m7scenario}. */
+	public static void prepareRun(World world, String section) {
+		scenario.Scenarios.stop();
 		WitherActions.setPracticeMode(true);
 		// Clear previous run's splits; this run records its own for the Wither King scoreboard.
 		WitherActions.clearSplits();
@@ -260,7 +279,6 @@ public class Practice implements CommandExecutor {
 		// and crystals that serverSetup's forceCleanups miss, since those only free tracked refs.
 		Server.hardMobCleanup();
 		Server.serverSetup(world);
-		Server.serverInstructions(world, section, delayTicks);
 	}
 
 	/**
@@ -284,6 +302,8 @@ public class Practice implements CommandExecutor {
 		// practice mode), ClearManager.stop and the spectator flip, which destroy what the result reads.
 		WitherActions.signalRunAbandoned();
 		WitherActions.setPracticeMode(false);
+		// After the abandon signal, which reads it to stay quiet.
+		scenario.Scenarios.stop();
 		// Before the spectator flip, so a pending revival can't fight it and mask durability bars come off
 		// instead of being saved into a loadout.
 		death.Deaths.reset();

@@ -84,6 +84,12 @@ public final class Storm extends WitherLord {
 	private Location pendingCrushLoc;
 	// For pollCycle's overdue-detonation safety net.
 	private int crushArmedTick;
+	// /m7scenario, set before stormInstructions and taken by the next resetState. The fight starts this many ticks in:
+	// earlier choreography is dropped and the phase clock reads from here.
+	private int pendingSkipTicks;
+	private int skipTicks;
+	private record PillarPreset(PadAndPillar pillar, int bottomY, boolean descending) {}
+	private final List<PillarPreset> pendingPresets = new ArrayList<>();
 
 	private Storm() {
 		register(this);
@@ -132,6 +138,38 @@ public final class Storm extends WitherLord {
 		for(PadAndPillar p : PadAndPillar.ACTIVE) {
 			pillars.add(new PillarOscillator(p));
 		}
+		skipTicks = pendingSkipTicks;
+		pendingSkipTicks = 0;
+		for(PillarPreset preset : pendingPresets) {
+			for(PillarOscillator osc : pillars) {
+				if(osc.getPillar() == preset.pillar()) osc.setState(preset.bottomY(), preset.descending());
+			}
+		}
+		pendingPresets.clear();
+	}
+
+	/** Next fight starts {@code ticks} in, skipping the choreography before it. */
+	public void skipIntro(int ticks) {
+		pendingSkipTicks = ticks;
+	}
+
+	/** Moves {@code pillar}'s blocks now (from the setup position) and starts the next fight's oscillator there. */
+	public void presetPillar(PadAndPillar pillar, int bottomY, boolean descending) {
+		PillarOscillator.placeFromInitial(pillar, bottomY);
+		pendingPresets.add(new PillarPreset(pillar, bottomY, descending));
+	}
+
+	/** Drops an unstarted scenario's skip and presets, so a later fight doesn't inherit them. Pillar blocks are serverSetup's. */
+	public void clearScenarioSetup() {
+		pendingSkipTicks = 0;
+		pendingPresets.clear();
+	}
+
+	/** At fight tick {@code t}, minus the skip: dropped if already past, run now if it is now. */
+	private void at(int t, Runnable task) {
+		if(t < skipTicks) return;
+		if(t == skipTicks) task.run();
+		else Utils.scheduleTask(task, t - skipTicks);
 	}
 
 	@Override
@@ -139,13 +177,17 @@ public final class Storm extends WitherLord {
 		// Maxor's split ends as Storm spawns (Wither-King practice scoreboard).
 		instructions.bosses.WitherActions.recordSplit("Maxor", plugin.Utils.runTick());
 		spawnMobGroups();
+		if(skipTicks > 0) {
+			tick = skipTicks;
+			Utils.backdatePhaseStart(skipTicks);
+		}
 		initialMovement();
 		scheduleIntroDialogue();
 
-		Utils.scheduleTask(() -> {
+		at(INTRO_END_TICK, () -> {
 			crushEnabled = true;
 			setAggro(AGGRO_STOP_DISTANCE, AGGRO_Y_OFFSET, AGGRO_MAX_SPEED);
-		}, INTRO_END_TICK);
+		});
 
 		startCycleTask();
 	}
@@ -160,36 +202,36 @@ public final class Storm extends WitherLord {
 	}
 
 	private void scheduleIntroDialogue() {
-		sendChatMessage("Pathetic Maxor, just like expected.");
-		Utils.scheduleTask(() -> sendChatMessage("Don't boast about beating this simple-minded Wither."), 60);
-		Utils.scheduleTask(() -> sendChatMessage("My abilities are unparalleled, in may ways I am the last bastion."), 120);
-		Utils.scheduleTask(() -> sendChatMessage("The memory of your death will be your fondest, focus up!"), 180);
+		at(0, () -> sendChatMessage("Pathetic Maxor, just like expected."));
+		at(60, () -> sendChatMessage("Don't boast about beating this simple-minded Wither."));
+		at(120, () -> sendChatMessage("My abilities are unparalleled, in may ways I am the last bastion."));
+		at(180, () -> sendChatMessage("The memory of your death will be your fondest, focus up!"));
 		// Belongs to the FLIGHT, not the dialogue.
-		Utils.scheduleTask(() -> {
+		at(400, () -> {
 			BossMotion.turnHead(boss, 90f, 0f);
 			sendChatMessage("The power of lightning is quite phenomenal.  A single strike can vaporize a person whole.");
-		}, 400);
+		});
 		countdownTitle("4", 420);
-		Utils.scheduleTask(() -> sendChatMessage("I'd be happy to show you what that's like!"), 460);
+		at(460, () -> sendChatMessage("I'd be happy to show you what that's like!"));
 		countdownTitle("3", 445);
 		countdownTitle("2", 470);
 		countdownTitle("1", 495);
 		// Leads the first volley by 10t.
-		Utils.scheduleTask(() -> sendChatMessage(LIGHTNING_MESSAGE[random.nextInt(LIGHTNING_MESSAGE.length)]), 505);
-		Utils.scheduleTask(this::lightningVolley, 515);
-		Utils.scheduleTask(this::lightningVolley, 525);
+		at(505, () -> sendChatMessage(LIGHTNING_MESSAGE[random.nextInt(LIGHTNING_MESSAGE.length)]));
+		at(LIGHTNING_TICK, this::lightningVolley);
+		at(525, this::lightningVolley);
 	}
 
 	/**
 	 * Held 25 ticks.
 	 */
-	private void countdownTitle(String digit, int at) {
-		Utils.scheduleTask(() -> {
+	private void countdownTitle(String digit, int t) {
+		at(t, () -> {
 			for(Player player : Bukkit.getOnlinePlayers()) {
 				player.showTitle(Title.title(Utils.msg("<dark_red>" + digit), Utils.msg(""),
 						Title.Times.times(Duration.ofMillis(0L), Duration.ofMillis(25 * 50L), Duration.ofMillis(0L))));
 			}
-		}, at);
+		});
 	}
 
 	private void lightningVolley() {
@@ -297,21 +339,24 @@ public final class Storm extends WitherLord {
 		return false;
 	}
 
+	// A square back to the spawn, so a skip of a whole number of legs leaves him where he started.
 	private void initialMovement() {
-		BossMotion.turnHead(boss, 45f, 0f);
-		BossMotion.forceMove(boss, new Vector(-0.29, 0, 0.29), 100);
-		Utils.scheduleTask(() -> {
+		at(0, () -> {
+			BossMotion.turnHead(boss, 45f, 0f);
+			BossMotion.forceMove(boss, new Vector(-0.29, 0, 0.29), 100);
+		});
+		at(100, () -> {
 			BossMotion.turnHead(boss, 135f, 0f);
 			BossMotion.forceMove(boss, new Vector(-0.29, 0, -0.29), 100);
-		}, 100);
-		Utils.scheduleTask(() -> {
+		});
+		at(200, () -> {
 			BossMotion.turnHead(boss, -135f, 0f);
 			BossMotion.forceMove(boss, new Vector(0.29, 0, -0.29), 100);
-		}, 200);
-		Utils.scheduleTask(() -> {
+		});
+		at(300, () -> {
 			BossMotion.turnHead(boss, -45f, 0f);
 			BossMotion.forceMove(boss, new Vector(0.29, 0, 0.29), 100);
-		}, 300);
+		});
 	}
 
 	// --- 20-tick poll loop: pad gating + crush detection ---
@@ -502,6 +547,7 @@ public final class Storm extends WitherLord {
 		PillarOscillator crushed = findPillarStormIsIn();
 		currentCrushPillar = crushed != null ? crushed.getPillar() : null;
 		if(crushed != null) crushed.markUsed();
+		scenario.Scenarios.onStormCrushed(currentCrushPillar);
 
 		double maxHp = boss.getAttribute(Attribute.MAX_HEALTH).getValue();
 		double crushDmg = maxHp * CRUSH_DAMAGE_FRACTION;

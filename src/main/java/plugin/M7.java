@@ -87,12 +87,13 @@ public final class M7 extends JavaPlugin {
 		loadoutEditor = new LoadoutEditor();
 		petMenu = new pets.PetMenu();
 		commands.SettingsMenu settingsMenu = new commands.SettingsMenu();
-		for(String cmd : List.of("setup", "m7practice", "eq", "reset", "verbose", "setspeed",
+		for(String cmd : List.of("setup", "m7practice", "m7scenario", "eq", "reset", "verbose", "setspeed",
 				"class", "m7loadout", "dungeonsettings", "pets", "petloadout", "blessings")) {
 			PluginCommand command = getCommand(cmd);
 			switch(cmd) {
 				case "setup" -> command.setExecutor(new Setup());
 				case "m7practice" -> command.setExecutor(new Practice());
+				case "m7scenario" -> command.setExecutor(new commands.ScenarioCommand());
 				case "reset" -> command.setExecutor(new Reset());
 				case "eq" -> command.setExecutor(new Eq());
 				case "verbose" -> command.setExecutor(new Verbose());

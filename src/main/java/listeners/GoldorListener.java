@@ -383,7 +383,7 @@ public class GoldorListener implements Listener {
 	}
 
 	/** True only if every S2 lamp (lever mounts, z=143) is lit. */
-	private static boolean allLightsLit(World w) {
+	public static boolean allLightsLit(World w) {
 		for(int x = LIGHTS_X1; x <= LIGHTS_X2; x++) {
 			for(int y = LIGHTS_Y1; y <= LIGHTS_Y2; y++) {
 				Block b = w.getBlockAt(x, y, LIGHTS_LAMP_Z);

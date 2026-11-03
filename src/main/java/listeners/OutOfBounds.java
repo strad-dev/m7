@@ -117,10 +117,14 @@ public final class OutOfBounds {
 	 * run or {@code endPractice} cancels them.
 	 */
 	public static void schedulePreRunReturns(World world, String section, int startTick) {
+		schedulePreRunReturns(commands.Practice.spawn(world, section), startTick);
+	}
+
+	/** Same, back to {@code spawn}; {@code /m7scenario} has its own spawns. */
+	public static void schedulePreRunReturns(Location spawn, int startTick) {
 		if(damage.Difficulty.current() == damage.Difficulty.CLASSIC) return;
 		for(int t = PRE_RUN_CHECK_TICKS; t < startTick; t += PRE_RUN_CHECK_TICKS) {
 			Utils.scheduleTask(() -> {
-				Location spawn = commands.Practice.spawn(world, section);
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					if(!outOfBounds(p)) continue;
 					Utils.debug(Utils.DebugType.SERVER, p, p.getName() + " out of bounds before the run, back to spawn");

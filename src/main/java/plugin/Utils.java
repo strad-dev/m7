@@ -596,6 +596,11 @@ public class Utils {
 		}
 	}
 
+	/** Phase clock reads {@code ticks} more, as if the phase began that long ago. Run timer untouched. */
+	public static void backdatePhaseStart(int ticks) {
+		phaseStartTick -= ticks;
+	}
+
 	/** Arms a fresh run timer; the next {@link #markPhaseStart()} anchors it. /m7practice's "Overall" timer is live,
 	 *  not the hardcoded per-phase offset. */
 	public static void markRunStart() {

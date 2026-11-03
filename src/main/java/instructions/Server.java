@@ -150,6 +150,14 @@ public class Server {
 	 * the start. Every section but boss/maxor.
 	 */
 	private static void countdownThenStart(World world, String section, int ticks) {
+		countdownThenRun(ticks, "Run", () -> startSection(world, section));
+	}
+
+	/**
+	 * {@link #countdownThenStart} with any start; {@code /m7scenario} uses it. Marks the run live before {@code start}.
+	 * {@code what} names it in the "... started" line.
+	 */
+	public static void countdownThenRun(int ticks, String what, Runnable start) {
 		int seconds = (ticks + 19) / 20;
 		for(int i = seconds; i >= 1; i--) {
 			int secs = i;
@@ -160,8 +168,9 @@ public class Server {
 			}, secs == seconds ? 0 : ticks - secs * 20L);
 		}
 		Utils.scheduleTask(() -> {
-			Bukkit.broadcast(Utils.msg("<green>Run started"));
-			startSection(world, section);
+			Bukkit.broadcast(Utils.msg("<green>" + what + " started"));
+			runStarted = true;
+			start.run();
 		}, ticks);
 	}
 
