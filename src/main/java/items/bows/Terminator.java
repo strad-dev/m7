@@ -80,6 +80,7 @@ public final class Terminator implements Bow, AbilityItem {
 		arrow.setShooter(p);
 		arrow.setWeapon(bow);
 		arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+		listeners.ArrowHitMargin.fullHitMargin(arrow);
 		return arrow;
 	}
 

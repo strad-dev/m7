@@ -33,9 +33,8 @@ import java.util.Map;
  * 2. Equips each with their saved /m7loadout kit, refreshed to current item definitions, teleports them to the
  *    phase's default location, then starts it.
  * 3. "--no-teleport" skips the teleport. Bare "classic"/"perfect_rng"/"rta" sets the damage mode (MAP.md §0),
- *    a damage.Mayor id the mayor, "on"/"off" Fix Watcher Bug, "badbonzo=on"/"badbonzo=off" Bad Bonzo, "batbug=on"/"batbug=off" Bat Bug,
- *    "alphagdrag=on"/"alphagdrag=off" Alpha GDrag Damage; omitted,
- *    current settings stand, so standalone keeps whatever /dungeonsettings set. The network always sends all six.
+ *    a damage.Mayor id the mayor, "on"/"off" Fix Watcher Bug, "badbonzo=on"/"badbonzo=off" Bad Bonzo, "batbug=on"/"batbug=off" Bat Bug; omitted,
+ *    current settings stand, so standalone keeps whatever /dungeonsettings set. The network always sends all five.
  * 4. Runs the boss and server instructions. Pre-run delay is 60 ticks (3s); a bare integer overrides it: the network sends
  *    "m7:m7practice <section> 400" for a 20s window. See Server.serverInstructions.
  *
@@ -104,9 +103,6 @@ public class Practice implements CommandExecutor {
 
 	/** One line per experimental setting that is on, before a run starts. */
 	static void broadcastExperimentalSettings() {
-		if(plugin.AlphaGDrag.enabled()) {
-			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>ALPHA GDRAG DAMAGE<reset><gray> is on.  <light_purple>Experimental."));
-		}
 		if(plugin.BatBug.enabled()) {
 			org.bukkit.Bukkit.broadcast(Utils.msg("<gold><bold>BAT BUG<reset><gray> is on.  <light_purple>Experimental."));
 		}

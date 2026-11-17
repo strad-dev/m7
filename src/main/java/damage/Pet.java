@@ -13,13 +13,13 @@ import org.bukkit.inventory.PlayerInventory;
  *   <li>{@link #statAdditive(Stat)} - additive % on a stat, e.g. Golden Dragon +5% Strength.</li>
  *   <li>{@link #damageAdditive} - damage-level additive %, e.g. Golden Dragon +250% (§7).</li>
  * </ul>
- * Chimera stacks with the pet (§1.13): V copies BASE stats at 100%, so Golden Dragon +300 Strength plus Chimera's
- * +300. No second +5%. Chimera's copy lands on the WEAPON and is cata-scaled (x6.65) while the pet's own isn't, which
+ * Chimera stacks with the pet (§1.13): V copies BASE stats at 100%, so Golden Dragon +370 Strength plus Chimera's
+ * +370. No second +5%. Chimera's copy lands on the WEAPON and is cata-scaled (x6.65) while the pet's own isn't, which
  * is why the Mage wants the Golden Dragon and the Archer (Duplex, not Chimera) barely cares (§7 pet cross-check).
  */
 public enum Pet {
 	/** Default (§1.13). */
-	GOLDEN_DRAGON(StatBlock.of(Stat.STRENGTH, 300)),
+	GOLDEN_DRAGON(StatBlock.of(Stat.STRENGTH, 370)),
 	/** Ability pet, which is why neither dragon's damage additive is live on a cast (§7). */
 	CROW(StatBlock.of(Stat.INTELLIGENCE, 225, Stat.ABILITY_DAMAGE, 30)),
 	/** Archer / Berserk during the Wither King phase. */
@@ -54,12 +54,8 @@ public enum Pet {
 		return maxSpeedBonus;
 	}
 
-	/** Alpha GDrag Damage ({@code plugin/AlphaGDrag}) swaps Golden Dragon's +300 Strength for this. */
-	private static final StatBlock ALPHA_GOLDEN_DRAGON = StatBlock.of(Stat.STRENGTH, 370);
-
 	/** Profile level, so NOT cata-scaled. */
 	public StatBlock ownStats() {
-		if(this == GOLDEN_DRAGON && plugin.AlphaGDrag.enabled()) return ALPHA_GOLDEN_DRAGON;
 		return ownStats;
 	}
 

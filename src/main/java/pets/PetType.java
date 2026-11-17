@@ -33,12 +33,12 @@ import java.util.List;
 public enum PetType {
 	/**
 	 * <b>Level 200, not 100.</b> Golden Dragon hatches at 100 and levels to 200; every figure here is level 200
-	 * ({@link Pet#GOLDEN_DRAGON}'s +300 Strength), so a level-100 tooltip would show a pet the model doesn't use.
+	 * ({@link Pet#GOLDEN_DRAGON}'s +370 Strength), so a level-100 tooltip would show a pet the model doesn't use.
 	 */
 	GOLDEN_DRAGON(Pet.GOLDEN_DRAGON, "Golden Dragon", Rarity.LEGENDARY, 200,
 			"ewogICJ0aW1lc3RhbXAiIDogMTYyMDM1MDA5ODgyNiwKICAicHJvZmlsZUlkIiA6ICJiNWRkZTVmODJlYjM0OTkzYmMwN2Q0MGFiNWY2ODYyMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJsdXhlbWFuIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlOWY5YjFmYzAxNDE2NmNiNDZhMDkzZTUzNDliMmJmNmVkZDIwMWI2ODBkNjJlNDhkYmYzYWY5YjA0NTkxMTYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
 			HeldPetItem.HEPHAESTUS_RELIC,
-			List.of("<gray>Strength: <red>+300", "<gray>Attack Speed: <yellow>+50%", "<gray>Magic Find: <aqua>+30"),
+			List.of("<gray>Strength: <red>+370", "<gray>Attack Speed: <yellow>+50%", "<gray>Magic Find: <aqua>+30"),
 			List.of(
 					new Ability("Gold's Power", List.of(
 							"Increase the potency of Midas'",

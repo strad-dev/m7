@@ -84,7 +84,6 @@ public final class Damage {
 	/** Death Bow's "+100% damage to Undead mobs": x2 vs {@link MobType#UNDEAD}. */
 	private static final double DEATH_BOW_VS_UNDEAD = 2.0;
 	private static final double OVERLOAD = 1.5;
-	private static final double BOOK_OF_PROGRESSION = 1.05;
 	private static final double TARANTULA_RING = 1.15;
 
 	// ===================== ammunition =====================
@@ -442,7 +441,7 @@ public final class Damage {
 
 	/** {@code product(Multiplicative_i)}. Order doesn't matter. */
 	private static double multiplicative(Player p, LivingEntity target, DamagePath path, ItemDef def) {
-		double product = BOOK_OF_PROGRESSION;
+		double product = 1.0;
 
 		// Hyperion x1.5 vs EVERY Wither-type mob (Lords, Miners, trash), NOT the Withered Dragons. Old code had this
 		// inside out as "-33% vs non-withers" (1/1.5); only this form survives.

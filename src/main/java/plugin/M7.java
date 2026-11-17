@@ -109,6 +109,7 @@ public final class M7 extends JavaPlugin {
 		}
 		getServer().getPluginManager().registerEvents(new JoinListener(), this);
 		getServer().getPluginManager().registerEvents(new WithersNotImmuneToArrows(), this);
+		getServer().getPluginManager().registerEvents(new listeners.ArrowHitMargin(), this);
 		getServer().getPluginManager().registerEvents(new PearlHelper(), this);
 		getServer().getPluginManager().registerEvents(new MiscListener(), this);
 		getServer().getPluginManager().registerEvents(new CustomItems(), this);

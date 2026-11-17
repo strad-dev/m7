@@ -7,15 +7,21 @@ import java.util.Map;
  * Accessory Powers and tuning points (MAP.md §1.12). Assumed, never items; the selected Power scales off total
  * Magical Power.
  * <p>
- * Everything derives from ONE input, the accessory list; §1.12 says hardcoding 2259 or 238 loses that.
+ * Everything derives from ONE input, the accessory list; §1.12 says hardcoding MP or tunings loses that.
  * <p>
  * Not dungeon items, so no x6.65 or x1.80.
  */
 public final class Powers {
 	private Powers() {}
 
-	/** Accessory bag MP OUTSIDE a dungeon, including one copy of each dungeon accessory below. */
-	private static final double OVERWORLD_ACCESSORY_MP = 2162;
+	/** Accessory bag MP OUTSIDE a dungeon, including one copy of each dungeon accessory below. The maximum. */
+	private static final double OVERWORLD_ACCESSORY_MP = 2202;
+
+	/** Catacombs Gobbler's own copy, on top of the maximum. Its dungeon doubling is in the map below. */
+	private static final double CATACOMBS_GOBBLER_MP = 16;
+
+	/** Enriched non-dungeon accessories. Each enrichment is +1 tuning point, never a stat. */
+	private static final int OVERWORLD_ENRICHMENTS = 61;
 
 	/**
 	 * Dungeon accessories and their MP, the standard per-rarity values (Mythic 22, Legendary 16, Epic 12). "Double
@@ -31,6 +37,7 @@ public final class Powers {
 		DUNGEON_ACCESSORIES.put("Treasure Artifact", 22.0);
 		DUNGEON_ACCESSORIES.put("Wither Relic", 22.0);
 		DUNGEON_ACCESSORIES.put("Catacombs Expert Ring", 16.0);
+		DUNGEON_ACCESSORIES.put("Catacombs Gobbler", 16.0);
 		DUNGEON_ACCESSORIES.put("General's Medallion", 12.0);
 		DUNGEON_ACCESSORIES.put("Infinipot", 12.0);
 	}
@@ -39,7 +46,14 @@ public final class Powers {
 	public static double magicalPower() {
 		double bonus = 0;
 		for(double mp : DUNGEON_ACCESSORIES.values()) bonus += mp;
-		return OVERWORLD_ACCESSORY_MP + bonus;
+		return OVERWORLD_ACCESSORY_MP + CATACOMBS_GOBBLER_MP + bonus;
+	}
+
+	/** Legendary and up can be enriched: the 61 plus the Legendary+ dungeon accessories. */
+	public static int enrichments() {
+		int n = OVERWORLD_ENRICHMENTS;
+		for(double mp : DUNGEON_ACCESSORIES.values()) if(mp >= 16) n++;
+		return n;
 	}
 
 	/** Wiki's curve. Reproduces the 250 AP row for all three powers and Silky's 2000 AP row exactly; weights recovered from those. */
@@ -79,9 +93,9 @@ public final class Powers {
 		return path == DamagePath.ABILITY ? Power.BIZARRE : Power.SILKY;
 	}
 
-	/** DERIVED: {@code floor(MP/10) + 13}, +13 from an attribute. 238 not 225: the extra 138 dungeon MP is 13 more. */
+	/** DERIVED: {@code floor(MP/10) + 13 + enrichments}, +13 from an attribute. */
 	public static int tuningPoints(double magicalPower) {
-		return (int) Math.floor(magicalPower / 10.0) + 13;
+		return (int) Math.floor(magicalPower / 10.0) + 13 + enrichments();
 	}
 
 	/** All points on Crit Damage, 1 point = +1. Flat, not dungeon-scaled. */

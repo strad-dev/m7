@@ -59,8 +59,6 @@ public final class Profile {
 				.plus(Stat.CRIT_DAMAGE, 50)      // base stat
 				.plus(Stat.CRIT_DAMAGE, 40)      // Critical IV potion
 				.plus(Stat.CRIT_DAMAGE, 40)      // Spirit IV potion
-				.plus(Stat.CRIT_DAMAGE, 60)      // Enrichments, non-dungeon talismans
-				.plus(Stat.CRIT_DAMAGE, 35.46)   // Enrichments, the 6 cata-buffed ones (no stars)
 				.plus(Stat.CRIT_DAMAGE, 50)      // Critical Essence
 				.plus(Stat.CRIT_DAMAGE, 16)      // Spider Slayer
 				.plus(Stat.CRIT_DAMAGE, 12)      // Beacon Effect

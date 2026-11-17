@@ -1,9 +1,9 @@
 package commands;
 
 /**
- * The six dungeon settings a run command may carry, shared by {@code /m7practice} and {@code /m7scenario}. Each is
+ * The five dungeon settings a run command may carry, shared by {@code /m7practice} and {@code /m7scenario}. Each is
  * optional: unset leaves the current setting, so standalone keeps its /dungeonsettings choice. The network always
- * sends all six, since every one is a server-wide global a run must not inherit from the last party.
+ * sends all five, since every one is a server-wide global a run must not inherit from the last party.
  */
 final class RunSettings {
 	// Difficulty decides whether anyone can die (both live modes kill) and picks the leaderboard.
@@ -15,16 +15,10 @@ final class RunSettings {
 	// The rest are prefixed ("badbonzo=on"), since a bare on/off is Fix Watcher Bug's.
 	plugin.BadBonzo badBonzo;
 	plugin.BatBug batBug;
-	plugin.AlphaGDrag alphaGDrag;
 
-	/** Records {@code arg} if it is one of the six; false if it isn't, so the caller reads it as its own. */
+	/** Records {@code arg} if it is one of the five; false if it isn't, so the caller reads it as its own. */
 	boolean accept(String arg) {
 		String lower = arg.toLowerCase();
-		if(lower.startsWith("alphagdrag=")) {
-			plugin.AlphaGDrag v = plugin.AlphaGDrag.parse(arg.substring("alphagdrag=".length()));
-			if(v != null) alphaGDrag = v;
-			return true;
-		}
 		if(lower.startsWith("batbug=")) {
 			plugin.BatBug v = plugin.BatBug.parse(arg.substring("batbug=".length()));
 			if(v != null) batBug = v;
@@ -68,7 +62,6 @@ final class RunSettings {
 		if(watcherFix != null) plugin.WatcherFix.set(watcherFix);
 		if(badBonzo != null) plugin.BadBonzo.set(badBonzo);
 		if(batBug != null) plugin.BatBug.set(batBug);
-		if(alphaGDrag != null) plugin.AlphaGDrag.set(alphaGDrag);
 		Practice.broadcastExperimentalSettings();
 	}
 }

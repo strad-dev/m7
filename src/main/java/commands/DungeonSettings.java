@@ -2,7 +2,6 @@ package commands;
 
 import damage.Difficulty;
 import damage.Mayor;
-import plugin.AlphaGDrag;
 import plugin.BadBonzo;
 import plugin.BatBug;
 import plugin.WatcherFix;
@@ -16,7 +15,7 @@ import org.jspecify.annotations.NonNull;
 import plugin.Utils;
 
 /**
- * {@code /dungeonsettings [difficulty [<mode>] | mayor [<jerry_paul|paul|jerry|other|derpy>] | watcherfix [<on|off>] | badbonzo [<on|off>] | batbug [<on|off>] | alphagdrag [<on|off>]]} - this server's
+ * {@code /dungeonsettings [difficulty [<mode>] | mayor [<jerry_paul|paul|jerry|other|derpy>] | watcherfix [<on|off>] | badbonzo [<on|off>] | batbug [<on|off>]]} - this server's
  * dungeon settings (MAP.md §0). No args prints them; a setting with no value steps it to the next value.
  * <p>
  * Four independent settings, any combination is valid:
@@ -48,7 +47,7 @@ import plugin.Utils;
  */
 public class DungeonSettings implements CommandExecutor {
 	private static final String USAGE =
-			"<red>Usage: /dungeonsettings [difficulty [" + modeIds() + "] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off] | batbug [on|off] | alphagdrag [on|off]]";
+			"<red>Usage: /dungeonsettings [difficulty [" + modeIds() + "] | mayor [jerry_paul|paul|jerry|other|derpy] | watcherfix [on|off] | badbonzo [on|off] | batbug [on|off]]";
 
 	/**
 	 * Typed mode names, joined from {@link Difficulty} so the usage line can't drift from the enum.
@@ -82,7 +81,6 @@ public class DungeonSettings implements CommandExecutor {
 			case "watcherfix" -> watcherFix(sender, args);
 			case "badbonzo" -> badBonzo(sender, args);
 			case "batbug" -> batBug(sender, args);
-			case "alphagdrag" -> alphaGDrag(sender, args);
 			default -> sender.sendMessage(Utils.msg(USAGE));
 		}
 		return true;
@@ -106,9 +104,6 @@ public class DungeonSettings implements CommandExecutor {
 		sender.sendMessage(Utils.msg("<dark_gray>- <gray>batbug: <yellow><value>  <dark_gray><desc>",
 				Placeholder.unparsed("value", BatBug.current().id()),
 				Placeholder.unparsed("desc", describe(BatBug.current()))));
-		sender.sendMessage(Utils.msg("<dark_gray>- <gray>alphagdrag: <yellow><value>  <dark_gray><desc>",
-				Placeholder.unparsed("value", AlphaGDrag.current().id()),
-				Placeholder.unparsed("desc", describe(AlphaGDrag.current()))));
 		sender.sendMessage(Utils.msg("<dark_gray>Change one with <white>/dungeonsettings <setting> [value]"));
 	}
 
@@ -229,28 +224,6 @@ public class DungeonSettings implements CommandExecutor {
 		Bukkit.broadcast(Utils.msg("<gray><desc>", Placeholder.unparsed("desc", describe(next))));
 	}
 
-	private static void alphaGDrag(CommandSender sender, String[] args) {
-		AlphaGDrag next;
-		if(args.length >= 2) {
-			next = AlphaGDrag.parse(args[1]);
-			if(next == null) {
-				sender.sendMessage(Utils.msg(USAGE));
-				return;
-			}
-			AlphaGDrag.set(next);
-		} else {
-			next = AlphaGDrag.toggle();
-		}
-		applyAlphaGDrag(next);
-	}
-
-	/** Announce Alpha GDrag Damage on/off. Same split and reason as {@link #applyDifficulty}. */
-	static void applyAlphaGDrag(AlphaGDrag next) {
-		Bukkit.broadcast(Utils.msg("<gold><bold>ALPHA GDRAG DAMAGE<reset><gray> is now <yellow><value>",
-				Placeholder.unparsed("value", next.id())));
-		Bukkit.broadcast(Utils.msg("<gray><desc>", Placeholder.unparsed("desc", describe(next))));
-	}
-
 	/** One line on what a value means. MiniMessage: inserted as a parsed placeholder. */
 	private static String describe(Difficulty d) {
 		return switch(d) {
@@ -271,13 +244,6 @@ public class DungeonSettings implements CommandExecutor {
 		return switch(w) {
 			case OFF -> "The Watcher waits for tick 420 before his second wave, like Hypixel.";
 			case ON -> "The Watcher starts his second wave 3s after returning to the center.";
-		};
-	}
-
-	private static String describe(AlphaGDrag a) {
-		return switch(a) {
-			case OFF -> "Golden Dragon gives +300 Strength.";
-			case ON -> "Golden Dragon gives +370 Strength.";
 		};
 	}
 

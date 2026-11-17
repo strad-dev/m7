@@ -135,7 +135,7 @@ public final class Stats {
 
 	/**
 	 * Ragnarock: +150% of the axe's own Strength for 10s (§1.7). The plan's "+939" is what this evaluates to, never a
-	 * constant. The full 626 counts, Chimera's +300 included (an ITEM source). Read off the axe's definition, not the
+	 * constant. The full 696 counts, Chimera's +370 included (an ITEM source). Read off the axe's definition, not the
 	 * hand, since the buff must keep applying after swapping to a hitting weapon.
 	 */
 	public static double ragnarockStrength(Player p, Pet pet) {

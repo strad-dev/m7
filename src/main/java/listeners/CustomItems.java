@@ -177,10 +177,15 @@ public class CustomItems implements Listener {
 
 	// ===================================== listeners =====================================
 
-	/** The Dungeonbreaker isn't unbreakable (its bar draws the charges), so vanilla wear never touches it. */
+	/**
+	 * The Dungeonbreaker and cheat-death masks aren't unbreakable (their bars draw charges / cooldown), so vanilla wear
+	 * never touches them. A mask on cooldown sits one below max, so the Storm bolt's armour wear broke it.
+	 */
 	@EventHandler
 	public void onItemDamage(PlayerItemDamageEvent e) {
 		if(items.tools.Dungeonbreaker.INSTANCE.matches(e.getItem())) e.setCancelled(true);
+		items.Wearable worn = items.ItemRegistry.wearable(e.getItem());
+		if(worn != null && worn.saver() != null) e.setCancelled(true);
 	}
 
 	@EventHandler
