@@ -9,3 +9,6 @@ PAPER_NMS_SETUP.md
 PUBLIC_SERVER.md
 MIGRATION_PLAYBOOK.md
 .paper-nms/
+
+# Paper's log4j writes here when a test touches NMS
+logs/
