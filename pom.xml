@@ -14,6 +14,9 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- Unit tests (src/test/java) don't run on a normal build; still COMPILED so they can't rot.
+             Run them with -DskipTests=false. -->
+        <skipTests>true</skipTests>
     </properties>
 
     <pluginRepositories>
@@ -92,6 +95,16 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Unit tests, same setup as StradDevHub: `mvn test -DskipTests=false`, `-Dtest=RoomsTest` for one. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <!-- See StradDevHub's pom: stops Paper's log4j2 config opening a JLine terminal. -->
+                    <argLine>-Dterminal.jline=false</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -101,6 +114,13 @@
             <artifactId>paper-nms</artifactId>
             <version>26.2.build.129-stable</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- Tests only. No server, no mock framework: tests call code that runs without one. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>6.1.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

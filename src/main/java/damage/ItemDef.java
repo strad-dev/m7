@@ -185,7 +185,7 @@ public final class ItemDef {
 			return this;
 		}
 
-		/** Non-dungeon: neither x6.65 nor x1.80 applies (§1.0.3). */
+		/** Non-dungeon: neither x6.66 nor x1.81 applies (§1.0.3). */
 		public Builder notDungeon() {
 			this.dungeonItem = false;
 			return this;

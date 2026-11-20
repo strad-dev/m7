@@ -7,8 +7,8 @@ package damage;
  * Mage's set is path-dependent, one reason the stat cache is keyed {@code (player, path)}: Soulweaver Gloves (beam)
  * and Manticore Claw (ability) share a slot, and the Balloon Snake changes reforge with them.
  * <p>
- * Plain SkyBlock numbers; x6.65 is applied as a stage like items. Exception: Manticore Claw isn't a dungeon item, so
- * its 20 / 37.5 / 3 stay flat, and its Ability Damage isn't starred so no x1.80 either.
+ * Plain SkyBlock numbers; x6.66 is applied as a stage like items. Exception: Manticore Claw isn't a dungeon item, so
+ * its 20 / 37.5 / 3 stay flat, and its Ability Damage isn't starred so no x1.81 either.
  * <p>
  * Reforge terms are inline, not looked up: §2.1 says the equipment reforge table is "only needed if equipment
  * reforges ever change", since §1.11 publishes resolved per-piece values. They differ by unpublished rarity

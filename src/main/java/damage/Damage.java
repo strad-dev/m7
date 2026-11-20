@@ -24,7 +24,7 @@ import java.util.Set;
  *
  * ability = BaseDamage x (1 + (Intelligence/100) x AbilityScaling) x (1 + AbilityDamage/100)
  *         x (1 + sumAdditive/100) x product(Multiplicative_i)             // no Strength, no Crit Damage
- *           where BaseDamage is the authored figure x SB_CATA_MULT on a dungeon item (66,500 for Wither Impact)
+ *           where BaseDamage is the authored figure x SB_CATA_MULT on a dungeon item (66,600 for Wither Impact)
  *
  * mageBeam = melee x (0.30 + 0.0009 x Intelligence)                       // the Mage Staff passive
  * </pre>
@@ -216,7 +216,7 @@ public final class Damage {
 
 	/**
 	 * Right-click ability: no Strength, no Crit Damage. Intended as an option, not a damage strategy. Base takes the
-	 * Catacombs bonus ({@link Scale#SB_CATA_MULT}) like item stats; skipping it made every ability 6.65x too weak.
+	 * Catacombs bonus ({@link Scale#SB_CATA_MULT}) like item stats; skipping it made every ability 6.66x too weak.
 	 */
 	public static double ability(Player p, LivingEntity target, ItemStack weapon) {
 		ItemDef def = Items.of(weapon);
@@ -262,7 +262,7 @@ public final class Damage {
 
 	/**
 	 * Base after the dungeon stage: a DUNGEON item's wiki figure takes the Catacombs bonus (§7), as in
-	 * {@link ItemDef#stats}. Authored {@code 10_000} stays the overworld tooltip; Wither Impact casts from 66,500.
+	 * {@link ItemDef#stats}. Authored {@code 10_000} stays the overworld tooltip; Wither Impact casts from 66,600.
 	 */
 	static double abilityBase(ItemDef def) {
 		double base = def.ability().baseDamage();

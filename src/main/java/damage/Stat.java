@@ -1,8 +1,8 @@
 package damage;
 
 /**
- * Stats the damage system reads (MAP.md §1). {@link #core} = the four core stats (§1.0.1) that take the full x6.65;
- * the rest take stars-only x1.80 (§1.0.2). Crit Chance is only stored because reforges grant it; §7 makes every hit
+ * Stats the damage system reads (MAP.md §1). {@link #core} = the four core stats (§1.0.1) that take the full x6.66;
+ * the rest take stars-only x1.81 (§1.0.2). Crit Chance is only stored because reforges grant it; §7 makes every hit
  * a crit.
  */
 public enum Stat {

@@ -195,7 +195,7 @@ public final class Items {
 				.build());
 
 		// ============================== Death Bow - Precise ==============================
-		// DUNGEON bow (Ophelia, after Floor VI), so x6.65. Overload not Critical (a sword enchant). Swarm V, the one
+		// DUNGEON bow (Ophelia, after Floor VI), so x6.66. Overload not Critical (a sword enchant). Swarm V, the one
 		// bow not on Duplex. Its x2 vs Undead is a MULTIPLICATIVE source in damage/Damage; arrow bounce unmodelled.
 		register(ItemDef.of("Precise Death Bow", ItemCategory.RANGED)
 				.loreId("skyblock/combat/death_bow").rarity(Rarity.EPIC)
@@ -207,7 +207,7 @@ public final class Items {
 
 		// ============================== §1.10 Armour ==============================
 		// No armour piece has a Damage stat.
-		// Necron Head Bonus x2 ALWAYS applies (M7 only). Doubles only the helmet's own stats and commutes with x6.65.
+		// Necron Head Bonus x2 ALWAYS applies (M7 only). Doubles only the helmet's own stats and commutes with x6.66.
 		// SPECIAL, not Legendary: it's red and colour is DERIVED from rarity (Rarity.colour). Special never recombs,
 		// so effective is SPECIAL too, the row Reforges holds for Ancient/ARMOR/SPECIAL.
 		register(ItemDef.of("Ancient Diamond Necron Head", ItemCategory.ARMOR)

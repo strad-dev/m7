@@ -15,7 +15,7 @@ public record StatTerm(Source source, Stat stat, double value) {
 	public enum Source {
 		/** As the wiki prints it. */
 		BASE,
-		/** Itemised beside base so x6.65 stays a pipeline stage. */
+		/** Itemised beside base so x6.66 stays a pipeline stage. */
 		CATA_LEVEL,
 		/** Non-dungeon star bonus, flat since nothing scales it (§1.0.3). */
 		STARS,

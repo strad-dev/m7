@@ -14,7 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
  *   <li>{@link #damageAdditive} - damage-level additive %, e.g. Golden Dragon +250% (§7).</li>
  * </ul>
  * Chimera stacks with the pet (§1.13): V copies BASE stats at 100%, so Golden Dragon +370 Strength plus Chimera's
- * +370. No second +5%. Chimera's copy lands on the WEAPON and is cata-scaled (x6.65) while the pet's own isn't, which
+ * +370. No second +5%. Chimera's copy lands on the WEAPON and is cata-scaled (x6.66) while the pet's own isn't, which
  * is why the Mage wants the Golden Dragon and the Archer (Duplex, not Chimera) barely cares (§7 pet cross-check).
  */
 public enum Pet {

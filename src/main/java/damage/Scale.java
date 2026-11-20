@@ -17,24 +17,24 @@ public final class Scale {
 	 * Catacombs scaling for the four core stats on a DUNGEON item (§1.0.1), stars and cata level together, so
 	 * authored terms are plain unscaled values.
 	 * <p>
-	 * 6.65, not 6.66: the General's Medallion nerf took 0.01x off every stat, moving this and {@link #SB_STAR_MULT}
+	 * 6.66: Hypixel reverted the General's Medallion nerf (6.65 / 1.80), putting this and {@link #SB_STAR_MULT} back
 	 * together. Both measured, not derived; if the medallion moves they move.
 	 * <p>
 	 * Also applies to an ABILITY'S BASE DAMAGE (§7); the wiki lists the base as "increased by Catacombs Stat Bonus".
 	 * Wither Impact's tooltip is {@code base x (1 + Int/100 x 0.3) x (1 + AbilityDamage/100)}, so dividing out the
-	 * factors recovers the base: 10,000 outside, 66,500 = 10,000 x 6.65 inside:
+	 * factors recovers the base: 10,000 outside, 10,000 x the multiplier inside (measured under the nerf, 6.65):
 	 * <pre>
 	 * Int  6,175.88  AbilityDamage 144.5  ->    477,450.6  = 10,000 x  47.745
 	 * Int  3,390.55  AbilityDamage  90    ->    212,261.4  = 10,000 x  21.226
 	 * Int 17,695.39  AbilityDamage 134    ->  8,416,350.1  = 66,500 x 126.562
 	 * Int 23,403.71  AbilityDamage 220    -> 15,153,727.7  = 66,500 x 227.876
 	 * </pre>
-	 * The base used to skip this, understating EVERY ability 6.65x: Wither Impact read ~65M on a 300M Wither Miner
+	 * The base used to skip this, understating EVERY ability ~6.66x: Wither Impact read ~65M on a 300M Wither Miner
 	 * where a real M7 Mage does hundreds of millions. Applied only in {@link Damage#abilityBase}.
 	 */
 	public static final double SB_CATA_MULT = 6.66;
 
-	/** Stars-only scaling for non-core dungeon stats (§1.0.2), e.g. Ability Damage. 1.80 not 1.81, same nerf. */
+	/** Stars-only scaling for non-core dungeon stats (§1.0.2), e.g. Ability Damage. 1.80 during the nerf. */
 	public static final double SB_STAR_MULT = 1.81;
 
 	/** Boss / mini-boss flat x0.1 on top of defense (§5). Without it the chain is 10x too fast. */

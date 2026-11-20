@@ -9,7 +9,7 @@ import java.util.Map;
  * <p>
  * Everything derives from ONE input, the accessory list; §1.12 says hardcoding MP or tunings loses that.
  * <p>
- * Not dungeon items, so no x6.65 or x1.80.
+ * Not dungeon items, so no x6.66 or x1.81.
  */
 public final class Powers {
 	private Powers() {}

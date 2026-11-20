@@ -22,7 +22,7 @@ public final class GuidedSheep implements ClassAbility {
 
 	/**
 	 * Flat and low: comes only from Mage class level (no Intelligence, Ability Damage or gear), which is why it's
-	 * weak at endgame while Wither Impact from the same Mage casts from 66,500 and lands in the hundreds of
+	 * weak at endgame while Wither Impact from the same Mage casts from 66,600 and lands in the hundreds of
 	 * millions. 410,025 is the owner's measured hit at Mage 50; the wiki gives only per-level increments
 	 * ("+100-2000" per level, "+500-10000" on its Dungeons page) and the pages disagree.
 	 * <p>
