@@ -15,10 +15,7 @@ public final class Powers {
 	private Powers() {}
 
 	/** Accessory bag MP OUTSIDE a dungeon, including one copy of each dungeon accessory below. The maximum. */
-	private static final double OVERWORLD_ACCESSORY_MP = 2202;
-
-	/** Catacombs Gobbler's own copy, on top of the maximum. Its dungeon doubling is in the map below. */
-	private static final double CATACOMBS_GOBBLER_MP = 16;
+	private static final double OVERWORLD_ACCESSORY_MP = 2206;
 
 	/** Enriched non-dungeon accessories. Each enrichment is +1 tuning point, never a stat. */
 	private static final int OVERWORLD_ENRICHMENTS = 61;
@@ -46,7 +43,7 @@ public final class Powers {
 	public static double magicalPower() {
 		double bonus = 0;
 		for(double mp : DUNGEON_ACCESSORIES.values()) bonus += mp;
-		return OVERWORLD_ACCESSORY_MP + CATACOMBS_GOBBLER_MP + bonus;
+		return OVERWORLD_ACCESSORY_MP + bonus;
 	}
 
 	/** Legendary and up can be enriched: the 61 plus the Legendary+ dungeon accessories. */
