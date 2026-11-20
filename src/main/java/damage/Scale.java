@@ -32,10 +32,10 @@ public final class Scale {
 	 * The base used to skip this, understating EVERY ability 6.65x: Wither Impact read ~65M on a 300M Wither Miner
 	 * where a real M7 Mage does hundreds of millions. Applied only in {@link Damage#abilityBase}.
 	 */
-	public static final double SB_CATA_MULT = 6.65;
+	public static final double SB_CATA_MULT = 6.66;
 
 	/** Stars-only scaling for non-core dungeon stats (§1.0.2), e.g. Ability Damage. 1.80 not 1.81, same nerf. */
-	public static final double SB_STAR_MULT = 1.80;
+	public static final double SB_STAR_MULT = 1.81;
 
 	/** Boss / mini-boss flat x0.1 on top of defense (§5). Without it the chain is 10x too fast. */
 	public static final double BOSS_RESISTANCE = 0.10;
